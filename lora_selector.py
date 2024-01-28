@@ -1,4 +1,5 @@
 import folder_paths
+import json
 
 class LoraSelectorNode:
     @classmethod
@@ -12,10 +13,11 @@ class LoraSelectorNode:
             },
         }
 
-    RETURN_TYPES = ("STRING", "INT")
-    RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS")
+    RETURN_TYPES = ("STRING", "INT",)
+    RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS",)
     FUNCTION = "process_lora_strength"
     CATEGORY = "sn0w"
+    OUTPUT_NODE = True
 
     def process_lora_strength(self, lora, lora_strength, highest_lora, total_loras):
         # Extract the lora string from the file path
@@ -28,14 +30,24 @@ class LoraSelectorNode:
         # Calculate the strength increase
         strength_increase = round(highest_lora / total_loras)
 
-        # Append the lora strings with incremented strength
+        # Append the lora strings with incremented strength, capped at highest_lora
         lora_strings = [
-            f"<lora:{lora_name}-{str(initial_strength + i * strength_increase).zfill(len(lora_code))}:{lora_strength:.1f}>"
+            f"<lora:{lora_name}-{str(min(initial_strength + i * strength_increase, highest_lora)).zfill(len(lora_code))}:{lora_strength:.1f}>"
             for i in range(total_loras)
         ]
 
         # Join the lora strings into a single string separated by semicolons
         lora_output = ';'.join(lora_strings)
 
-        return (lora_output, total_loras,)
+        value = 'None'
+        if lora_output is not None:
+            try:
+                value = json.dumps(lora_output)
+            except Exception:
+                try:
+                    value = str(lora_output)
+                except Exception:
+                    value = 'source exists, but could not be serialized.'
+
+        return (lora_output, total_loras,{"ui": {"text": (value,)}},)
 
