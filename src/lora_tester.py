@@ -1,8 +1,6 @@
-from PIL import Image
-import torch
 from nodes import KSampler, VAEDecode, VAEEncode, EmptyLatentImage, CLIPTextEncode
 from custom_nodes.comfyui_lora_tag_loader.nodes import LoraTagLoader
-from custom_nodes.was.WAS_Node_Suite import WAS_Image_Batch
+from .image_batch import WAS_Image_Batch
 from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel
 import comfy.samplers
 

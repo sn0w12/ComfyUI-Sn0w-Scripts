@@ -1,10 +1,10 @@
-from .find_resolution import FindResolutionNode
-from .split_string import SplitStringNode
-from .lora_selector import LoraSelectorNode
-from .lora_tester_xl import LoraTestXLNode
-from .lora_tester import LoraTestNode
-from .character_select import CharacterSelectNode
-from .prompt_combine import CombineStringNode
+from .src.find_resolution import FindResolutionNode
+from .src.split_string import SplitStringNode
+from .src.lora_selector import LoraSelectorNode
+from .src.lora_tester_xl import LoraTestXLNode
+from .src.lora_tester import LoraTestNode
+from .src.character_select import CharacterSelectNode
+from .src.prompt_combine import CombineStringNode
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,

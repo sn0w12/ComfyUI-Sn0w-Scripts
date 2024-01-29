@@ -6,6 +6,7 @@ class CharacterSelectNode:
     def INPUT_TYPES(cls):
         # Get the directory of the current script
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        dir_path = dir_path.replace("\\src", "")
         # Construct the full path to the JSON file
         json_path = os.path.join(dir_path, 'characters.json')
 
@@ -31,6 +32,7 @@ class CharacterSelectNode:
         
     def find_associated_string(self, character, character_strength, character_pronpt):
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        dir_path = dir_path.replace("\\src", "")
         json_path = os.path.join(dir_path, 'characters.json')
 
         with open(json_path, 'r') as file:
