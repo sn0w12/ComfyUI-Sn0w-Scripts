@@ -1,10 +1,12 @@
-from nodes import KSampler, VAEDecode, VAEEncode, EmptyLatentImage
+from PIL import Image
+import torch
+from nodes import KSampler, VAEDecode, VAEEncode, EmptyLatentImage, CLIPTextEncode
 from custom_nodes.comfyui_lora_tag_loader.nodes import LoraTagLoader
-from .image_batch import WAS_Image_Batch
-from comfy_extras.nodes_clip_sdxl import CLIPTextEncodeSDXL
+from custom_nodes.was.WAS_Node_Suite import WAS_Image_Batch
+from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel
 import comfy.samplers
 
-class LoraTestXLNode:
+class LoraTestNode:
     @classmethod
     def INPUT_TYPES(s):
         return {"required":
@@ -22,6 +24,8 @@ class LoraTestXLNode:
                     "negative": ("STRING", {"default": ""}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "lora_info": ("STRING", {"default": ""}),
+                    "hires": ("BOOLEAN", {"default": False},),
+                    "upscale_model": ("UPSCALE_MODEL",),
                      }
                 }
 
@@ -31,12 +35,14 @@ class LoraTestXLNode:
 
     CATEGORY = "sampling"
 
-    def sample(self, model, clip, vae, seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, denoise, lora_info):
+    def sample(self, model, clip, vae, seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, denoise, lora_info, hires, upscale_model):
         k_sampler_node = KSampler()
         vae_decode = VAEDecode()
-        text_encode_xl = CLIPTextEncodeSDXL()
+        vae_encode = VAEEncode()
+        text_encode = CLIPTextEncode()
         lora_loader = LoraTagLoader()
         image_batcher = WAS_Image_Batch()
+        upscaler = ImageUpscaleWithModel()
 
         latent_image = EmptyLatentImage().generate(width, height)[0]
 
@@ -46,13 +52,19 @@ class LoraTestXLNode:
         for lora in loras:
             modified_model, modified_clip, lora_text = lora_loader.load_lora(model, clip, lora)
 
-            positive_prompt = text_encode_xl.encode(modified_clip, width, height, 0, 0, width, height, positive, positive)[0]
-            negative_prompt = text_encode_xl.encode(modified_clip, width, height, 0, 0, width, height, negative, negative)[0]
+            positive_prompt = text_encode.encode(modified_clip, positive)[0]
+            negative_prompt = text_encode.encode(modified_clip, negative)[0]
 
             # Sampling
             samples = k_sampler_node.sample(modified_model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
             # Decode the samples
             image = vae_decode.decode(vae, samples)[0]
+
+            if (hires):
+                upscaled_image = upscaler.upscale(upscale_model, image)
+                upscaled_latent = vae_encode.encode(vae, upscaled_image)[0]
+                upscaled_samples = k_sampler_node.sample(modified_model, seed, 7, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 0.8)[0]
+                image = vae_decode.decode(vae, upscaled_samples)[0]
 
             images.append(image)
 

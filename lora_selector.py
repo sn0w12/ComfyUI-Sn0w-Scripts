@@ -39,15 +39,5 @@ class LoraSelectorNode:
         # Join the lora strings into a single string separated by semicolons
         lora_output = ';'.join(lora_strings)
 
-        value = 'None'
-        if lora_output is not None:
-            try:
-                value = json.dumps(lora_output)
-            except Exception:
-                try:
-                    value = str(lora_output)
-                except Exception:
-                    value = 'source exists, but could not be serialized.'
-
-        return (lora_output, total_loras,{"ui": {"text": (value,)}},)
+        return (lora_output, total_loras,)
 
