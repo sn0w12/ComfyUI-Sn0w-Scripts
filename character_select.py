@@ -40,13 +40,13 @@ class CharacterSelectNode:
             if char_item['name'] == character:
                 if character_strength == 1:
                     if(character_pronpt):
-                        return (char_item['associated_string'], char_item['prompt'], )
+                        return (f"{char_item['associated_string']}, ", char_item['prompt'], )
                     else:
-                        return (char_item['associated_string'], )
+                        return (f"{char_item['associated_string']}, ", "", )
                 else:
                     if(character_pronpt):
-                        return (f"({char_item['associated_string']}:{character_strength})", char_item['prompt'], )
+                        return (f"({char_item['associated_string']}:{character_strength}), ", char_item['prompt'], )
                     else:
-                        return (f"({char_item['associated_string']}:{character_strength})", )
+                        return (f"({char_item['associated_string']}:{character_strength}), ", "", )
 
         return (None,)  # Return a tuple if character not found

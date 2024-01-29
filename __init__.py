@@ -3,7 +3,8 @@ from .split_string import SplitStringNode
 from .lora_selector import LoraSelectorNode
 from .lora_tester_xl import LoraTestXLNode
 from .lora_tester import LoraTestNode
-from.character_select import CharacterSelectNode
+from .character_select import CharacterSelectNode
+from .prompt_combine import CombineStringNode
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -11,7 +12,8 @@ NODE_CLASS_MAPPINGS = {
     "Lora Selector": LoraSelectorNode,
     "Lora Tester XL": LoraTestXLNode,
     "Lora Tester": LoraTestNode,
-    "Character Selector": CharacterSelectNode
+    "Character Selector": CharacterSelectNode,
+    "Prompt Combine": CombineStringNode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -21,4 +23,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Lora Tester XL": "Lora Tester XL",
     "Lora Tester": "Lora Tester",
     "Character Selector": "Character Selector",
+    "Prompt Combine": "Prompt Combine",
 }
