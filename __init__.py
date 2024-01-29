@@ -8,6 +8,7 @@ from .src.prompt_combine import CombineStringNode
 from .src.simple_sampler_xl import SimpleSamplerXlNode
 from .src.lora_stacker import LoraStackerNode
 from .src.load_lora_xl import LoraLoraXLNode
+from .src.load_lora_15 import LoraLora15Node
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -20,6 +21,7 @@ NODE_CLASS_MAPPINGS = {
     "Simple Sampler XL": SimpleSamplerXlNode,
     "Lora Stacker": LoraStackerNode,
     "Load Lora XL": LoraLoraXLNode,
+    "Load Lora 1.5": LoraLora15Node,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -33,4 +35,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Simple Sampler XL": "Simple Sampler XL",
     "Lora Stacker": "Lora Stacker",
     "Load Lora XL": "Load Lora XL",
+    "Load Lora 1.5": "Load Lora 1.5",
 }
