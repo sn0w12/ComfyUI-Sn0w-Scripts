@@ -1,5 +1,4 @@
-from nodes import KSampler, VAEDecode, VAEEncode, EmptyLatentImage
-from custom_nodes.comfyui_lora_tag_loader.nodes import LoraTagLoader
+from nodes import KSampler, VAEDecode, VAEEncode, EmptyLatentImage, LoraLoader
 from .image_batch import WAS_Image_Batch
 from comfy_extras.nodes_clip_sdxl import CLIPTextEncodeSDXL
 import comfy.samplers
@@ -36,7 +35,7 @@ class LoraTestXLNode:
         k_sampler_node = KSampler()
         vae_decode = VAEDecode()
         text_encode_xl = CLIPTextEncodeSDXL()
-        lora_loader = LoraTagLoader()
+        lora_loader = LoraLoader()
         image_batcher = WAS_Image_Batch()
 
         latent_image = EmptyLatentImage().generate(width, height)[0]
@@ -45,7 +44,17 @@ class LoraTestXLNode:
         images = []
 
         for lora in loras:
-            modified_model, modified_clip, lora_text = lora_loader.load_lora(model, clip, lora)
+            # Remove the leading '<lora:' and trailing '>'
+            trimmed_string = lora[6:-1]
+
+            # Split the string by ':' to separate the Lora name and strength
+            parts = trimmed_string.split(':')
+
+            # Extract the Lora name and strength
+            lora_name = parts[0]
+            lora_strength = float(parts[1]) if len(parts) > 1 else None
+
+            modified_model, modified_clip = lora_loader.load_lora(model, clip, lora_name, lora_strength, lora_strength)
 
             positive_prompt = text_encode_xl.encode(modified_clip, width, height, 0, 0, width, height, positive, positive)[0]
             negative_prompt = text_encode_xl.encode(modified_clip, width, height, 0, 0, width, height, negative, negative)[0]
