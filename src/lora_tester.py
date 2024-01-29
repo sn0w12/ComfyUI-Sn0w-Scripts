@@ -1,4 +1,4 @@
-from nodes import KSampler, VAEDecode, VAEEncode, EmptyLatentImage, CLIPTextEncode
+from nodes import KSampler, KSamplerAdvanced, VAEDecode, VAEEncode, EmptyLatentImage, CLIPTextEncode
 from custom_nodes.comfyui_lora_tag_loader.nodes import LoraTagLoader
 from .image_batch import WAS_Image_Batch
 from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel
@@ -35,6 +35,7 @@ class LoraTestNode:
 
     def sample(self, model, clip, vae, seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, denoise, lora_info, hires, upscale_model):
         k_sampler_node = KSampler()
+        k_sampleradvanced_node = KSamplerAdvanced()
         vae_decode = VAEDecode()
         vae_encode = VAEEncode()
         text_encode = CLIPTextEncode()
@@ -55,14 +56,17 @@ class LoraTestNode:
 
             # Sampling
             samples = k_sampler_node.sample(modified_model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
-            # Decode the samples
-            image = vae_decode.decode(vae, samples)[0]
 
             if (hires):
-                upscaled_image = upscaler.upscale(upscale_model, image)
+                # Decode the samples
+                image = vae_decode.decode(vae, samples)[0] 
+
+                upscaled_image = upscaler.upscale(upscale_model, image)[0]
                 upscaled_latent = vae_encode.encode(vae, upscaled_image)[0]
-                upscaled_samples = k_sampler_node.sample(modified_model, seed, 7, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 0.8)[0]
-                image = vae_decode.decode(vae, upscaled_samples)[0]
+                upscaled_samples = k_sampleradvanced_node.sample(modified_model, "enable", seed, 30, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 17, 1000, "disable")[0]
+                image = vae_decode.decode(vae, upscaled_samples)
+            else:
+                image = vae_decode.decode(vae, samples)
 
             images.append(image)
 

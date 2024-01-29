@@ -5,6 +5,7 @@ from .src.lora_tester_xl import LoraTestXLNode
 from .src.lora_tester import LoraTestNode
 from .src.character_select import CharacterSelectNode
 from .src.prompt_combine import CombineStringNode
+from .src.simple_sampler_xl import SimpleSamplerXlNode
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -13,7 +14,8 @@ NODE_CLASS_MAPPINGS = {
     "Lora Tester XL": LoraTestXLNode,
     "Lora Tester": LoraTestNode,
     "Character Selector": CharacterSelectNode,
-    "Prompt Combine": CombineStringNode
+    "Prompt Combine": CombineStringNode,
+    "Simple Sampler XL": SimpleSamplerXlNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -24,4 +26,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Lora Tester": "Lora Tester",
     "Character Selector": "Character Selector",
     "Prompt Combine": "Prompt Combine",
+    "Simple Sampler XL": "Simple Sampler XL",
 }
