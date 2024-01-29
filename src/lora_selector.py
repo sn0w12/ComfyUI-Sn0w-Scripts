@@ -10,6 +10,7 @@ class LoraSelectorNode:
                 "lora_strength": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01}),
                 "highest_lora": ("INT", {"default": 0, "min": 0}),
                 "total_loras": ("INT", {"default": 0, "min": 0}),
+                "add_default_generation": ("BOOLEAN", {"default": False},),
             },
         }
 
@@ -19,7 +20,7 @@ class LoraSelectorNode:
     CATEGORY = "sn0w"
     OUTPUT_NODE = True
 
-    def process_lora_strength(self, lora, lora_strength, highest_lora, total_loras):
+    def process_lora_strength(self, lora, lora_strength, highest_lora, total_loras, add_default_generation):
         # Extract the lora string from the file path
         lora_string = lora.split('\\')[-1].replace('.safetensors', '')
 
@@ -38,6 +39,9 @@ class LoraSelectorNode:
 
         # Join the lora strings into a single string separated by semicolons
         lora_output = ';'.join(lora_strings)
+
+        if (add_default_generation):
+            total_loras += 1
 
         return (lora_output, total_loras,)
 

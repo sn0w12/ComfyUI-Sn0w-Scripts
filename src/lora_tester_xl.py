@@ -22,6 +22,7 @@ class LoraTestXLNode:
                     "negative": ("STRING", {"default": ""}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "lora_info": ("STRING", {"default": ""}),
+                    "add_default_generation": ("BOOLEAN", {"default": False},),
                      }
                 }
 
@@ -31,7 +32,7 @@ class LoraTestXLNode:
 
     CATEGORY = "sampling"
 
-    def sample(self, model, clip, vae, seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, denoise, lora_info):
+    def sample(self, model, clip, vae, seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, denoise, lora_info, add_default_generation):
         k_sampler_node = KSampler()
         vae_decode = VAEDecode()
         text_encode_xl = CLIPTextEncodeSDXL()
@@ -51,6 +52,17 @@ class LoraTestXLNode:
 
             # Sampling
             samples = k_sampler_node.sample(modified_model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
+            # Decode the samples
+            image = vae_decode.decode(vae, samples)[0]
+
+            images.append(image)
+
+        if (add_default_generation):
+            positive_prompt = text_encode_xl.encode(clip, width, height, 0, 0, width, height, positive, positive)[0]
+            negative_prompt = text_encode_xl.encode(clip, width, height, 0, 0, width, height, negative, negative)[0]
+
+            # Sampling
+            samples = k_sampler_node.sample(model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
             # Decode the samples
             image = vae_decode.decode(vae, samples)[0]
 
