@@ -57,17 +57,6 @@ class LoraTestXLNode:
 
             images.append(image)
 
-        if (add_default_generation):
-            positive_prompt = text_encode_xl.encode(clip, width, height, 0, 0, width, height, positive, positive)[0]
-            negative_prompt = text_encode_xl.encode(clip, width, height, 0, 0, width, height, negative, negative)[0]
-
-            # Sampling
-            samples = k_sampler_node.sample(model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
-            # Decode the samples
-            image = vae_decode.decode(vae, samples)[0]
-
-            images.append(image)
-
         # Dynamically construct kwargs for image_batch
         image_batch_kwargs = {f"images_{chr(97 + i)}": image for i, image in enumerate(images)}
 

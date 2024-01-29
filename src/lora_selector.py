@@ -14,8 +14,8 @@ class LoraSelectorNode:
             },
         }
 
-    RETURN_TYPES = ("STRING", "INT",)
-    RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS",)
+    RETURN_TYPES = ("STRING", "INT","BOOLEAN",)
+    RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS","ADD_DEFAULT_GENERATION",)
     FUNCTION = "process_lora_strength"
     CATEGORY = "sn0w"
     OUTPUT_NODE = True
@@ -24,24 +24,28 @@ class LoraSelectorNode:
         # Extract the lora string from the file path
         lora_string = lora.split('\\')[-1].replace('.safetensors', '')
 
-        # Split the string by "-"
+        # Extract the initial strength from the lora string
         lora_name, lora_code = lora_string.split('-')
         initial_strength = int(lora_code.lstrip('0') or '0')  # Convert to int, handle leading zeros
 
-        # Calculate the strength increase
-        strength_increase = round(highest_lora / total_loras)
+        # Determine the range and increment for each lora strength
+        strength_range = highest_lora - initial_strength
+        strength_increment = max(1, round(strength_range / (total_loras - 1))) if total_loras > 1 else 0
 
-        # Append the lora strings with incremented strength, capped at highest_lora
-        lora_strings = [
-            f"<lora:{lora_name}-{str(min(initial_strength + i * strength_increase, highest_lora)).zfill(len(lora_code))}:{lora_strength:.1f}>"
-            for i in range(total_loras)
-        ]
+        # Generate the lora strings
+        lora_strings = []
+        for i in range(total_loras):
+            current_strength = min(initial_strength + i * strength_increment, highest_lora)
+            lora_strength_string = str(current_strength).zfill(len(lora_code))
+            lora_strings.append(f"<lora:{lora_name}-{lora_strength_string}:{lora_strength:.1f}>")
 
+        # Handle additional generation if required
+        if add_default_generation:
+            total_loras += 1
+            lora_strings.append("Nothing")
+                
         # Join the lora strings into a single string separated by semicolons
         lora_output = ';'.join(lora_strings)
 
-        if (add_default_generation):
-            total_loras += 1
-
-        return (lora_output, total_loras,)
+        return (lora_output, total_loras, add_default_generation,)
 
