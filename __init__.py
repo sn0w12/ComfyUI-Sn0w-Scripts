@@ -6,7 +6,8 @@ from .src.lora_tester import LoraTestNode
 from .src.character_select import CharacterSelectNode
 from .src.prompt_combine import CombineStringNode
 from .src.simple_sampler_xl import SimpleSamplerXlNode
-from.src.lora_stacker import LoraStackerNode
+from .src.lora_stacker import LoraStackerNode
+from .src.load_lora_xl import LoraLoraXLNode
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -18,6 +19,7 @@ NODE_CLASS_MAPPINGS = {
     "Prompt Combine": CombineStringNode,
     "Simple Sampler XL": SimpleSamplerXlNode,
     "Lora Stacker": LoraStackerNode,
+    "Load Lora XL": LoraLoraXLNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -30,4 +32,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Prompt Combine": "Prompt Combine",
     "Simple Sampler XL": "Simple Sampler XL",
     "Lora Stacker": "Lora Stacker",
+    "Load Lora XL": "Load Lora XL",
 }

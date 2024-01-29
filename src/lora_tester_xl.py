@@ -2,6 +2,7 @@ from nodes import KSampler, VAEDecode, VAEEncode, EmptyLatentImage, LoraLoader
 from .image_batch import WAS_Image_Batch
 from comfy_extras.nodes_clip_sdxl import CLIPTextEncodeSDXL
 import comfy.samplers
+import folder_paths
 
 class LoraTestXLNode:
     @classmethod
@@ -40,24 +41,34 @@ class LoraTestXLNode:
 
         latent_image = EmptyLatentImage().generate(width, height)[0]
 
+        full_loras_list = folder_paths.get_filename_list("loras")
+
         loras = lora_info.split(";")
         images = []
 
         for lora in loras:
-            # Remove the leading '<lora:' and trailing '>'
-            trimmed_string = lora[6:-1]
+            # Skip empty or improperly formatted lora strings
+            if lora.startswith("<lora:"):
+                trimmed_string = lora[6:-1]
+                parts = trimmed_string.split(':')
 
-            # Split the string by ':' to separate the Lora name and strength
-            parts = trimmed_string.split(':')
+                if len(parts) < 2 or not parts[1]:
+                    continue  # Skip if lora string is incomplete or strength is missing
 
-            # Extract the Lora name and strength
-            lora_name = parts[0]
-            lora_strength = float(parts[1]) if len(parts) > 1 else None
+                lora_name_suffix = parts[0] + ".safetensors"
+                lora_strength = float(parts[1])
 
-            modified_model, modified_clip = lora_loader.load_lora(model, clip, lora_name, lora_strength, lora_strength)
+                # Find the full path of the lora
+                full_lora_path = next((full_path for full_path in full_loras_list if lora_name_suffix in full_path), None)
 
-            positive_prompt = text_encode_xl.encode(modified_clip, width, height, 0, 0, width, height, positive, positive)[0]
-            negative_prompt = text_encode_xl.encode(modified_clip, width, height, 0, 0, width, height, negative, negative)[0]
+                if full_lora_path:
+                    modified_model, modified_clip = lora_loader.load_lora(model, clip, full_lora_path, lora_strength, lora_strength)
+
+                positive_prompt = text_encode_xl.encode(modified_clip, width, height, 0, 0, width, height, positive, positive)[0]
+                negative_prompt = text_encode_xl.encode(modified_clip, width, height, 0, 0, width, height, negative, negative)[0]
+            else:
+                positive_prompt = text_encode_xl.encode(clip, width, height, 0, 0, width, height, positive, positive)[0]
+                negative_prompt = text_encode_xl.encode(clip, width, height, 0, 0, width, height, negative, negative)[0]
 
             # Sampling
             samples = k_sampler_node.sample(modified_model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
