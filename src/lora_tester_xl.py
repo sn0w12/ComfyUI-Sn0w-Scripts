@@ -26,8 +26,8 @@ class LoraTestXLNode:
                      }
                 }
 
-    RETURN_TYPES = ("IMAGE", "INT")
-    RETURN_NAMES = ("IMAGES", "FONT_SIZE")
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("IMAGES",)
     FUNCTION = "sample"
 
     CATEGORY = "sampling"
@@ -84,34 +84,6 @@ class LoraTestXLNode:
         # Dynamically construct kwargs for image_batch
         image_batch_kwargs = {f"images_{chr(97 + i)}": image for i, image in enumerate(images)}
 
-        longest_string = max(loras, key=len)
-        font_char = len(longest_string)
-
-        font_size = self.estimate_font_size(width, font_char, 50, 50)
-
         # Using WAS_Image_Batch to batch the images together
         batched_images = image_batcher.image_batch(**image_batch_kwargs)
-        return (batched_images, font_size)
-
-    def estimate_font_size(image_width, text_length, initial_font_size=16, tolerance=50):
-        font_size = initial_font_size
-        estimated_char_width = font_size * 0.55  # Estimate: character width is 60% of font size
-
-        while True:
-            estimated_text_width = text_length * estimated_char_width
-            width_difference = abs(estimated_text_width - image_width)
-
-            if width_difference <= tolerance:
-                # If within tolerance, stop adjusting
-                break
-            elif estimated_text_width < image_width - tolerance:
-                # If text is too narrow, increase font size
-                font_size += 1
-            elif estimated_text_width > image_width + tolerance:
-                # If text is too wide, decrease font size
-                font_size -= 1
-
-            # Recalculate estimated character width
-            estimated_char_width = font_size * 0.55
-
-        return font_size
+        return batched_images
