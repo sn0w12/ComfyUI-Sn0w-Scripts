@@ -21,12 +21,12 @@ class CombineStringNode:
         combined = []
 
         for string in strings:
-            if string is not None and isinstance(string, str):  # Ensure string is a non-None str
+            if string is not "None" and isinstance(string, str):  # Ensure string is a non-None str
                 string = string.strip()  # Remove leading/trailing whitespace
 
                 # Remove separator at the end if it exists
                 if string.endswith(separator.strip()):
-                    string = string[:-len(separator)]
+                    string = string[:-len(separator.strip())]
 
                 # Skip empty strings after processing
                 if string:

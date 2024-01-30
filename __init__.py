@@ -9,6 +9,7 @@ from .src.simple_sampler_xl import SimpleSamplerXlNode
 from .src.lora_stacker import LoraStackerNode
 from .src.load_lora_xl import LoraLoraXLNode
 from .src.load_lora_15 import LoraLora15Node
+from .src.load_lora_character import LoadLoraCharacterNode
 from .src.get_font_size import GetFontSizeNode
 
 NODE_CLASS_MAPPINGS = {
@@ -23,6 +24,7 @@ NODE_CLASS_MAPPINGS = {
     "Lora Stacker": LoraStackerNode,
     "Load Lora XL": LoraLoraXLNode,
     "Load Lora 1.5": LoraLora15Node,
+    "Load Lora Character": LoadLoraCharacterNode,
     "Get Font Size": GetFontSizeNode,
 }
 
@@ -38,5 +40,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Lora Stacker": "Lora Stacker",
     "Load Lora XL": "Load Lora XL",
     "Load Lora 1.5": "Load Lora 1.5",
+    "Load Lora Character": "Load Lora Character",
     "Get Font Size": "Get Font Size",
 }

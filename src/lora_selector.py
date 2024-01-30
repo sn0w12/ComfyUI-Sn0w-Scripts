@@ -14,19 +14,28 @@ class LoraSelectorNode:
             },
         }
 
-    RETURN_TYPES = ("STRING", "INT","BOOLEAN",)
-    RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS","ADD_DEFAULT_GENERATION",)
+    RETURN_TYPES = ("STRING", "INT",)
+    RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS",)
     FUNCTION = "process_lora_strength"
     CATEGORY = "sn0w"
     OUTPUT_NODE = True
 
     def process_lora_strength(self, lora, lora_strength, highest_lora, total_loras, add_default_generation):
+        # Get the list of lora filenames
+        lora_filenames = folder_paths.get_filename_list("loras")
+        lora_filenames = [filename.split('\\')[-1] for filename in lora_filenames]  # Extracting just the filename
+
         # Extract the lora string from the file path
         lora_string = lora.split('\\')[-1].replace('.safetensors', '')
 
-        # Extract the initial strength from the lora string
-        lora_name, lora_code = lora_string.split('-')
-        initial_strength = int(lora_code.lstrip('0') or '0')  # Convert to int, handle leading zeros
+        # Check if the lora_string contains a hyphen and split accordingly
+        if '-' in lora_string:
+            lora_name, lora_code = lora_string.rsplit('-', 1)
+            initial_strength = int(lora_code.lstrip('0') or '0')  # Convert to int, handle leading zeros
+        else:
+            lora_name = lora_string
+            lora_code = ''
+            initial_strength = 0
 
         # Determine the range and increment for each lora strength
         strength_range = highest_lora - initial_strength
@@ -37,15 +46,23 @@ class LoraSelectorNode:
         for i in range(total_loras):
             current_strength = min(initial_strength + i * strength_increment, highest_lora)
             lora_strength_string = str(current_strength).zfill(len(lora_code))
-            lora_strings.append(f"<lora:{lora_name}-{lora_strength_string}:{lora_strength:.1f}>")
+            full_lora_name = f"{lora_name}-{lora_strength_string}.safetensors"
+
+            # Check if the lora exists in the folder paths, if not, check just lora_name
+            if full_lora_name in lora_filenames:
+                lora_strings.append(f"<lora:{lora_name}-{lora_strength_string}:{lora_strength:.1f}>")
+            elif f"{lora_name}.safetensors" in lora_filenames:
+                lora_strings.append(f"<lora:{lora_name}:{lora_strength:.1f}>")
+            else:
+                # Handle the case where the lora is not found
+                lora_strings.append(f"<lora not found:{lora_name}-{lora_strength_string}>")
 
         # Handle additional generation if required
         if add_default_generation:
             total_loras += 1
             lora_strings.append("Nothing")
-                
+
         # Join the lora strings into a single string separated by semicolons
         lora_output = ';'.join(lora_strings)
 
-        return (lora_output, total_loras, add_default_generation,)
-
+        return (lora_output, total_loras)

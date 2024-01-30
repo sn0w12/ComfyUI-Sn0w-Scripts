@@ -18,22 +18,26 @@ class GetFontSizeNode:
         longest_string = max(loras, key=len)
         text_length = len(longest_string)
 
-        initial_font_size = 16
         tolerance = 50
-        font_size = initial_font_size
-        estimated_char_width = font_size * 0.6
+        estimated_char_width = lambda font_size: font_size * 0.5
+
+        # Start with a guess that is proportionate to the width
+        font_size = width // (text_length * 0.5)
+        step_size = max(1, font_size // 2)  # Start with a larger step size
 
         while True:
-            estimated_text_width = text_length * estimated_char_width
+            estimated_text_width = text_length * estimated_char_width(font_size)
             width_difference = abs(estimated_text_width - width)
 
             if width_difference <= tolerance:
                 break
             elif estimated_text_width < width - tolerance:
-                font_size += 1
-            elif estimated_text_width > width + tolerance:
-                font_size -= 1
+                font_size += step_size
+            else:
+                font_size -= step_size
 
-            estimated_char_width = font_size * 0.6
+            # Reduce the step size as we get closer to the target width
+            if step_size > 1 and width_difference < width * 0.1:
+                step_size //= 2
 
-        return (font_size,)
+        return (int(font_size),)

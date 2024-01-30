@@ -1,6 +1,7 @@
-from nodes import KSampler, VAEDecode, VAEEncode, EmptyLatentImage, LoraLoader
+from nodes import KSampler, KSamplerAdvanced, VAEDecode, VAEEncode, EmptyLatentImage, LoraLoader, ImageScaleBy
 from .image_batch import WAS_Image_Batch
 from comfy_extras.nodes_clip_sdxl import CLIPTextEncodeSDXL
+from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel
 import comfy.samplers
 import folder_paths
 
@@ -22,7 +23,8 @@ class LoraTestXLNode:
                     "negative": ("STRING", {"default": ""}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "lora_info": ("STRING", {"default": ""}),
-                    "add_default_generation": ("BOOLEAN", {"default": False},),
+                    "hires": ("BOOLEAN", {"default": False},),
+                    "upscale_model": ("UPSCALE_MODEL",),
                      }
                 }
 
@@ -32,12 +34,16 @@ class LoraTestXLNode:
 
     CATEGORY = "sampling"
 
-    def sample(self, model, clip, vae, seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, denoise, lora_info, add_default_generation):
+    def sample(self, model, clip, vae, seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, denoise, lora_info, hires, upscale_model):
         k_sampler_node = KSampler()
+        k_sampleradvanced_node = KSamplerAdvanced()
         vae_decode = VAEDecode()
+        vae_encode = VAEEncode()
         text_encode_xl = CLIPTextEncodeSDXL()
         lora_loader = LoraLoader()
         image_batcher = WAS_Image_Batch()
+        upscaler = ImageUpscaleWithModel()
+        scale_image = ImageScaleBy()
 
         latent_image = EmptyLatentImage().generate(width, height)[0]
 
@@ -48,7 +54,9 @@ class LoraTestXLNode:
 
         for lora in loras:
             # Skip empty or improperly formatted lora strings
+            modified = False
             if lora.startswith("<lora:"):
+                modified = True
                 trimmed_string = lora[6:-1]
                 parts = trimmed_string.split(':')
 
@@ -76,8 +84,20 @@ class LoraTestXLNode:
                 # Sampling
                 samples = k_sampler_node.sample(model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
 
-            # Decode the samples
-            image = vae_decode.decode(vae, samples)[0]
+            if (hires):
+                # Decode the samples
+                image = vae_decode.decode(vae, samples)[0]
+                
+                upscaled_image = upscaler.upscale(upscale_model, image)[0]
+                upscaled_image = scale_image.upscale(upscaled_image, "nearest-exact", 0.5)[0]
+                upscaled_latent = vae_encode.encode(vae, upscaled_image)[0]
+                if modified:
+                    upscaled_samples = k_sampleradvanced_node.sample(modified_model, "enable", seed, 25, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 20, 1000, "disable")[0]
+                else:
+                    upscaled_samples = k_sampleradvanced_node.sample(model, "enable", seed, 25, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 20, 1000, "disable")[0]
+                image = vae_decode.decode(vae, upscaled_samples)[0]
+            else:
+                image = vae_decode.decode(vae, samples)[0]
 
             images.append(image)
 
