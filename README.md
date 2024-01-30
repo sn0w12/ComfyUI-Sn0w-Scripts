@@ -94,6 +94,7 @@ A collection of nodes and improvements created mainly for testing loras and gene
 >    - Add these to your extra_model_paths.yaml (for example):
 >    - loras_xl: C:/path/XL
 >    - loras_15: C:/path/1.5
+>    - Only has one strength because i always have them at the same number anyways.
 >    ![Load Lora](./imgs/load_lora.png)
 >    ![Example](./imgs/lora_paths_example.png)
 >    </details>

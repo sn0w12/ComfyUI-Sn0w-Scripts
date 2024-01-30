@@ -21,11 +21,16 @@ class CombineStringNode:
         combined = []
 
         for string in strings:
-            if string:  # Skip empty strings
+            if string is not None and isinstance(string, str):  # Ensure string is a non-None str
+                string = string.strip()  # Remove leading/trailing whitespace
+
                 # Remove separator at the end if it exists
-                if string.endswith(separator):
+                if string.endswith(separator.strip()):
                     string = string[:-len(separator)]
-                combined.append(string)
+
+                # Skip empty strings after processing
+                if string:
+                    combined.append(string)
 
         # Join all parts with the separator and return as a tuple
         return (separator.join(combined),)

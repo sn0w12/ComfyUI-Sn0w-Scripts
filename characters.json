@@ -28,5 +28,45 @@
         "name": "Nami",
         "associated_string": "nami \\(one piece\\), one piece",
         "prompt": "orange hair, orange eyes, large breasts, shoulder tattoo, long hair, "
+    },
+    {
+        "name": "Power",
+        "associated_string": "power \\(chainsaw man\\), chainsaw man",
+        "prompt": "blonde hair, cross-shaped pupils, demon girl, demon horns, double-parted bangs, hair between eyes, horns, long hair, red horns, symbol-shaped pupils, yellow eyes"
+    },
+    {
+        "name": "Mirko",
+        "associated_string": "mirko, boku no hero academia",
+        "prompt": "animal ears, breasts, dark-skinned female, large breasts, long hair, parted bangs, rabbit ears, rabbit girl, red eyes, toned, white hair"
+    },
+    {
+        "name": "Makima",
+        "associated_string": "makima \\(chainsaw man\\), chainsaw man",
+        "prompt": "breasts, hair between eyes, long hair, medium breasts, red hair, ringed eyes, yellow eyes"
+    },
+    {
+        "name": "Kitagawa Marin",
+        "associated_string": "kitagawa marin, sono bisque doll wa koi wo suru",
+        "prompt": "blonde hair, choker, ear piercing, bangs, jewelry, earrings, very long hair, red eyes, swept bangs"
+    },
+    {
+        "name": "Lucy",
+        "associated_string": "lucy \\(cyberpunk\\), cyberpunk \\(series\\), cyberpunk edgerunners",
+        "prompt": "breasts, eyeliner, makeup, medium breasts, multicolored eyes, multicolored hair, parted bangs, red eyeliner, short hair, white hair"
+    },
+    {
+        "name": "Rebecca",
+        "associated_string": "rebecca \\(cyberpunk\\), cyberpunk \\(series\\), cyberpunk edgerunners",
+        "prompt": "artificial eye, breasts, colored sclera, colored skin, green eyes, green hair, leg tattoo, long hair, mechanical eye, medium breasts, neck tattoo, parted bangs, red sclera, stomach tattoo, tattoo, white skin"
+    },
+    {
+        "name": "Fern",
+        "associated_string": "fern \\(sousou no frieren\\), sousou no frieren",
+        "prompt": "long hair, purple eyes, purple hair, sidelocks, straight hair"
+    },
+    {
+        "name": "Fujiwara Chika",
+        "associated_string": "fern \\(sousou no frieren\\), sousou no frieren",
+        "prompt": "black bow, blue eyes, blunt bangs, bow, breasts, hair bow, large breasts, long hair, pink hair"
     }
 ]
