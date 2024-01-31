@@ -1,9 +1,11 @@
+import torch
+
 class GetFontSizeNode:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "width": ("INT", {"default": 0, "min": 0}),
+                "image": ("IMAGE", ),
                 "lora_info": ("STRING", {"default": ""}),
             },
         }
@@ -13,7 +15,7 @@ class GetFontSizeNode:
     FUNCTION = "estimate_font_size"
     CATEGORY = "sn0w"
         
-    def estimate_font_size(self, width, lora_info):
+    def estimate_font_size(self, image, lora_info):
         loras = lora_info.split(";")
         longest_string = max(loras, key=len)
         text_length = len(longest_string)
@@ -21,6 +23,13 @@ class GetFontSizeNode:
         tolerance = 50
         estimated_char_width = lambda font_size: font_size * 0.5
 
+        # Attempt to determine if the image is a batch or a single image
+        try:
+            # Assume image is a batch and try to get the width of the first image
+            width = image[0].shape[1]  # Image batch format: [N, C, H, W]
+        except TypeError:
+            # If it's not a batch, get the width as a single image
+            width = image.shape[1]  # Single image format: [C, H, W]
         # Start with a guess that is proportionate to the width
         font_size = width // (text_length * 0.5)
         step_size = max(1, font_size // 2)  # Start with a larger step size

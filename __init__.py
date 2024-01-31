@@ -11,6 +11,7 @@ from .src.load_lora_xl import LoraLoraXLNode
 from .src.load_lora_15 import LoraLora15Node
 from .src.load_lora_character import LoadLoraCharacterNode
 from .src.get_font_size import GetFontSizeNode
+from .src.get_all_styles import GetStylesNode
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -26,6 +27,7 @@ NODE_CLASS_MAPPINGS = {
     "Load Lora 1.5": LoraLora15Node,
     "Load Lora Character": LoadLoraCharacterNode,
     "Get Font Size": GetFontSizeNode,
+    "Get All Styles": GetStylesNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -42,4 +44,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Load Lora 1.5": "Load Lora 1.5",
     "Load Lora Character": "Load Lora Character",
     "Get Font Size": "Get Font Size",
+    "Get All Styles": "Get All Styles",
 }

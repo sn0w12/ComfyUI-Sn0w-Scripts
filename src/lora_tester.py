@@ -64,9 +64,9 @@ class LoraTestNode:
                 upscaled_image = upscaler.upscale(upscale_model, image)[0]
                 upscaled_latent = vae_encode.encode(vae, upscaled_image)[0]
                 upscaled_samples = k_sampleradvanced_node.sample(modified_model, "enable", seed, 30, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 17, 1000, "disable")[0]
-                image = vae_decode.decode(vae, upscaled_samples)
+                image = vae_decode.decode(vae, upscaled_samples)[0]
             else:
-                image = vae_decode.decode(vae, samples)
+                image = vae_decode.decode(vae, samples)[0]
 
             images.append(image)
 
