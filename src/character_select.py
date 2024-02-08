@@ -1,17 +1,23 @@
 import os
 import json
-import folder_paths
 
 class CharacterSelectNode:
-    dir_path = os.path.dirname(os.path.realpath(__file__)).replace("\\src", "")
+    # Get the directory of the current file
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    # Check if the last part of the path is 'src' and adjust the path accordingly
+    if os.path.basename(dir_path) == "src":
+        dir_path = os.path.dirname(dir_path)
+    # Construct the path to the 'characters.json' file
     json_path = os.path.join(dir_path, 'characters.json')
+    # Load character data from the JSON file
     with open(json_path, 'r') as file:
         character_data = json.load(file)
+    # Create a dictionary mapping character names to their data
     character_dict = {character['name']: character for character in character_data}
 
     @classmethod
     def INPUT_TYPES(cls):
-        character_names = ['None'] + list(cls.character_dict.keys())
+        character_names = ['None'] + sorted(cls.character_dict.keys())
         return {
             "required": {
                 "character": (character_names, ),

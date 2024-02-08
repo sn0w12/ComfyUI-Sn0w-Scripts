@@ -25,6 +25,7 @@ class SimpleSamplerXlNode:
                     "return_with_leftover_noise": (["disable", "enable"], ),
                     "hires": ("BOOLEAN", {"default": False},),
                     "upscale_model": ("UPSCALE_MODEL",),
+                    "hires_steps": ("INT", {"default": 5, "min": 1, "max": 20}),
                      }
                 }
 
@@ -34,7 +35,7 @@ class SimpleSamplerXlNode:
 
     CATEGORY = "sampling"
 
-    def sample(self, model, clip, vae, add_noise, noise_seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, start_at_step, end_at_step, return_with_leftover_noise, hires, upscale_model):
+    def sample(self, model, clip, vae, add_noise, noise_seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, start_at_step, end_at_step, return_with_leftover_noise, hires, upscale_model, hires_steps):
         k_sampler_node = KSamplerAdvanced()
         vae_decode = VAEDecode()
         vae_encode = VAEEncode()
@@ -53,11 +54,13 @@ class SimpleSamplerXlNode:
         if (hires):
             # Decode the samples
             image = vae_decode.decode(vae, samples)[0]
+
+            total_hires_steps = 25 - hires_steps
             
             upscaled_image = upscaler.upscale(upscale_model, image)[0]
             upscaled_image = scale_image.upscale(upscaled_image, "nearest-exact", 0.5)[0]
             upscaled_latent = vae_encode.encode(vae, upscaled_image)[0]
-            upscaled_samples = k_sampler_node.sample(model, add_noise, noise_seed, 25, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 20, 1000, return_with_leftover_noise)[0]
+            upscaled_samples = k_sampler_node.sample(model, add_noise, noise_seed, 25, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, total_hires_steps, 1000, return_with_leftover_noise)[0]
             image = vae_decode.decode(vae, upscaled_samples)
         else:
             image = vae_decode.decode(vae, samples)

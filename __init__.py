@@ -12,6 +12,7 @@ from .src.load_lora_15 import LoraLora15Node
 from .src.load_lora_character import LoadLoraCharacterNode
 from .src.get_font_size import GetFontSizeNode
 from .src.get_all_styles import GetStylesNode
+from .src.prompt_selector import PromptSelectNode
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -28,6 +29,7 @@ NODE_CLASS_MAPPINGS = {
     "Load Lora Character": LoadLoraCharacterNode,
     "Get Font Size": GetFontSizeNode,
     "Get All Styles": GetStylesNode,
+    "Prompt Selector": PromptSelectNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -45,4 +47,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Load Lora Character": "Load Lora Character",
     "Get Font Size": "Get Font Size",
     "Get All Styles": "Get All Styles",
+    "Prompt Selector": "Prompt Selector",
 }
