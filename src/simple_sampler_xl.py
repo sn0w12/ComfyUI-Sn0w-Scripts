@@ -29,8 +29,8 @@ class SimpleSamplerXlNode:
                      }
                 }
 
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("IMAGE",)
+    RETURN_TYPES = ("IMAGE", "CONDITIONING", "CONDITIONING")
+    RETURN_NAMES = ("IMAGE", "POSITIVE", "NEGATIVE")
     FUNCTION = "sample"
 
     CATEGORY = "sampling"
@@ -65,4 +65,4 @@ class SimpleSamplerXlNode:
         else:
             image = vae_decode.decode(vae, samples)
 
-        return image
+        return (image[0], positive_prompt, negative_prompt)

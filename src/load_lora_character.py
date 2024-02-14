@@ -33,8 +33,6 @@ class LoadLoraCharacterNode:
         return cleaned_string.lower()
         
     def find_and_apply_lora(self, model, clip, character, xl, lora_strength):
-        print("RUNNING LORA CHARACTER")
-
         dir_path = os.path.dirname(os.path.realpath(__file__)).replace("\\src", "")
         json_path = os.path.join(dir_path, 'characters.json')
         with open(json_path, 'r') as file:
@@ -43,15 +41,11 @@ class LoadLoraCharacterNode:
         character_name = None
         cleaned_character = self.clean_string(character)
 
-        print(cleaned_character)
-
         for char in character_data:
             cleaned_associated_string = self.clean_string(char['associated_string'])
             if cleaned_associated_string == cleaned_character:
                 character_name = char['name']
                 break
-
-        print(character_name)
         
         if character_name:
             lora_loader = LoraLoader()
@@ -70,7 +64,6 @@ class LoadLoraCharacterNode:
             # Find the associated lora path
             lora_path = None
             character_name_parts = character_name.lower().split()
-            print(character_name_parts)
 
             for filename in lora_filenames:
                 if any(part in filename.lower() for part in character_name_parts):
