@@ -16,7 +16,7 @@
     },
     {
         "name": "Gotoh Hitori",
-        "associated_string": "gotoh hitori, bocchi the rock!",
+        "associated_string": "gotoh hitori, bocchi the rock!, gotohdef",
         "prompt": "pink hair, blue eyes, breasts, cube hair ornament, hair between eyes, hair ornament, large breasts, long hair, "
     },
     {
@@ -68,5 +68,25 @@
         "name": "Fujiwara Chika",
         "associated_string": "fujiwara chika, kaguya-sama wa kokurasetai ~tensai-tachi no renai zunousen~",
         "prompt": "black bow, blue eyes, blunt bangs, bow, breasts, hair bow, large breasts, long hair, pink hair"
+    },
+    {
+        "name": "Hestia",
+        "associated_string": "hestia \\(danmachi\\), dungeon ni deai wo motomeru no wa machigatteiru darou ka",
+        "prompt": "black hair, blue eyes, large breasts, ribbon, twintails"
+    },
+    {
+        "name": "Ceres Fauna",
+        "associated_string": "ceres fauna, hololive, hololive english",
+        "prompt": "antlers, branch, green hair, hair over one eye, horns, large breasts, leaf, long hair, mole, mole under eye, tree horns, virtual youtuber, yellow eyes"
+    },
+    {
+        "name": "Shihouin Yoruichi",
+        "associated_string": "shihouin yoruichi, bleach",
+        "prompt": "dark-skinned female, large breasts, long hair, parted bangs, ponytail, purple hair, yellow eyes"
+    },
+    {
+        "name": "Eris Greyrat",
+        "associated_string": "eris greyrat, mushoku tensei",
+        "prompt": "ahoge, hair between eyes, large breasts, long hair, red eyes, red hair"
     }
 ]
