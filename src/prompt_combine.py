@@ -3,16 +3,19 @@ class CombineStringNode:
     def INPUT_TYPES(cls):
         return {
             "required": {
+                "separator": ("STRING", {"default": ", "}),
+                "simplify": ("BOOLEAN", {"default": True}),
+            },
+            "optional": {
                 "string_a": ("STRING", {"default": ""}),
                 "string_b": ("STRING", {"default": ""}),
                 "string_c": ("STRING", {"default": ""}),
                 "string_d": ("STRING", {"default": ""}),
-                "separator": ("STRING", {"default": ", "}),
             },
         }
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("PROMPT",)
+    RETURN_TYPES = ("STRING", "STRING",)
+    RETURN_NAMES = ("PROMPT", "REMOVED_TAGS",)
     FUNCTION = "combine_string"
     CATEGORY = "sn0w"
 
@@ -35,8 +38,9 @@ class CombineStringNode:
         # Remove leading and trailing whitespaces in each tag
         tags = [tag.strip() for tag in tags]
         
-        # Prepare a list to keep track of final tags to maintain order
+        # Prepare lists to keep track of final tags to maintain order and removed tags
         final_tags = []
+        removed_tags = []  # New list to track removed tags
         
         # Use a dictionary to map each tag to a more descriptive version if it exists
         tag_map = {}
@@ -55,45 +59,49 @@ class CombineStringNode:
             if facing_direction:
                 # Check if the tag or its descriptive version falls into any incompatible category
                 if any(category in tag for category in incompatible_categories[facing_direction]):
+                    removed_tags.append(tag)  # Track removed tag
                     continue  # Skip this tag
             
             # Include the tag if it hasn't been marked redundant or incompatible
             if tag not in tag_map and tag not in final_tags:
                 final_tags.append(tag)
-            elif tag in tag_map and tag_map[tag] not in final_tags:
-                final_tags.append(tag_map[tag])
+            elif tag in tag_map:
+                if tag_map[tag] not in final_tags:
+                    final_tags.append(tag_map[tag])
+                if tag not in final_tags:  # If the original tag is not included in the final list, it's removed
+                    removed_tags.append(tag)
+                    
+        # Remove duplicates in the removed_tags list by converting it to a set and back to a list
+        removed_tags = list(set(removed_tags))
 
         # Join the final list of tags back into a string
         simplified_tags_string = ', '.join(final_tags)
-        return simplified_tags_string
+        return simplified_tags_string, removed_tags
 
-    def combine_string(self, string_a, string_b, string_c, string_d, separator):
-        strings = [string_a, string_b, string_c, string_d]
+    def combine_string(self, separator, simplify, **kwargs):
+        strings = [kwargs.get(f"string_{char}") for char in ['a', 'b', 'c', 'd'] if kwargs.get(f"string_{char}") is not None]
         combined = []
         all_words = set()
+        removed_tags = ""
 
         for string in strings:
-            if string != "None" and isinstance(string, str):  # Ensure string is a non-None str
-                string = string.strip()  # Remove leading/trailing whitespace
-
-                # Remove separator at the end if it exists
+            if string != "None" and isinstance(string, str):
+                string = string.strip()
                 if string.endswith(separator.strip()):
                     string = string[:-len(separator.strip())]
-
-                # Skip empty strings after processing and check for duplicates
                 if string and string not in combined:
                     final_string = ""
-                    words = string.split(", ")
-                    # Remove duplicate words
+                    words = string.split(separator)
                     for word in words:
                         if word not in all_words:
                             all_words.add(word)
-                            final_string += (word + ", ")
-                    # Remove the last separator and space if final_string is not empty
+                            final_string += (word + separator)
                     if final_string:
-                        final_string = final_string[:-2]
-                    combined.append(final_string) 
+                        final_string = final_string[:-len(separator)]
+                    combined.append(final_string)
 
-        # Join all parts with the separator and return as a tuple
-        final_tags = self.simplify_tags(separator.join(combined))
-        return (final_tags,)
+        if simplify:
+            final_tags, removed_tags = self.simplify_tags(separator.join(combined))
+        else:
+            final_tags = separator.join(combined)
+        return (final_tags, removed_tags,)
