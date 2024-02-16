@@ -3,6 +3,7 @@ import json
 import re
 import folder_paths
 from nodes import LoraLoader
+from .print_sn0w import print_sn0w
 
 class LoadLoraCharacterNode:
     @classmethod
@@ -53,10 +54,7 @@ class LoadLoraCharacterNode:
             full_lora_path = folder_paths.get_filename_list("loras")
 
             # Select the appropriate lora list based on 'xl'
-            if xl:
-                lora_paths = folder_paths.get_filename_list("loras_xl")
-            else:
-                lora_paths = folder_paths.get_filename_list("loras_15")
+            lora_paths = folder_paths.get_filename_list("loras_xl" if xl else "loras_15")
 
             # Extract just the filenames for comparison
             lora_filenames = [path.split('\\')[-1] for path in lora_paths]
@@ -75,10 +73,9 @@ class LoadLoraCharacterNode:
                     if lora_path:
                         break
 
-            print(lora_path)
+            print_sn0w(lora_path)
 
             if lora_path:
-                modified_model, modified_clip = lora_loader.load_lora(model, clip, lora_path, lora_strength, lora_strength)
-                return (modified_model, modified_clip, )
+                model, clip = lora_loader.load_lora(model, clip, lora_path, lora_strength, lora_strength)
 
-        return (model, clip, ) # if character lora not found, just return the normal model.
+        return (model, clip, )

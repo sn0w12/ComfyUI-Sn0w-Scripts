@@ -16,6 +16,14 @@ A collection of nodes and improvements created mainly for testing loras and gene
     ```
 3. Start up ComfyUI.
 
+# Important Note
+Many of the nodes require these paths to be in your extra_model_paths.yaml (with your real directories of course).
+
+- loras_xl: C:/path/XL
+- loras_15: C:/path/1.5
+
+![Example](./imgs/lora_paths_example.png)
+
 # Nodes
 
 ## Find Resolution
@@ -83,6 +91,7 @@ A collection of nodes and improvements created mainly for testing loras and gene
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
 >    - Basically Lora Selector but manual.
+>    - Specifically for the lora testers.
 > 
 >    ![Lora Stacker](./imgs/lora_stacker.png)
 >    </details>
