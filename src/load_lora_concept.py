@@ -74,8 +74,8 @@ class LoadLoraConceptNode:
 
         # Retrieve the full list of lora paths
         full_lora_paths = folder_paths.get_filename_list("loras")
-        lora_paths = folder_paths.get_filename_list("loras_xl" if xl else "loras_15")
-        # lora_paths = [path for path in filtered_lora_paths if "concept" in path.lower()]
+        filtered_lora_paths = folder_paths.get_filename_list("loras_xl" if xl else "loras_15")
+        lora_paths = [path for path in filtered_lora_paths if "concept" in path.lower()]
 
         found_full_lora_paths = []
 
