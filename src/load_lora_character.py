@@ -83,10 +83,12 @@ class LoadLoraCharacterNode:
             lowest_distance = float('inf')
 
             for filename in lora_filenames:
-                distance = self.levenshtein_distance(character_name.lower(), filename.lower())
-                if distance < lowest_distance:
-                    lowest_distance = distance
-                    closest_match = filename
+                # Check if any part of the character name is in the filename
+                if any(part in filename for part in character_name.lower().split()):
+                    distance = self.levenshtein_distance(character_name.lower(), filename.lower())
+                    if distance < lowest_distance:
+                        lowest_distance = distance
+                        closest_match = filename
 
             # Find the full path for the closest match
             lora_path = next((full_path for full_path in full_lora_path if closest_match.lower() in full_path.lower()), None)

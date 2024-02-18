@@ -143,5 +143,60 @@
         "name": "Kafka",
         "associated_string": "kafka \\(honkai: star rail\\), honkai \\(series\\), honkai: star rail",
         "prompt": "colored inner hair, hair between eyes, large breasts, multicolored hair, pink hair, purple eyes, purple hair"
+    },
+    {
+        "name": "Albedo (overlord)",
+        "associated_string": "albedo \\(overlord\\), overlord \\(maruyama\\)",
+        "prompt": "ahoge, black hair, hair between eyes, large breasts, long hair, very long hair, yellow eyes, slit pupils, horns, feathered wings, low wings"
+    },
+    {
+        "name": "Asuka (evangelion)",
+        "associated_string": "souryuu asuka langley, neon genesis evangelion",
+        "prompt": "aged up, blue eyes, brown hair, hair between eyes, long hair, medium breasts"
+    },
+    {
+        "name": "Purah",
+        "associated_string": "purah, the legend of zelda, the legend of zelda: tears of the kingdom",
+        "prompt": "eyeshadow, hair ornament, large breasts, makeup, red eyes, red eyeshadow, short hair, white hair"
+    },
+    {
+        "name": "Owari (azur lane)",
+        "associated_string": "owari \\(azur lane\\), owari \\(shimmering forsythia\\) (azur lane), azur lane",
+        "prompt": "asymmetrical bangs, blonde hair, braid, brown eyes, dark-skinned female, dark skin, large breasts, long bangs, long hair, low twin braids, twin braids, very long hair"
+    },
+    {
+        "name": "Zero Two",
+        "associated_string": "zero two \\(darling in the franxx\\), darling in the franxx",
+        "prompt": "blunt bangs, green eyes, medium breasts, long hair, pink hair, very long hair, white hairband, red horns"
+    },
+    {
+        "name": "Yamashiro Ren",
+        "associated_string": "yamashiro ren, mato seihei no slave",
+        "prompt": "black hair, blunt bangs, hair ornament, large breasts, long hair, purple eyes"
+    },
+    {
+        "name": "Laruna (granblue fantasy)",
+        "associated_string": "laruna \\(granblue fantasy\\), granblue fantasy",
+        "prompt": "blue eyes, braid, hair ornament, large breasts, light purple hair, long hair, single braid, low tied hair, draph, mature female, horns"
+    },
+    {
+        "name": "Implacable (azur lane)",
+        "associated_string": "implacable \\(azur lane\\), azur lane",
+        "prompt": "blonde hair, hair between eyes, large breasts, long hair, red eyes, very long hair, white horns, fake horns"
+    },
+    {
+        "name": "Hanekawa Tsubasa",
+        "associated_string": "hanekawa tsubasa, monogatari \\(series\\), bakemonogatari",
+        "prompt": "braid, braided ponytail, brown hair, large breasts, long hair, red eyes, single braid"
+    },
+    {
+        "name": "Iori Utahime",
+        "associated_string": "iori utahime, jujutsu kaisen",
+        "prompt": "black hair, brown eyes, large breasts, long hair, scar on face, swept bangs"
+    },
+    {
+        "name": "Tsunade",
+        "associated_string": "tsunade \\(naruto\\), naruto \\(series\\), naruto",
+        "prompt": "blonde hair, forehead mark, large breasts, long hair, parted bangs, brown eyes, mature female, hair intakes"
     }
 ]
