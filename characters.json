@@ -88,5 +88,60 @@
         "name": "Eris Greyrat",
         "associated_string": "eris greyrat, mushoku tensei",
         "prompt": "ahoge, hair between eyes, large breasts, long hair, red eyes, red hair"
+    },
+    {
+        "name": "Karin",
+        "associated_string": "karin \\(blue archive\\), blue archive",
+        "prompt": "black hair, dark-skinned female, hair between eyes, halo, large breasts, long hair, purple hair, purple halo, very long hair, yellow eyes"
+    },
+    {
+        "name": "Yae Miko",
+        "associated_string": "yae miko, genshin impact",
+        "prompt": "animal ears, floppy ears, fox ears, hair between eyes, large breasts, long hair, pink hair, purple eyes, very long hair"
+    },
+    {
+        "name": "Lisa",
+        "associated_string": "lisa \\(genshin impact\\), genshin impact",
+        "prompt": "light brown hair, green eyes, hair between eyes, hair ornament, large breasts"
+    },
+    {
+        "name": "Mona",
+        "associated_string": "mona \\(genshin impact\\), genshin impact",
+        "prompt": "aqua eyes, black ribbon, hair ribbon, long hair, purple hair, ribbon, twintails"
+    },
+    {
+        "name": "Kujou Sara",
+        "associated_string": "kujou sara, genshin impact",
+        "prompt": "black hair, large breasts, short hair, swept bangs, yellow eyes, bird mask, mask on head"
+    },
+    {
+        "name": "Noelle (Genshin Impact)",
+        "associated_string": "noelle \\(genshin impact\\), genshin impact",
+        "prompt": "blunt bangs, braid, braided bangs, brown eyes, grey hair, hair ornament, short hair, red rose"
+    },
+    {
+        "name": "Yor Briar",
+        "associated_string": "yor briar, spy x family",
+        "prompt": "black hair, large breasts, long hair, red eyes, very long hair, white hairband"
+    },
+    {
+        "name": "Shylily",
+        "associated_string": "shylily, shylily \\(bikini\\), indie virtual youtuber",
+        "prompt": "ahoge, blue hair, large breasts, long hair, multicolored hair, purple eyes, two-tone hair, virtual youtuber, white hair, animal ears, facial mark, orca girl"
+    },
+    {
+        "name": "Hasumi",
+        "associated_string": "hasumi \\(blue archive\\), blue archive",
+        "prompt": "black hair, large breasts, long hair, ponytail, red eyes, very long hair, feathered wings, red halo"
+    },
+    {
+        "name": "Asuna (sao)",
+        "associated_string": "asuna \\(sao\\), sword art online",
+        "prompt": "braid, brown eyes, brown hair, french braid, large breasts, long hair, short ponytail, very long hair"
+    },
+    {
+        "name": "Kafka",
+        "associated_string": "kafka \\(honkai: star rail\\), honkai \\(series\\), honkai: star rail",
+        "prompt": "colored inner hair, hair between eyes, large breasts, multicolored hair, pink hair, purple eyes, purple hair"
     }
 ]
