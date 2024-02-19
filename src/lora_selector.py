@@ -1,5 +1,4 @@
 import folder_paths
-import json
 
 class LoraSelectorNode:
     @classmethod

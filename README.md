@@ -147,3 +147,7 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 
 
 # Example Workflows
+## Lora Tester
+Note: Uses [ImagesGrid](https://github.com/LEv145/images-grid-comfy-plugin) for making the actual grid from the image output.
+
+![Lora Tester](./imgs/lora_tester_workflow.png)

@@ -61,11 +61,20 @@ class LoadLoraCharacterNode:
         character_name = None
         cleaned_character = self.clean_string(character)
 
+        min_character_distance = float('inf')
+
         for char in character_data:
-            cleaned_associated_string = self.clean_string(char['associated_string'])
-            if cleaned_associated_string == cleaned_character:
-                character_name = char['name']
-                break
+            cleaned_character_lower = cleaned_character.lower().split()
+            if any(word in char['name'].lower() for word in cleaned_character_lower):
+                cleaned_associated_string = self.clean_string(char['associated_string'])
+                distance = self.levenshtein_distance(cleaned_associated_string, cleaned_character)
+                
+                if distance < min_character_distance:
+                    print_sn0w(f"Distance: {distance} Name: {char['name']}")
+                    min_character_distance = distance
+                    character_name = char['name']
+                    if distance <= 2:
+                        break
 
         if character_name:
             lora_loader = LoraLoader()
@@ -117,6 +126,6 @@ class LoadLoraCharacterNode:
                 print_sn0w(lora_path)
                 model, clip = lora_loader.load_lora(model, clip, lora_path, lora_strength, lora_strength)
             else:
-                print_sn0w("No matching Lora found for the character.")
+                print_sn0w(f"No matching Lora found for the character {character_name}.")
 
         return model, clip

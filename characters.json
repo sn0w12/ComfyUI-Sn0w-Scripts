@@ -140,7 +140,7 @@
         "prompt": "black hair, large breasts, long hair, ponytail, red eyes, very long hair, feathered wings, red halo"
     },
     {
-        "name": "Asuna (SAO)",
+        "name": "Yuuki Asuna (SAO)",
         "associated_string": "asuna \\(sao\\), sword art online",
         "prompt": "braid, brown eyes, brown hair, french braid, large breasts, long hair, short ponytail, very long hair"
     },
@@ -205,7 +205,7 @@
         "prompt": "blonde hair, forehead mark, large breasts, long hair, parted bangs, brown eyes, mature female, hair intakes"
     },
     {
-        "name": "Asuna (Blue Archive)",
+        "name": "Ichinose Asuna (Blue Archive)",
         "associated_string": "asuna \\(blue archive\\), asuna \\(bunny\\) (blue archive), blue archive",
         "prompt": "blue eyes, blue ribbon, hair ribbon, large breasts, light brown hair, very long hair, ribbon"
     },
@@ -242,6 +242,31 @@
     {
         "name": "Shishiro Botan (Hololive)",
         "associated_string": "shishiro botan, hololive",
-        "prompt": "black hair, blue eyes, hair between eyes, medium breasts, long hair, multicolored hair, red hair, twintails, uneven twintails, virtual youtuber, white hair"
+        "prompt": "grey eyes, grey hair, hair between eyes, large breasts, long hair, virtual youtuber, animal ear piercing, animal ears, lion ears, lion girl"
+    },
+    {
+        "name": "Takane Lui (Hololive)",
+        "associated_string": "takane lui, hololive",
+        "prompt": "hair between eyes, large breasts, pink hair, virtual youtuber, thigh gap, head wings, hair wings"
+    },
+    {
+        "name": "Shirakami Fubuki (Hololive)",
+        "associated_string": "shirakami fubuki, hololive",
+        "prompt": "ahoge, animal ears, aqua eyes, braid, hair between eyes, large breasts, side braid, virtual youtuber, white hair, fox girl, fox ears"
+    },
+    {
+        "name": "Nekomata Okayu (Hololive)",
+        "associated_string": "nekomata okayu, hololive",
+        "prompt": "ahoge, animal ears, crossed bangs, large breasts, medium hair, pink hair, purple eyes, virtual youtuber"
+    },
+    {
+        "name": "Irys (Hololive)",
+        "associated_string": "irys \\(hololive\\), hololive, hololive english",
+        "prompt": "blue eyes, heterochromia, horns, medium breasts, long hair, pointy ears, purple eyes, red hair, very long hair, virtual youtuber"
+    },
+    {
+        "name": "Ninomae Ina'nis (Hololive)",
+        "associated_string": "ninomae ina'nis, hololive, hololive english",
+        "prompt": "blue eyes, blunt bangs, long hair, mole, mole under eye, multicolored hair, orange hair, pointy ears, purple hair, small breasts, very long hair, virtual youtuber"
     }
 ]

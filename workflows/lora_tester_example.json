@@ -1,0 +1,749 @@
+{
+  "last_node_id": 441,
+  "last_link_id": 997,
+  "nodes": [
+    {
+      "id": 54,
+      "type": "UpscaleModelLoader",
+      "pos": [
+        -762.3588212890626,
+        528.9573682128906
+      ],
+      "size": {
+        "0": 315,
+        "1": 58
+      },
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "UPSCALE_MODEL",
+          "type": "UPSCALE_MODEL",
+          "links": [
+            968
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UpscaleModelLoader"
+      },
+      "widgets_values": [
+        "RealESRGAN_x4plus.pth"
+      ]
+    },
+    {
+      "id": 432,
+      "type": "Lora Tester XL",
+      "pos": [
+        -420,
+        380
+      ],
+      "size": [
+        320,
+        610
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 994
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 995
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 976
+        },
+        {
+          "name": "upscale_model",
+          "type": "UPSCALE_MODEL",
+          "link": 968
+        },
+        {
+          "name": "lora_info",
+          "type": "STRING",
+          "link": 988,
+          "widget": {
+            "name": "lora_info"
+          }
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "link": 984,
+          "widget": {
+            "name": "width"
+          }
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "link": 985,
+          "widget": {
+            "name": "height"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGES",
+          "type": "IMAGE",
+          "links": [
+            975,
+            978
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Lora Tester XL"
+      },
+      "widgets_values": [
+        1038150464022680,
+        "randomize",
+        25,
+        8.5,
+        768,
+        0,
+        "euler_ancestral",
+        "normal",
+        "1girl, black necktie, black pants, blonde hair, collared shirt, cross-shaped pupils, double v, hair between eyes, horns, jacket, long hair, looking at viewer, necktie, orange eyes, pants, parted lips, red background, red horns, red jacket, sharp teeth, shirt, shirt partially tucked in, shirt tucked in, simple background, sleeves past wrists, smile, solo, symbol-shaped pupils, teeth, v, white shirt, ",
+        "(lowres, multiple views, futanari, bad anatomy, bad hands, missing fingers, extra digit, text, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts:1.15), (signature, watermark, username, gumroad username, patreon username, artist name:1.1), multiple views, error, blurry",
+        1,
+        "",
+        false
+      ]
+    },
+    {
+      "id": 403,
+      "type": "ImagesGridByColumns",
+      "pos": [
+        -70,
+        380
+      ],
+      "size": {
+        "0": 320,
+        "1": 100
+      },
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 975
+        },
+        {
+          "name": "annotation",
+          "type": "GRID_ANNOTATION",
+          "link": 880
+        },
+        {
+          "name": "max_columns",
+          "type": "INT",
+          "link": 989,
+          "widget": {
+            "name": "max_columns"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            882
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImagesGridByColumns"
+      },
+      "widgets_values": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": 402,
+      "type": "GridAnnotation",
+      "pos": [
+        -70,
+        530
+      ],
+      "size": [
+        320,
+        180
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "column_texts",
+          "type": "STRING",
+          "link": 990,
+          "widget": {
+            "name": "column_texts"
+          }
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "link": 979,
+          "widget": {
+            "name": "font_size"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "GRID_ANNOTATION",
+          "type": "GRID_ANNOTATION",
+          "links": [
+            880
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GridAnnotation"
+      },
+      "widgets_values": [
+        "",
+        "",
+        50
+      ]
+    },
+    {
+      "id": 438,
+      "type": "Find SDXL Resolution",
+      "pos": [
+        -660,
+        1040
+      ],
+      "size": {
+        "0": 210,
+        "1": 130
+      },
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "WIDTH",
+          "type": "INT",
+          "links": [
+            984
+          ],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "HEIGHT",
+          "type": "INT",
+          "links": [
+            985
+          ],
+          "shape": 3,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Find SDXL Resolution"
+      },
+      "widgets_values": [
+        768,
+        1152,
+        false
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        -760.8242044214777,
+        385.1089789797194
+      ],
+      "size": {
+        "0": 315,
+        "1": 98
+      },
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            992
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            993
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            976
+          ],
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "animagineXLV3_v30.safetensors"
+      ]
+    },
+    {
+      "id": 439,
+      "type": "Lora Selector",
+      "pos": [
+        -760,
+        810
+      ],
+      "size": {
+        "0": 315,
+        "1": 174
+      },
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "LORA_INFO",
+          "type": "STRING",
+          "links": [
+            988,
+            990,
+            991
+          ],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "TOTAL_LORAS",
+          "type": "INT",
+          "links": [
+            989
+          ],
+          "shape": 3,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Lora Selector"
+      },
+      "widgets_values": [
+        "Training\\Kaba_Yuuji_XL\\model\\Kaba_Yuuji_XL-000002.safetensors",
+        1,
+        8,
+        4,
+        true
+      ]
+    },
+    {
+      "id": 433,
+      "type": "Get Font Size",
+      "pos": [
+        -420,
+        1040
+      ],
+      "size": {
+        "0": 320,
+        "1": 54
+      },
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 978
+        },
+        {
+          "name": "lora_info",
+          "type": "STRING",
+          "link": 991,
+          "widget": {
+            "name": "lora_info"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "FONT_SIZE",
+          "type": "INT",
+          "links": [
+            979
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Get Font Size"
+      },
+      "widgets_values": [
+        ""
+      ]
+    },
+    {
+      "id": 440,
+      "type": "Load Lora Character",
+      "pos": [
+        -760,
+        630
+      ],
+      "size": [
+        310,
+        130
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 992
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 993
+        },
+        {
+          "name": "character",
+          "type": "STRING",
+          "link": 997,
+          "widget": {
+            "name": "character"
+          }
+        },
+        {
+          "name": "xl",
+          "type": "BOOLEAN",
+          "link": 996,
+          "widget": {
+            "name": "xl"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            994
+          ],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            995
+          ],
+          "shape": 3,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Load Lora Character"
+      },
+      "widgets_values": [
+        "power ",
+        true,
+        0.8
+      ]
+    },
+    {
+      "id": 441,
+      "type": "Character Selector",
+      "pos": [
+        -1100,
+        660
+      ],
+      "size": {
+        "0": 315,
+        "1": 170
+      },
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "CHARACTER STRING",
+          "type": "STRING",
+          "links": [
+            997
+          ],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "CHARACTER PROMPT",
+          "type": "STRING",
+          "links": null,
+          "shape": 3
+        },
+        {
+          "name": "XL",
+          "type": "BOOLEAN",
+          "links": [
+            996
+          ],
+          "shape": 3,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Character Selector"
+      },
+      "widgets_values": [
+        "Power (Chainsaw Man)",
+        1,
+        false,
+        true
+      ]
+    },
+    {
+      "id": 404,
+      "type": "PreviewImage",
+      "pos": [
+        -70,
+        750
+      ],
+      "size": [
+        990,
+        350
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 882
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      }
+    }
+  ],
+  "links": [
+    [
+      880,
+      402,
+      0,
+      403,
+      1,
+      "GRID_ANNOTATION"
+    ],
+    [
+      882,
+      403,
+      0,
+      404,
+      0,
+      "IMAGE"
+    ],
+    [
+      968,
+      54,
+      0,
+      432,
+      3,
+      "UPSCALE_MODEL"
+    ],
+    [
+      975,
+      432,
+      0,
+      403,
+      0,
+      "IMAGE"
+    ],
+    [
+      976,
+      4,
+      2,
+      432,
+      2,
+      "VAE"
+    ],
+    [
+      978,
+      432,
+      0,
+      433,
+      0,
+      "IMAGE"
+    ],
+    [
+      979,
+      433,
+      0,
+      402,
+      1,
+      "INT"
+    ],
+    [
+      984,
+      438,
+      0,
+      432,
+      5,
+      "INT"
+    ],
+    [
+      985,
+      438,
+      1,
+      432,
+      6,
+      "INT"
+    ],
+    [
+      988,
+      439,
+      0,
+      432,
+      4,
+      "STRING"
+    ],
+    [
+      989,
+      439,
+      1,
+      403,
+      2,
+      "INT"
+    ],
+    [
+      990,
+      439,
+      0,
+      402,
+      0,
+      "STRING"
+    ],
+    [
+      991,
+      439,
+      0,
+      433,
+      1,
+      "STRING"
+    ],
+    [
+      992,
+      4,
+      0,
+      440,
+      0,
+      "MODEL"
+    ],
+    [
+      993,
+      4,
+      1,
+      440,
+      1,
+      "CLIP"
+    ],
+    [
+      994,
+      440,
+      0,
+      432,
+      0,
+      "MODEL"
+    ],
+    [
+      995,
+      440,
+      1,
+      432,
+      1,
+      "CLIP"
+    ],
+    [
+      996,
+      441,
+      2,
+      440,
+      3,
+      "BOOLEAN"
+    ],
+    [
+      997,
+      441,
+      0,
+      440,
+      2,
+      "STRING"
+    ]
+  ],
+  "groups": [
+    {
+      "title": "Txt2img",
+      "bounding": [
+        -429,
+        307,
+        342,
+        802
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "Loading",
+      "bounding": [
+        -770,
+        309,
+        330,
+        695
+      ],
+      "color": "#b06634",
+      "font_size": 24,
+      "locked": false
+    }
+  ],
+  "config": {},
+  "extra": {
+    "groupNodes": {}
+  },
+  "version": 0.4
+}
