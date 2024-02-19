@@ -78,23 +78,37 @@ class LoadLoraCharacterNode:
             # Extract just the filenames for comparison
             lora_filenames = [path.split('\\')[-1] for path in lora_paths]
 
-            # Initialize variables to find the most similar filename
+            # Assume character_name is a string containing the character's name.
+            character_name_parts = character_name.lower().split()
+
+            # Assume lora_filenames is a list of filenames to search through.
             closest_match = None
             lowest_distance = float('inf')
 
             for filename in lora_filenames:
-                # Check if any part of the character name is in the filename
-                if any(part in filename for part in character_name.lower().split()):
-                    distance = self.levenshtein_distance(character_name.lower(), filename.lower())
-                    if distance < lowest_distance:
-                        lowest_distance = distance
+                # Convert filename to lowercase for case-insensitive comparison.
+                filename_lower = filename.lower()
+                
+                # Check if any part of the character name is in the filename.
+                if any(part in filename_lower for part in character_name_parts):
+                    # Calculate the levenshtein distance for a closer match.
+                    total_distance = sum(self.levenshtein_distance(part, filename_lower) for part in character_name_parts)
+                    print_sn0w("Distance: " + str(total_distance) + " Lora: " + filename)
+
+                    if total_distance < lowest_distance:
+                        lowest_distance = total_distance
                         closest_match = filename
 
             # Find the full path for the closest match
-            lora_path = next((full_path for full_path in full_lora_path if closest_match.lower() in full_path.lower()), None)
+            if closest_match is not None:
+                lora_path = next((full_path for full_path in full_lora_path if closest_match.lower() in full_path.lower()), None)
+            else:
+                lora_path = None
 
             if lora_path:
                 print_sn0w(lora_path)
                 model, clip = lora_loader.load_lora(model, clip, lora_path, lora_strength, lora_strength)
+            else:
+                print_sn0w("No matching Lora found for the character.")
 
         return model, clip
