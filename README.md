@@ -109,14 +109,17 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 >    ![Example](./imgs/lora_paths_example.png)
 >    </details>
 
-## Split String
-> Splits a string into 4 parts.
+## Load Lora Character
+> Finds and applies the closest matching Lora model to a character based on name similarity.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
->    - Splits a string into 4 parts, not very useful.
+>    - The process begins by cleaning the input character string for comparison. It then searches a JSON file for a matching character name. If a match is found, it proceeds to select the appropriate folder based on the `xl` boolean flag.
+>    - To find the closest Lora model, it calculates the Levenshtein distance between the character name (in full and in parts) and the filenames of available Lora models. This ensures a case-insensitive match with the best possible model.
+>    - If no lora is found it just returns the input model and the workflow can continue.
 >
->    ![Split String](./imgs/split_string.png)
+>
+>    ![Load Lora Character](./imgs/load_lora_character.png)
 >    </details>
 
 # Example Workflows

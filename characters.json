@@ -1,6 +1,6 @@
 [
     {
-        "name": "Darkness",
+        "name": "Darkness (Konosuba)",
         "associated_string": "darkness \\(konosuba\\), kono subarashii sekai ni shukufuku wo!",
         "prompt": "blonde hair, blue eyes, x hair ornament, large breasts, hair between eyes, hair ornament, long hair, "
     },
@@ -20,7 +20,7 @@
         "prompt": "pink hair, blue eyes, breasts, cube hair ornament, hair between eyes, hair ornament, large breasts, long hair, "
     },
     {
-        "name": "Aqua",
+        "name": "Aqua (Konosuba)",
         "associated_string": "aqua \\(konosuba\\), kono subarashii sekai ni shukufuku wo!",
         "prompt": "blue eyes, blue hair, hair ornament, long hair, large breasts, "
     },
@@ -50,12 +50,12 @@
         "prompt": "blonde hair, choker, ear piercing, bangs, jewelry, large breasts, earrings, very long hair, red eyes, swept bangs"
     },
     {
-        "name": "Lucy",
+        "name": "Lucy (Cyberpunk)",
         "associated_string": "lucy \\(cyberpunk\\), cyberpunk \\(series\\), cyberpunk edgerunners",
         "prompt": "breasts, eyeliner, makeup, medium breasts, multicolored eyes, multicolored hair, parted bangs, red eyeliner, short hair, white hair"
     },
     {
-        "name": "Rebecca",
+        "name": "Rebecca (Cyberpunk)",
         "associated_string": "rebecca \\(cyberpunk\\), cyberpunk \\(series\\), cyberpunk edgerunners",
         "prompt": "artificial eye, breasts, colored sclera, colored skin, green eyes, green hair, leg tattoo, long hair, mechanical eye, medium breasts, neck tattoo, parted bangs, red sclera, stomach tattoo, tattoo, white skin"
     },
@@ -90,7 +90,7 @@
         "prompt": "ahoge, hair between eyes, large breasts, long hair, red eyes, red hair"
     },
     {
-        "name": "Karin",
+        "name": "Karin (Blue Archive)",
         "associated_string": "karin \\(blue archive\\), blue archive",
         "prompt": "black hair, dark-skinned female, hair between eyes, halo, large breasts, long hair, purple hair, purple halo, very long hair, yellow eyes"
     },
@@ -100,12 +100,12 @@
         "prompt": "animal ears, floppy ears, fox ears, hair between eyes, large breasts, long hair, pink hair, purple eyes, very long hair"
     },
     {
-        "name": "Lisa",
+        "name": "Lisa (Genshin Impact)",
         "associated_string": "lisa \\(genshin impact\\), genshin impact",
         "prompt": "light brown hair, green eyes, hair between eyes, hair ornament, large breasts"
     },
     {
-        "name": "Mona",
+        "name": "Mona (Genshin Impact)",
         "associated_string": "mona \\(genshin impact\\), genshin impact",
         "prompt": "aqua eyes, black ribbon, hair ribbon, long hair, purple hair, ribbon, twintails"
     },
@@ -130,12 +130,12 @@
         "prompt": "ahoge, blue hair, large breasts, long hair, multicolored hair, purple eyes, two-tone hair, virtual youtuber, white hair, animal ears, facial mark, orca girl"
     },
     {
-        "name": "Hasumi",
+        "name": "Hasumi (Blue Archive)",
         "associated_string": "hasumi \\(blue archive\\), blue archive",
         "prompt": "black hair, large breasts, long hair, ponytail, red eyes, very long hair, feathered wings, red halo"
     },
     {
-        "name": "Asuna (sao)",
+        "name": "Asuna (Sao)",
         "associated_string": "asuna \\(sao\\), sword art online",
         "prompt": "braid, brown eyes, brown hair, french braid, large breasts, long hair, short ponytail, very long hair"
     },
@@ -145,12 +145,12 @@
         "prompt": "colored inner hair, hair between eyes, large breasts, multicolored hair, pink hair, purple eyes, purple hair"
     },
     {
-        "name": "Albedo (overlord)",
+        "name": "Albedo (Overlord)",
         "associated_string": "albedo \\(overlord\\), overlord \\(maruyama\\)",
         "prompt": "ahoge, black hair, hair between eyes, large breasts, long hair, very long hair, yellow eyes, slit pupils, horns, feathered wings, low wings"
     },
     {
-        "name": "Asuka (evangelion)",
+        "name": "Asuka (Evangelion)",
         "associated_string": "souryuu asuka langley, neon genesis evangelion",
         "prompt": "aged up, blue eyes, brown hair, hair between eyes, long hair, medium breasts"
     },
@@ -160,7 +160,7 @@
         "prompt": "eyeshadow, hair ornament, large breasts, makeup, red eyes, red eyeshadow, short hair, white hair"
     },
     {
-        "name": "Owari (azur lane)",
+        "name": "Owari (Azur Lane)",
         "associated_string": "owari \\(azur lane\\), owari \\(shimmering forsythia\\) (azur lane), azur lane",
         "prompt": "asymmetrical bangs, blonde hair, braid, brown eyes, dark-skinned female, dark skin, large breasts, long bangs, long hair, low twin braids, twin braids, very long hair"
     },
@@ -175,12 +175,12 @@
         "prompt": "black hair, blunt bangs, hair ornament, large breasts, long hair, purple eyes"
     },
     {
-        "name": "Laruna (granblue fantasy)",
+        "name": "Laruna (Granblue Fantasy)",
         "associated_string": "laruna \\(granblue fantasy\\), granblue fantasy",
         "prompt": "blue eyes, braid, hair ornament, large breasts, light purple hair, long hair, single braid, low tied hair, draph, mature female, horns"
     },
     {
-        "name": "Implacable (azur lane)",
+        "name": "Implacable (Azur Lane)",
         "associated_string": "implacable \\(azur lane\\), azur lane",
         "prompt": "blonde hair, hair between eyes, large breasts, long hair, red eyes, very long hair, white horns, fake horns"
     },
@@ -200,7 +200,7 @@
         "prompt": "blonde hair, forehead mark, large breasts, long hair, parted bangs, brown eyes, mature female, hair intakes"
     },
     {
-        "name": "Asuna (blue archive)",
+        "name": "Asuna (Blue Archive)",
         "associated_string": "asuna \\(blue archive\\), asuna \\(bunny\\) (blue archive), blue archive",
         "prompt": "blue eyes, blue ribbon, hair ribbon, large breasts, light brown hair, very long hair, ribbon"
     }

@@ -84,9 +84,9 @@ class LoadLoraCharacterNode:
             lowest_distance = float('inf')
 
             for filename in lora_filenames:
-                # Convert filename to lowercase for case-insensitive comparison.
-                filename_lower = filename.lower()
-                
+                # Convert filename to lowercase for case-insensitive comparison and remove file extension.
+                filename_lower = os.path.splitext(filename.lower())[0]
+
                 if any(part in filename_lower for part in character_name_parts):
                     # Calculate the Levenshtein distance for the full character name as one of the metrics.
                     full_name_distance = self.levenshtein_distance(character_name_lower, filename_lower)
