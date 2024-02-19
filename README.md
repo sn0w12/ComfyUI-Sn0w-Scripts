@@ -2,7 +2,7 @@
     sn0w-scripts
 </h1>
 
-A collection of nodes and improvements created mainly for testing loras and general ease 
+A collection of nodes and improvements created for general ease and testing loras. These are just nodes I made and found useful, they should work with most other nodes. Most nodes that take in a prompt are made with booru tags in mind and might not work as expected with other prompts.
 
 # Get Started
 
@@ -11,7 +11,6 @@ A collection of nodes and improvements created mainly for testing loras and gene
 1. Install [ComfyUi](https://github.com/comfyanonymous/ComfyUI).
 2. Clone this repo into `custom_nodes`:
     ```
-    cd ComfyUI/custom_nodes
     git clone https://github.com/sn0w12/ComfyUI-Sn0w-Scripts
     ```
 3. Start up ComfyUI.
@@ -75,18 +74,19 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 >    </details>
 
 ## Prompt Combine
-> Combines 4 string to a single string.
+> Combines multiple strings with a specified separator and optionally simplifies the result by removing redundant or incompatible tags.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
->    - Combines 4 strings into one with a seperator, but only adds the seperator of there isnt one already at the end of the string.
->    - Removes any duplicate words.
+>    - **Inputs**: Accepts up to four strings and a `separator` to combine them. An optional boolean `simplify` flag determines whether to simplify the combined string by removing redundant or incompatible tags based on predefined categories.
+>    - **Simplification Process**: If enabled, the simplification process identifies and removes redundant tags (e.g., when a tag is fully encompassed by another, more descriptive tag) and tags incompatible with the identified subject's facing direction.
+>    - **Outputs**: Returns a combined string (`PROMPT`) with or without simplification, and a string (`REMOVED_TAGS`) listing tags that were removed during the simplification process.
 > 
 >    ![Prompt Combine](./imgs/prompt_combine.png)
 >    </details>
 
 ## Lora Stacker
-> Outputs a list of loras for Lora Tester.
+> Outputs a list of loras for Lora Tester. Does not load any loras by itself.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
@@ -104,7 +104,7 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 >    - Add these to your extra_model_paths.yaml (for example):
 >    - loras_xl: C:/path/XL
 >    - loras_15: C:/path/1.5
->    - Shows an alphabetically sorted list.
+>
 >    ![Load Lora](./imgs/load_lora.png)
 >    ![Example](./imgs/lora_paths_example.png)
 >    </details>
@@ -118,8 +118,32 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 >    - To find the closest Lora model, it calculates the Levenshtein distance between the character name (in full and in parts) and the filenames of available Lora models. This ensures a case-insensitive match with the best possible model.
 >    - If no lora is found it just returns the input model and the workflow can continue.
 >
->
 >    ![Load Lora Character](./imgs/load_lora_character.png)
 >    </details>
+
+## Load Lora Concept
+> Dynamically applies Lora models based on similarity to a provided prompt.
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    - **Functionality**: This node processes a given prompt to identify and apply the most similar Lora models of the tags found in the prompt. 
+>    - **Input Processing**: The prompt is split into parts using a specified `separator`, and each part is cleaned to remove unnecessary characters and normalized for comparison.
+>    - **Similarity Matching**: For each part of the prompt, the node calculates a similarity ratio against available Lora model filenames. Models with a similarity ratio above a threshold (85%) are selected. Each selected Lora model is applied to the input `model` and `clip`.
+>    - **Outputs**: Returns the `model` and `clip`, potentially modified by multiple Lora models.
+>    - Note: You need the loras you want to be selected to be in a folder called `concept` for this to work, they also need to be seperated into XL and 1.5 like stated in the `Important Note`.
+>
+>    ![Load Lora Concept](./imgs/load_lora_concept.png)
+>    </details>
+
+## Get Font Size Node
+> Estimates the optimal font size for text to fit within an image based on Lora information.
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    - This node takes an image and a string, estimating the best font size to ensure that the longest piece of the string fits within the image. The approach considers the image's width and the length of the text to find a size that balances visibility and fit.
+>
+>    ![Get Font Size](./imgs/get_font_size.png)
+>    </details>
+
 
 # Example Workflows

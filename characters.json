@@ -5,18 +5,18 @@
         "prompt": "blonde hair, blue eyes, x hair ornament, large breasts, hair between eyes, hair ornament, long hair, "
     },
     {
-        "name": "Ghislaine Dedoldia",
+        "name": "Ghislaine Dedoldia (Mushoku Tensei)",
         "associated_string": "ghislaine dedoldia, mushoku tensei",
         "prompt": "animal ear fluff, animal ears, eyepatch, grey hair, large breasts, long hair, red eyes, dark-skinned female, dark skin, "
     },
     {
-        "name": "Uzaki Hana",
+        "name": "Uzaki Hana (Uzaki-chan)",
         "associated_string": "uzaki hana, uzaki-chan wa asobitai!",
         "prompt": "fang, grey hair, looking at viewer, short hair, blue eyes, breasts, large breasts, "
     },
     {
-        "name": "Gotoh Hitori",
-        "associated_string": "gotoh hitori, bocchi the rock!, gotohdef",
+        "name": "Gotoh Hitori (Bocchi the Rock!)",
+        "associated_string": "gotoh hitori, bocchi the rock!",
         "prompt": "pink hair, blue eyes, breasts, cube hair ornament, hair between eyes, hair ornament, large breasts, long hair, "
     },
     {
@@ -25,27 +25,27 @@
         "prompt": "blue eyes, blue hair, hair ornament, long hair, large breasts, "
     },
     {
-        "name": "Nami",
+        "name": "Nami (One Piece)",
         "associated_string": "nami \\(one piece\\), one piece",
         "prompt": "orange hair, orange eyes, large breasts, shoulder tattoo, long hair, "
     },
     {
-        "name": "Power",
+        "name": "Power (Chainsaw Man)",
         "associated_string": "power \\(chainsaw man\\), chainsaw man",
         "prompt": "blonde hair, cross-shaped pupils, demon girl, demon horns, double-parted bangs, hair between eyes, horns, long hair, red horns, symbol-shaped pupils, yellow eyes"
     },
     {
-        "name": "Mirko",
+        "name": "Mirko (MHA)",
         "associated_string": "mirko, boku no hero academia",
         "prompt": "animal ears, breasts, dark-skinned female, large breasts, long hair, parted bangs, rabbit ears, rabbit girl, red eyes, toned, white hair"
     },
     {
-        "name": "Makima",
+        "name": "Makima (Chainsaw Man)",
         "associated_string": "makima \\(chainsaw man\\), chainsaw man",
         "prompt": "breasts, hair between eyes, long hair, medium breasts, red hair, ringed eyes, yellow eyes"
     },
     {
-        "name": "Kitagawa Marin",
+        "name": "Kitagawa Marin (Dress Up)",
         "associated_string": "kitagawa marin, sono bisque doll wa koi wo suru",
         "prompt": "blonde hair, choker, ear piercing, bangs, jewelry, large breasts, earrings, very long hair, red eyes, swept bangs"
     },
@@ -60,32 +60,37 @@
         "prompt": "artificial eye, breasts, colored sclera, colored skin, green eyes, green hair, leg tattoo, long hair, mechanical eye, medium breasts, neck tattoo, parted bangs, red sclera, stomach tattoo, tattoo, white skin"
     },
     {
-        "name": "Fern",
+        "name": "Fern (Frieren)",
         "associated_string": "fern \\(sousou no frieren\\), sousou no frieren",
-        "prompt": "long hair, purple eyes, purple hair, sidelocks, straight hair"
+        "prompt": "long hair, large breasts, blunt bangs, purple eyes, purple hair, sidelocks, straight hair"
     },
     {
-        "name": "Fujiwara Chika",
+        "name": "Frieren (Frieren)",
+        "associated_string": "frieren, sousou no frieren",
+        "prompt": "green eyes, grey hair, long hair, twintails, elf, pointy ears, parted bangs, small breasts"
+    },
+    {
+        "name": "Fujiwara Chika (Kaguya-sama)",
         "associated_string": "fujiwara chika, kaguya-sama wa kokurasetai ~tensai-tachi no renai zunousen~",
         "prompt": "black bow, blue eyes, blunt bangs, bow, breasts, hair bow, large breasts, long hair, pink hair"
     },
     {
-        "name": "Hestia",
+        "name": "Hestia (Danmachi)",
         "associated_string": "hestia \\(danmachi\\), dungeon ni deai wo motomeru no wa machigatteiru darou ka",
         "prompt": "black hair, blue eyes, large breasts, ribbon, twintails"
     },
     {
-        "name": "Ceres Fauna",
+        "name": "Ceres Fauna (Hololive)",
         "associated_string": "ceres fauna, hololive, hololive english",
         "prompt": "antlers, branch, green hair, hair over one eye, horns, large breasts, leaf, long hair, mole, mole under eye, tree horns, virtual youtuber, yellow eyes"
     },
     {
-        "name": "Shihouin Yoruichi",
+        "name": "Shihouin Yoruichi (Bleach)",
         "associated_string": "shihouin yoruichi, bleach",
         "prompt": "dark-skinned female, large breasts, long hair, parted bangs, ponytail, purple hair, yellow eyes"
     },
     {
-        "name": "Eris Greyrat",
+        "name": "Eris Greyrat (Mushoku Tensei)",
         "associated_string": "eris greyrat, mushoku tensei",
         "prompt": "ahoge, hair between eyes, large breasts, long hair, red eyes, red hair"
     },
@@ -95,7 +100,7 @@
         "prompt": "black hair, dark-skinned female, hair between eyes, halo, large breasts, long hair, purple hair, purple halo, very long hair, yellow eyes"
     },
     {
-        "name": "Yae Miko",
+        "name": "Yae Miko (Genshin Impact)",
         "associated_string": "yae miko, genshin impact",
         "prompt": "animal ears, floppy ears, fox ears, hair between eyes, large breasts, long hair, pink hair, purple eyes, very long hair"
     },
@@ -110,7 +115,7 @@
         "prompt": "aqua eyes, black ribbon, hair ribbon, long hair, purple hair, ribbon, twintails"
     },
     {
-        "name": "Kujou Sara",
+        "name": "Kujou Sara (Genshin Impact)",
         "associated_string": "kujou sara, genshin impact",
         "prompt": "black hair, large breasts, short hair, swept bangs, yellow eyes, bird mask, mask on head"
     },
@@ -120,12 +125,12 @@
         "prompt": "blunt bangs, braid, braided bangs, brown eyes, grey hair, hair ornament, short hair, red rose"
     },
     {
-        "name": "Yor Briar",
+        "name": "Yor Briar (Spy x Family)",
         "associated_string": "yor briar, spy x family",
         "prompt": "black hair, large breasts, long hair, red eyes, very long hair, white hairband"
     },
     {
-        "name": "Shylily",
+        "name": "Shylily (Vtuber)",
         "associated_string": "shylily, shylily \\(bikini\\), indie virtual youtuber",
         "prompt": "ahoge, blue hair, large breasts, long hair, multicolored hair, purple eyes, two-tone hair, virtual youtuber, white hair, animal ears, facial mark, orca girl"
     },
@@ -135,12 +140,12 @@
         "prompt": "black hair, large breasts, long hair, ponytail, red eyes, very long hair, feathered wings, red halo"
     },
     {
-        "name": "Asuna (Sao)",
+        "name": "Asuna (SAO)",
         "associated_string": "asuna \\(sao\\), sword art online",
         "prompt": "braid, brown eyes, brown hair, french braid, large breasts, long hair, short ponytail, very long hair"
     },
     {
-        "name": "Kafka",
+        "name": "Kafka (Honkai)",
         "associated_string": "kafka \\(honkai: star rail\\), honkai \\(series\\), honkai: star rail",
         "prompt": "colored inner hair, hair between eyes, large breasts, multicolored hair, pink hair, purple eyes, purple hair"
     },
@@ -155,7 +160,7 @@
         "prompt": "aged up, blue eyes, brown hair, hair between eyes, long hair, medium breasts"
     },
     {
-        "name": "Purah",
+        "name": "Purah (Zelda)",
         "associated_string": "purah, the legend of zelda, the legend of zelda: tears of the kingdom",
         "prompt": "eyeshadow, hair ornament, large breasts, makeup, red eyes, red eyeshadow, short hair, white hair"
     },
@@ -165,12 +170,12 @@
         "prompt": "asymmetrical bangs, blonde hair, braid, brown eyes, dark-skinned female, dark skin, large breasts, long bangs, long hair, low twin braids, twin braids, very long hair"
     },
     {
-        "name": "Zero Two",
+        "name": "Zero Two (Darling)",
         "associated_string": "zero two \\(darling in the franxx\\), darling in the franxx",
         "prompt": "blunt bangs, green eyes, medium breasts, long hair, pink hair, very long hair, white hairband, red horns"
     },
     {
-        "name": "Yamashiro Ren",
+        "name": "Yamashiro Ren (Mato Seihei no Slave)",
         "associated_string": "yamashiro ren, mato seihei no slave",
         "prompt": "black hair, blunt bangs, hair ornament, large breasts, long hair, purple eyes"
     },
@@ -185,17 +190,17 @@
         "prompt": "blonde hair, hair between eyes, large breasts, long hair, red eyes, very long hair, white horns, fake horns"
     },
     {
-        "name": "Hanekawa Tsubasa",
+        "name": "Hanekawa Tsubasa (Monogatari)",
         "associated_string": "hanekawa tsubasa, monogatari \\(series\\), bakemonogatari",
         "prompt": "braid, braided ponytail, brown hair, large breasts, long hair, purple eyes, single braid"
     },
     {
-        "name": "Iori Utahime",
+        "name": "Iori Utahime (Jujutsu Kaisen)",
         "associated_string": "iori utahime, jujutsu kaisen",
         "prompt": "black hair, brown eyes, large breasts, long hair, scar on face, swept bangs"
     },
     {
-        "name": "Tsunade",
+        "name": "Tsunade (Naruto)",
         "associated_string": "tsunade \\(naruto\\), naruto \\(series\\), naruto",
         "prompt": "blonde hair, forehead mark, large breasts, long hair, parted bangs, brown eyes, mature female, hair intakes"
     },
@@ -203,5 +208,40 @@
         "name": "Asuna (Blue Archive)",
         "associated_string": "asuna \\(blue archive\\), asuna \\(bunny\\) (blue archive), blue archive",
         "prompt": "blue eyes, blue ribbon, hair ribbon, large breasts, light brown hair, very long hair, ribbon"
+    },
+    {
+        "name": "Ouro Kronii (Hololive)",
+        "associated_string": "ouro kronii, hololive, hololive english",
+        "prompt": "blue eyes, blue ribbon, hair ribbon, large breasts, light brown hair, very long hair, ribbon"
+    },
+    {
+        "name": "Nerissa Ravencroft (Hololive)",
+        "associated_string": "nerissa ravencroft, hololive, hololive english",
+        "prompt": "black hair, blue hair, colored inner hair, hair ornament, long hair, multicolored hair, red eyes, two-tone hair, very long hair, virtual youtuber, asymmetrical horns, horns, demon horns, mole, mole under eye"
+    },
+    {
+        "name": "Mori Calliope (Hololive)",
+        "associated_string": "mori calliope, hololive, hololive english",
+        "prompt": "blunt bangs, large breasts, long hair, pink eyes, pink hair, virtual youtuber"
+    },
+    {
+        "name": "Oozora Subaru (Hololive)",
+        "associated_string": "oozora subaru, hololive",
+        "prompt": "aqua eyes, brown hair, medium breasts, selfie, short hair, virtual youtuber"
+    },
+    {
+        "name": "Houshou Marine (Hololive)",
+        "associated_string": "houshou marine, hololive",
+        "prompt": "hair ribbon, heterochromia, large breasts, red eyes, red hair, red ribbon, ribbon, twintails, virtual youtuber, yellow eyes"
+    },
+    {
+        "name": "Hakos Baelz (Hololive)",
+        "associated_string": "hakos baelz, hololive, hololive english",
+        "prompt": "black hair, blue eyes, hair between eyes, medium breasts, long hair, multicolored hair, red hair, twintails, uneven twintails, virtual youtuber, white hair"
+    },
+    {
+        "name": "Shishiro Botan (Hololive)",
+        "associated_string": "shishiro botan, hololive",
+        "prompt": "black hair, blue eyes, hair between eyes, medium breasts, long hair, multicolored hair, red hair, twintails, uneven twintails, virtual youtuber, white hair"
     }
 ]

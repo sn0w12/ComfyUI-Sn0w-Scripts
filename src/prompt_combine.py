@@ -32,6 +32,15 @@ class CombineStringNode:
                 facing_direction = direction
                 break
 
+        # Special phrases to check in tags_string
+        special_phrases = {
+            'eye': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes'],
+            'sclera': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes'],
+        }
+        
+        # Check if any special phrases are present
+        special_conditions = {keyword: any(phrase in tags_string for phrase in phrases) for keyword, phrases in special_phrases.items()}
+
         # Split the input string into a list of tags
         tags = tags_string.split(',')
         
@@ -56,11 +65,19 @@ class CombineStringNode:
         
         for tag in tags:
             # Skip tags based on facing direction and general categories
-            if facing_direction:
-                # Check if the tag or its descriptive version falls into any incompatible category
-                if any(category in tag for category in incompatible_categories[facing_direction]):
-                    removed_tags.append(tag)  # Track removed tag
-                    continue  # Skip this tag
+            if facing_direction and any(category in tag for category in incompatible_categories[facing_direction]):
+                removed_tags.append(tag)  # Track removed tag
+                continue  # Skip this tag
+
+            # Check for special conditions for each keyword
+            remove_tag = False
+            for keyword, condition_met in special_conditions.items():
+                if condition_met and keyword in tag and not any(phrase in tag for phrase in special_phrases[keyword]):
+                    remove_tag = True
+                    break
+            if remove_tag:
+                removed_tags.append(tag)  # Track removed tag
+                continue  # Skip this tag
             
             # Include the tag if it hasn't been marked redundant or incompatible
             if tag not in tag_map and tag not in final_tags:

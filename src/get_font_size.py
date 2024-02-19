@@ -1,5 +1,3 @@
-import torch
-
 class GetFontSizeNode:
     @classmethod
     def INPUT_TYPES(cls):

@@ -91,12 +91,17 @@ class LoadLoraCharacterNode:
                     # Calculate the Levenshtein distance for the full character name as one of the metrics.
                     full_name_distance = self.levenshtein_distance(character_name_lower, filename_lower)
                     
-                    # Calculate the sum of distances for each part of the character name.
-                    parts_distance = sum(self.levenshtein_distance(part, filename_lower) for part in character_name_parts)
+                    # Calculate the distances for each part of the character name and choose the lowest.
+                    parts_distance = min(self.levenshtein_distance(part, filename_lower) for part in character_name_parts)
                     
                     # Use the minimum of full name distance and parts distance as the total distance.
                     total_distance = min(full_name_distance, parts_distance)
-                    print_sn0w("Distance: " + str(total_distance) + " Lora: " + filename)
+
+                    # Determine which distance was used for the total distance and print accordingly.
+                    if total_distance == full_name_distance:
+                        print_sn0w("Full Name Distance: " + str(full_name_distance) + " Lora: " + filename + " Name: " + character_name_lower)
+                    else:
+                        print_sn0w("Part Name Distance: " + str(parts_distance) + " Lora: " + filename + " Name: " + str(character_name_parts))
 
                     if total_distance < lowest_distance:
                         lowest_distance = total_distance
