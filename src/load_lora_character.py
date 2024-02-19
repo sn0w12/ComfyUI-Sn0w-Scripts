@@ -78,10 +78,8 @@ class LoadLoraCharacterNode:
             # Extract just the filenames for comparison
             lora_filenames = [path.split('\\')[-1] for path in lora_paths]
 
-            # Assume character_name is a string containing the character's name.
-            character_name_parts = character_name.lower().split()
-
-            # Assume lora_filenames is a list of filenames to search through.
+            character_name_lower = character_name.lower()
+            character_name_parts = character_name_lower.split()
             closest_match = None
             lowest_distance = float('inf')
 
@@ -89,10 +87,15 @@ class LoadLoraCharacterNode:
                 # Convert filename to lowercase for case-insensitive comparison.
                 filename_lower = filename.lower()
                 
-                # Check if any part of the character name is in the filename.
                 if any(part in filename_lower for part in character_name_parts):
-                    # Calculate the levenshtein distance for a closer match.
-                    total_distance = sum(self.levenshtein_distance(part, filename_lower) for part in character_name_parts)
+                    # Calculate the Levenshtein distance for the full character name as one of the metrics.
+                    full_name_distance = self.levenshtein_distance(character_name_lower, filename_lower)
+                    
+                    # Calculate the sum of distances for each part of the character name.
+                    parts_distance = sum(self.levenshtein_distance(part, filename_lower) for part in character_name_parts)
+                    
+                    # Use the minimum of full name distance and parts distance as the total distance.
+                    total_distance = min(full_name_distance, parts_distance)
                     print_sn0w("Distance: " + str(total_distance) + " Lora: " + filename)
 
                     if total_distance < lowest_distance:
