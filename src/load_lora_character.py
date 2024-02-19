@@ -65,7 +65,9 @@ class LoadLoraCharacterNode:
 
         for char in character_data:
             cleaned_character_lower = cleaned_character.lower().split()
-            if any(word in char['name'].lower() for word in cleaned_character_lower):
+            normalized_character_lower = [self.clean_string(word) for word in cleaned_character_lower]
+
+            if any(word in char['name'].lower() for word in normalized_character_lower):
                 cleaned_associated_string = self.clean_string(char['associated_string'])
                 distance = self.levenshtein_distance(cleaned_associated_string, cleaned_character)
                 
@@ -100,21 +102,20 @@ class LoadLoraCharacterNode:
                     # Calculate the Levenshtein distance for the full character name as one of the metrics.
                     full_name_distance = self.levenshtein_distance(character_name_lower, filename_lower)
                     
-                    # Calculate the distances for each part of the character name and choose the lowest.
-                    parts_distance = min(self.levenshtein_distance(part, filename_lower) for part in character_name_parts)
+                    # Calculate the distances for each part of the character name and get the sum of them.
+                    parts_distance = sum(self.levenshtein_distance(part, filename_lower) for part in character_name_parts)
                     
                     # Use the minimum of full name distance and parts distance as the total distance.
                     total_distance = min(full_name_distance, parts_distance)
 
-                    # Determine which distance was used for the total distance and print accordingly.
-                    if total_distance == full_name_distance:
-                        print_sn0w("Full Name Distance: " + str(full_name_distance) + " Lora: " + filename + " Name: " + character_name_lower)
-                    else:
-                        print_sn0w("Part Name Distance: " + str(parts_distance) + " Lora: " + filename + " Name: " + str(character_name_parts))
-
                     if total_distance < lowest_distance:
                         lowest_distance = total_distance
                         closest_match = filename
+                        # Determine which distance was used for the total distance and print accordingly.
+                        if total_distance == full_name_distance:
+                            print_sn0w("Full Name Distance: " + str(full_name_distance) + " Lora: " + filename + " Name: " + character_name_lower)
+                        else:
+                            print_sn0w("Part Name Distance: " + str(parts_distance) + " Lora: " + filename + " Name: " + str(character_name_parts))
 
             # Find the full path for the closest match
             if closest_match is not None:

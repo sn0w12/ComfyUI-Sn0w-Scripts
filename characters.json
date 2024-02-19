@@ -212,7 +212,7 @@
     {
         "name": "Ouro Kronii (Hololive)",
         "associated_string": "ouro kronii, hololive, hololive english",
-        "prompt": "blue eyes, blue ribbon, hair ribbon, large breasts, light brown hair, very long hair, ribbon"
+        "prompt": "blue eyes, blue ribbon, hair ribbon, large breasts, light brown hair, very long hair, ribbon, chain headband"
     },
     {
         "name": "Nerissa Ravencroft (Hololive)",
@@ -268,5 +268,10 @@
         "name": "Ninomae Ina'nis (Hololive)",
         "associated_string": "ninomae ina'nis, hololive, hololive english",
         "prompt": "blue eyes, blunt bangs, long hair, mole, mole under eye, multicolored hair, orange hair, pointy ears, purple hair, small breasts, very long hair, virtual youtuber"
+    },
+    {
+        "name": "Shiori Novella (Hololive)",
+        "associated_string": "shiori novella, hololive, hololive english",
+        "prompt": "black eyeliner, black hair, eyeliner, grey hair, hair ornament, large breasts, long hair, makeup, multicolored hair, two-tone hair, virtual youtuber, white hair, yellow eyes"
     }
 ]
