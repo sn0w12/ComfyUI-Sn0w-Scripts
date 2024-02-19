@@ -72,7 +72,7 @@ class LoadLoraCharacterNode:
                 distance = self.levenshtein_distance(cleaned_associated_string, cleaned_character)
                 
                 if distance < min_character_distance:
-                    print_sn0w(f"Distance: {distance} Name: {char['name']}")
+                    # print_sn0w(f"Distance: {distance} Name: {char['name']}")
                     min_character_distance = distance
                     character_name = char['name']
                     if distance <= 2:
@@ -92,7 +92,8 @@ class LoadLoraCharacterNode:
             character_name_lower = character_name.lower()
             character_name_parts = character_name_lower.split()
             closest_match = None
-            lowest_distance = float('inf')
+            lowest_distance = 1000000
+            lowest_distance_character_parts = None
 
             for filename in lora_filenames:
                 # Convert filename to lowercase for case-insensitive comparison and remove file extension.
@@ -111,11 +112,19 @@ class LoadLoraCharacterNode:
                     if total_distance < lowest_distance:
                         lowest_distance = total_distance
                         closest_match = filename
-                        # Determine which distance was used for the total distance and print accordingly.
-                        if total_distance == full_name_distance:
-                            print_sn0w("Full Name Distance: " + str(full_name_distance) + " Lora: " + filename + " Name: " + character_name_lower)
-                        else:
-                            print_sn0w("Part Name Distance: " + str(parts_distance) + " Lora: " + filename + " Name: " + str(character_name_parts))
+                        lowest_distance_character_parts = [character_name_parts]
+                        print_sn0w("Distance: " + str(total_distance) + " Lora: " + filename + " Name: " + character_name_lower)
+                        if total_distance == 0:
+                            break
+                    elif total_distance == lowest_distance:
+                        # If the distance is the same as the lowest distance, check the first part of the character name asa final check.
+                        parts_distance_final_new = self.levenshtein_distance(character_name_parts[0], filename_lower)
+                        parts_distance_final_old = self.levenshtein_distance(lowest_distance_character_parts[0], filename_lower)
+                        if parts_distance_final_new < parts_distance_final_old:
+                            parts_distance_final_new = total_distance
+                            closest_match = filename
+
+                            print_sn0w("Distance: " + str(parts_distance_final_new) + " Lora: " + filename + " Name: " + character_name_lower)
 
             # Find the full path for the closest match
             if closest_match is not None:
