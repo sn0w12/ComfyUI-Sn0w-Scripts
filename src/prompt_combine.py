@@ -20,73 +20,77 @@ class CombineStringNode:
     CATEGORY = "sn0w"
 
     def simplify_tags(self, tags_string):
-        # Broad categories for directionally sensitive visibility
-        incompatible_categories = {
-            'from behind': {'eyes', 'face', 'mouth', 'teeth', 'front'},
-        }
-
-        # Attempt to identify the direction the subject is facing
-        facing_direction = None
-        for direction in incompatible_categories.keys():
-            if direction in tags_string:
-                facing_direction = direction
-                break
-
-        # Special phrases to check in tags_string
+        # Configuration for special phrases
         special_phrases = {
-            'eye': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes'],
-            'sclera': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes'],
+            'eye': {
+                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'from behind', 'facing away', 'penis over eyes'],
+                'keep': ['looking at viewer']
+            },
+            'sclera': {
+                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'from behind', 'facing away', 'penis over eyes'],
+                'keep': ['looking at viewer']
+            },
+            'mouth': {
+                'remove': ['from behind', 'facing away'],
+                'keep': ['looking at viewer']
+            },
+            'teeth': {
+                'remove': ['from behind', 'facing away'],
+                'keep': ['looking at viewer']
+            },
         }
-        
-        # Check if any special phrases are present
-        special_conditions = {keyword: any(phrase in tags_string for phrase in phrases) for keyword, phrases in special_phrases.items()}
 
-        # Split the input string into a list of tags
-        tags = tags_string.split(',')
-        
-        # Remove leading and trailing whitespaces in each tag
-        tags = [tag.strip() for tag in tags]
-        
-        # Prepare lists to keep track of final tags to maintain order and removed tags
+        tags = [tag.strip() for tag in tags_string.split(',')]
         final_tags = []
-        removed_tags = []  # New list to track removed tags
-        
-        # Use a dictionary to map each tag to a more descriptive version if it exists
+        removed_tags = []
         tag_map = {}
-        
+
+        # Mapping non-superior tags to their superior counterparts
         for tag in tags:
             for potential_superior in tags:
                 if tag != potential_superior and tag in potential_superior:
                     tag_parts = set(tag.split(' '))
                     superior_parts = set(potential_superior.split(' '))
-                    if tag_parts.issubset(superior_parts) and not tag_parts == superior_parts:
+                    if tag_parts.issubset(superior_parts) and tag_parts != superior_parts:
                         tag_map[tag] = potential_superior
-                        break
-        
-        for tag in tags:
-            # Skip tags based on facing direction and general categories
-            if facing_direction and any(category in tag for category in incompatible_categories[facing_direction]):
-                removed_tags.append(tag)  # Track removed tag
-                continue  # Skip this tag
 
-            # Check for special conditions for each keyword
-            remove_tag = False
-            for keyword, condition_met in special_conditions.items():
-                if condition_met and keyword in tag and not any(phrase in tag for phrase in special_phrases[keyword]):
-                    remove_tag = True
-                    break
-            if remove_tag:
-                removed_tags.append(tag)  # Track removed tag
-                continue  # Skip this tag
-            
-            # Include the tag if it hasn't been marked redundant or incompatible
-            if tag not in tag_map and tag not in final_tags:
-                final_tags.append(tag)
-            elif tag in tag_map:
+        # Check for 'keep' conditions globally
+        global_keep_conditions = {keyword: any(keep_phrase in tags_string for keep_phrase in conditions['keep']) for keyword, conditions in special_phrases.items()}
+
+        for tag in tags:
+            if tag in tag_map:
+                # Append non-superior tags to removed_tags if their superior counterparts are not already included
                 if tag_map[tag] not in final_tags:
-                    final_tags.append(tag_map[tag])
-                if tag not in final_tags:  # If the original tag is not included in the final list, it's removed
                     removed_tags.append(tag)
+                continue
+
+            should_remove_tag = False
+            for keyword, conditions in special_phrases.items():
+                if keyword in tag:
+                    # Ensure the tag itself is not in the 'remove' array to be preserved
+                    if tag not in conditions['remove'] and not global_keep_conditions[keyword] and any(remove_phrase in tags_string for remove_phrase in conditions['remove']):
+                        should_remove_tag = True
+                        break
+
+            if should_remove_tag:
+                removed_tags.append(tag)
+            else:
+                final_tags.append(tag)
+
+        # Ensure tags explicitly listed in "remove" are not removed
+        for keyword, conditions in special_phrases.items():
+            for remove_tag in conditions['remove']:
+                if remove_tag in removed_tags:
+                    removed_tags.remove(remove_tag)
+                    final_tags.append(remove_tag)
+
+        # Remove duplicates in the removed_tags list by converting it to a set and back to a list
+        removed_tags = list(set(removed_tags))
+
+        # Join the final list of tags back into a string
+        simplified_tags_string = ', '.join(final_tags)
+
+        return simplified_tags_string, removed_tags
                     
         # Remove duplicates in the removed_tags list by converting it to a set and back to a list
         removed_tags = list(set(removed_tags))
