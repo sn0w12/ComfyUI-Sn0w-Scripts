@@ -23,11 +23,11 @@ class CombineStringNode:
         # Configuration for special phrases
         special_phrases = {
             'eye': {
-                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'from behind', 'facing away', 'penis over eyes'],
+                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'from behind', 'facing away'],
                 'keep': ['looking at viewer']
             },
             'sclera': {
-                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'from behind', 'facing away', 'penis over eyes'],
+                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'from behind', 'facing away'],
                 'keep': ['looking at viewer']
             },
             'mouth': {
@@ -57,6 +57,13 @@ class CombineStringNode:
         # Check for 'keep' conditions globally
         global_keep_conditions = {keyword: any(keep_phrase in tags_string for keep_phrase in conditions['keep']) for keyword, conditions in special_phrases.items()}
 
+        # Identify tags that should not be removed because they are contained in 'remove' phrases
+        non_removable_tags = set()
+        for tag in tags:
+            for keyword, conditions in special_phrases.items():
+                if any(remove_phrase in tag for remove_phrase in conditions['remove']):
+                    non_removable_tags.add(tag)
+
         for tag in tags:
             if tag in tag_map:
                 # Append non-superior tags to removed_tags if their superior counterparts are not already included
@@ -67,8 +74,7 @@ class CombineStringNode:
             should_remove_tag = False
             for keyword, conditions in special_phrases.items():
                 if keyword in tag:
-                    # Ensure the tag itself is not in the 'remove' array to be preserved
-                    if tag not in conditions['remove'] and not global_keep_conditions[keyword] and any(remove_phrase in tags_string for remove_phrase in conditions['remove']):
+                    if not global_keep_conditions[keyword] and any(remove_phrase in tags_string for remove_phrase in conditions['remove']) and tag not in non_removable_tags:
                         should_remove_tag = True
                         break
 
@@ -90,13 +96,6 @@ class CombineStringNode:
         # Join the final list of tags back into a string
         simplified_tags_string = ', '.join(final_tags)
 
-        return simplified_tags_string, removed_tags
-                    
-        # Remove duplicates in the removed_tags list by converting it to a set and back to a list
-        removed_tags = list(set(removed_tags))
-
-        # Join the final list of tags back into a string
-        simplified_tags_string = ', '.join(final_tags)
         return simplified_tags_string, removed_tags
 
     def combine_string(self, separator, simplify, **kwargs):
