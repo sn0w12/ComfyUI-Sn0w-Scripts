@@ -92,7 +92,7 @@ class LoadLoraCharacterNode:
             character_name_lower = character_name.lower()
             character_name_parts = character_name_lower.split()
             closest_match = None
-            lowest_distance = 1000000
+            lowest_distance = float('inf')
             lowest_distance_character_parts = None
 
             for filename in lora_filenames:
@@ -114,10 +114,11 @@ class LoadLoraCharacterNode:
                         closest_match = filename
                         lowest_distance_character_parts = [character_name_parts]
                         print_sn0w("Distance: " + str(total_distance) + " Lora: " + filename + " Name: " + character_name_lower)
+                        
                         if total_distance == 0:
                             break
                     elif total_distance == lowest_distance:
-                        # If the distance is the same as the lowest distance, check the first part of the character name asa final check.
+                        # If the distance is the same as the lowest distance, check the first part of the character name as a final check.
                         parts_distance_final_new = self.levenshtein_distance(character_name_parts[0], filename_lower)
                         parts_distance_final_old = self.levenshtein_distance(lowest_distance_character_parts[0], filename_lower)
                         if parts_distance_final_new < parts_distance_final_old:
@@ -133,7 +134,7 @@ class LoadLoraCharacterNode:
                 lora_path = None
 
             if lora_path:
-                print_sn0w(lora_path)
+                print_sn0w(f"Loading lora: {closest_match}")
                 model, clip = lora_loader.load_lora(model, clip, lora_path, lora_strength, lora_strength)
             else:
                 print_sn0w(f"No matching Lora found for the character {character_name}.")
