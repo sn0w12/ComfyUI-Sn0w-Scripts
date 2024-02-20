@@ -4,6 +4,7 @@ import re
 import folder_paths
 from nodes import LoraLoader
 from .print_sn0w import print_sn0w
+from .levenshtein_distance import levenshtein_distance
 
 class LoadLoraCharacterNode:
     @classmethod
@@ -22,25 +23,6 @@ class LoadLoraCharacterNode:
     RETURN_NAMES = ("MODEL", "CLIP",)
     FUNCTION = "find_and_apply_lora"
     CATEGORY = "sn0w"
-
-    def levenshtein_distance(self, s1, s2):
-        if len(s1) < len(s2):
-            return self.levenshtein_distance(s2, s1)
-
-        if len(s2) == 0:
-            return len(s1)
-
-        previous_row = range(len(s2) + 1)
-        for i, c1 in enumerate(s1):
-            current_row = [i + 1]
-            for j, c2 in enumerate(s2):
-                insertions = previous_row[j + 1] + 1
-                deletions = current_row[j] + 1
-                substitutions = previous_row[j] + (c1 != c2)
-                current_row.append(min(insertions, deletions, substitutions))
-            previous_row = current_row
-
-        return previous_row[-1]
 
     def clean_string(self, input_string):
         # Remove parentheses and escape characters
@@ -69,7 +51,7 @@ class LoadLoraCharacterNode:
 
             if any(word in char['name'].lower() for word in normalized_character_lower):
                 cleaned_associated_string = self.clean_string(char['associated_string'])
-                distance = self.levenshtein_distance(cleaned_associated_string, cleaned_character)
+                distance = levenshtein_distance(cleaned_associated_string, cleaned_character)
                 
                 if distance < min_character_distance:
                     # print_sn0w(f"Distance: {distance} Name: {char['name']}")
@@ -101,10 +83,10 @@ class LoadLoraCharacterNode:
 
                 if any(part in filename_lower for part in character_name_parts):
                     # Calculate the Levenshtein distance for the full character name as one of the metrics.
-                    full_name_distance = self.levenshtein_distance(character_name_lower, filename_lower)
+                    full_name_distance = levenshtein_distance(character_name_lower, filename_lower)
                     
                     # Calculate the distances for each part of the character name and get the sum of them.
-                    parts_distance = sum(self.levenshtein_distance(part, filename_lower) for part in character_name_parts)
+                    parts_distance = sum(levenshtein_distance(part, filename_lower) for part in character_name_parts)
                     
                     # Use the minimum of full name distance and parts distance as the total distance.
                     total_distance = min(full_name_distance, parts_distance)
@@ -119,8 +101,8 @@ class LoadLoraCharacterNode:
                             break
                     elif total_distance == lowest_distance:
                         # If the distance is the same as the lowest distance, check the first part of the character name as a final check.
-                        parts_distance_final_new = self.levenshtein_distance(character_name_parts[0], filename_lower)
-                        parts_distance_final_old = self.levenshtein_distance(lowest_distance_character_parts[0], filename_lower)
+                        parts_distance_final_new = levenshtein_distance(character_name_parts[0], filename_lower)
+                        parts_distance_final_old = levenshtein_distance(lowest_distance_character_parts[0], filename_lower)
                         if parts_distance_final_new < parts_distance_final_old:
                             parts_distance_final_new = total_distance
                             closest_match = filename

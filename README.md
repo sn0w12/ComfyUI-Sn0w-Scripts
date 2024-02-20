@@ -126,11 +126,10 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
->    - **Functionality**: This node processes a given prompt to identify and apply the most similar Lora models of the tags found in the prompt. 
->    - **Input Processing**: The prompt is split into parts using a specified `separator`, and each part is cleaned to remove unnecessary characters and normalized for comparison.
->    - **Similarity Matching**: For each part of the prompt, the node calculates a similarity ratio against available Lora model filenames. Models with a similarity ratio above a threshold (85%) are selected. Each selected Lora model is applied to the input `model` and `clip`.
->    - **Outputs**: Returns the `model` and `clip`, potentially modified by multiple Lora models.
+>    - This node processes a given prompt to identify and apply the most similar Lora models of the tags found in the prompt. 
+>    - For each part of the prompt, the node calculates a distance between tags and available Lora model filenames. Models with a difference of under 5 is applied to the input `model` and `clip`.
 >    - Note: You need the loras you want to be selected to be in a folder called `concept` for this to work, they also need to be seperated into XL and 1.5 like stated in the `Important Note`.
+>    - Note: Loras need to be named very similarly to the tag, with at most 5 different characters different. The words in the lora can be seperated by spaces or underscores.
 >
 >    ![Load Lora Concept](./imgs/load_lora_concept.png)
 >    </details>
