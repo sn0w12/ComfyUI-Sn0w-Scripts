@@ -104,7 +104,7 @@ class CombineStringNode:
                     final_tags.append(remove_tag)
 
         # Remove duplicates in the removed_tags list by converting it to a set and back to a list
-        removed_tags = list(set(removed_tags))
+        removed_tags = ', '.join(list(set(removed_tags)))
 
         # Reinsert parenthesized parts back into their original positions
         final_tags_list = modified_tags_string.split(',')

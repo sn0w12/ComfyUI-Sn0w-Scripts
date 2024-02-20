@@ -86,7 +86,7 @@ class LoadLoraConceptNode:
                 processed_lora_filename = lora_filename.replace(".safetensors", "").replace("_", " ")
                 # Calculate similarity ratio
                 similarity_ratio = self.similarity_ratio(prompt_part, processed_lora_filename)
-                if similarity_ratio >= 85:
+                if similarity_ratio >= 60:
                     # Find the full path from the full_lora_paths list
                     for full_path in full_lora_paths:
                         if lora_filename in full_path.lower():
@@ -95,7 +95,7 @@ class LoadLoraConceptNode:
 
         # Print and apply found lora paths
         for path in found_full_lora_paths:
-            print_sn0w(path)
+            print_sn0w(f"Loading Concept Lora: {os.path.split(path)[-1].lower()}")
             model, clip = LoraLoader().load_lora(model, clip, path, lora_strength, lora_strength)
 
         return (model, clip, )

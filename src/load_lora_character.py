@@ -134,7 +134,7 @@ class LoadLoraCharacterNode:
                 lora_path = None
 
             if lora_path:
-                print_sn0w(f"Loading lora: {closest_match}")
+                print_sn0w(f"Loading Character lora: {closest_match}")
                 model, clip = lora_loader.load_lora(model, clip, lora_path, lora_strength, lora_strength)
             else:
                 print_sn0w(f"No matching Lora found for the character {character_name}.")
