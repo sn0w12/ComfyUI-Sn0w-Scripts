@@ -1,3 +1,5 @@
+import re
+
 class CombineStringNode:
     @classmethod
     def INPUT_TYPES(cls):
@@ -23,24 +25,35 @@ class CombineStringNode:
         # Configuration for special phrases
         special_phrases = {
             'eye': {
-                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'from behind', 'facing away'],
+                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away'],
                 'keep': ['looking at viewer']
             },
             'sclera': {
-                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'from behind', 'facing away'],
+                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away'],
                 'keep': ['looking at viewer']
             },
             'mouth': {
-                'remove': ['from behind', 'facing away'],
+                'remove': ['facing away'],
                 'keep': ['looking at viewer']
             },
             'teeth': {
-                'remove': ['from behind', 'facing away'],
+                'remove': ['facing away'],
                 'keep': ['looking at viewer']
             },
         }
 
-        tags = [tag.strip() for tag in tags_string.split(',')]
+        # Regular expression to match parenthesized parts
+        parenthesized_pattern = re.compile(r'\([^()]*\)')
+        parenthesized_parts = []
+
+        # Extract and temporarily remove parenthesized parts, storing their positions
+        def extract_parenthesized(match):
+            parenthesized_parts.append(match.group(0))
+            return "\0"  # Use a unique placeholder to mark the position
+
+        modified_tags_string = re.sub(parenthesized_pattern, extract_parenthesized, tags_string)
+
+        tags = [tag.strip() for tag in modified_tags_string.split(',')]
         final_tags = []
         removed_tags = []
         tag_map = {}
@@ -93,8 +106,15 @@ class CombineStringNode:
         # Remove duplicates in the removed_tags list by converting it to a set and back to a list
         removed_tags = list(set(removed_tags))
 
-        # Join the final list of tags back into a string
-        simplified_tags_string = ', '.join(final_tags)
+        # Reinsert parenthesized parts back into their original positions
+        final_tags_list = modified_tags_string.split(',')
+        final_tags_with_parentheses = []
+        for tag in final_tags_list:
+            if "\0" in tag:  # If placeholder is found, replace it with the original parenthesized part
+                tag = tag.replace("\0", parenthesized_parts.pop(0), 1)
+            final_tags_with_parentheses.append(tag.strip())
+        
+        simplified_tags_string = ', '.join(final_tags_with_parentheses)
 
         return simplified_tags_string, removed_tags
 
