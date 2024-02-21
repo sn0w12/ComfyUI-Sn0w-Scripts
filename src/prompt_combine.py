@@ -22,7 +22,11 @@ class CombineStringNode:
     CATEGORY = "sn0w"
 
     def simplify_tags(self, tags_string):
-        # Configuration for special phrases
+        # dictionary defines categories with specific rules for removing or keeping tags.
+        # remove contains phrases that, if found in a prompt, suggest the tag should be removed under certain conditions.
+        # keep contains phrases that, if found in a prompt, indicate the tag should be kept.
+        # if a remove tag is found and no keep tag is found, it will remove all mentions of the category except the tags found in remove.
+        # keep always takes priority over remove, if any tag in keep is found nothing will be removed
         special_phrases = {
             'eye': {
                 'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away'],
