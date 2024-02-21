@@ -67,8 +67,8 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
->    - Loads characters.json and outputs prompt based on it.
->    - Note: Currently very small list, feel free to add your own to the json file.
+>    - Loads `characters.json` and outputs prompt based on it.
+>    - You can create a file named `custom_characters.json` and add characters there if you want, they will be loaded with all the other characters if you format it like the `characters.json` file.
 > 
 >    ![Character Selector](./imgs/character_selector.png)
 >    </details>
