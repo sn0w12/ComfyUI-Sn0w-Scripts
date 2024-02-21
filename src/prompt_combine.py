@@ -57,6 +57,7 @@ class CombineStringNode:
 
         modified_tags_string = re.sub(parenthesized_pattern, extract_parenthesized, tags_string)
 
+        # Split tags and initialize lists
         tags = [tag.strip() for tag in modified_tags_string.split(',')]
         final_tags = []
         removed_tags = []
@@ -118,7 +119,16 @@ class CombineStringNode:
                 tag = tag.replace("\0", parenthesized_parts.pop(0), 1)
             final_tags_with_parentheses.append(tag.strip())
         
-        simplified_tags_string = ', '.join(final_tags_with_parentheses)
+        # New step: Re-sort tags to move numeric tags to the front
+        numeric_tag_pattern = re.compile(r'\b\d+\+?(girls?|boys?)\b')
+        numeric_tags = [tag for tag in final_tags_with_parentheses if numeric_tag_pattern.match(tag)]
+        non_numeric_tags = [tag for tag in final_tags_with_parentheses if not numeric_tag_pattern.match(tag)]
+
+        # Prioritize numeric tags in the final list
+        prioritized_final_tags = numeric_tags + non_numeric_tags
+
+        # Generate the final simplified tags string
+        simplified_tags_string = ', '.join(prioritized_final_tags)
 
         return simplified_tags_string, removed_tags
 
