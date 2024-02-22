@@ -3,10 +3,11 @@ import json
 import re
 import folder_paths
 from nodes import LoraLoader
-from .print_sn0w import print_sn0w
-from .levenshtein_distance import levenshtein_distance
+from .sn0w import Logger, Utility
 
 class LoadLoraCharacterNode:
+    logger = Logger()
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -51,10 +52,10 @@ class LoadLoraCharacterNode:
 
             if any(word in char['name'].lower() for word in normalized_character_lower):
                 cleaned_associated_string = self.clean_string(char['associated_string'])
-                distance = levenshtein_distance(cleaned_associated_string, cleaned_character)
+                distance = Utility.levenshtein_distance(cleaned_associated_string, cleaned_character)
                 
                 if distance < min_character_distance:
-                    # print_sn0w(f"Distance: {distance} Name: {char['name']}")
+                    self.logger.log(f"Distance: {distance} Name: {char['name']}", "ALL")
                     min_character_distance = distance
                     character_name = char['name']
                     if distance <= 2:
@@ -83,31 +84,32 @@ class LoadLoraCharacterNode:
 
                 if any(part in filename_lower for part in character_name_parts):
                     # Calculate the Levenshtein distance for the full character name as one of the metrics.
-                    full_name_distance = levenshtein_distance(character_name_lower, filename_lower)
+                    full_name_distance = Utility.levenshtein_distance(character_name_lower, filename_lower)
                     
                     # Calculate the distances for each part of the character name and get the sum of them.
-                    parts_distance = sum(levenshtein_distance(part, filename_lower) for part in character_name_parts)
+                    parts_distance = sum(Utility.levenshtein_distance(part, filename_lower) for part in character_name_parts)
                     
                     # Use the minimum of full name distance and parts distance as the total distance.
                     total_distance = min(full_name_distance, parts_distance)
+
+                    self.logger.log("Distance: " + str(total_distance) + " Lora: " + filename + " Name: " + character_name_lower, "ALL")
 
                     if total_distance < lowest_distance:
                         lowest_distance = total_distance
                         closest_match = filename
                         lowest_distance_character_parts = [character_name_parts]
-                        print_sn0w("Distance: " + str(total_distance) + " Lora: " + filename + " Name: " + character_name_lower)
                         
                         if total_distance == 0:
                             break
                     elif total_distance == lowest_distance:
                         # If the distance is the same as the lowest distance, check the first part of the character name as a final check.
-                        parts_distance_final_new = levenshtein_distance(character_name_parts[0], filename_lower)
-                        parts_distance_final_old = levenshtein_distance(lowest_distance_character_parts[0], filename_lower)
+                        parts_distance_final_new = Utility.levenshtein_distance(character_name_parts[0], filename_lower)
+                        parts_distance_final_old = Utility.levenshtein_distance(lowest_distance_character_parts[0], filename_lower)
                         if parts_distance_final_new < parts_distance_final_old:
                             parts_distance_final_new = total_distance
                             closest_match = filename
 
-                            print_sn0w("Distance: " + str(parts_distance_final_new) + " Lora: " + filename + " Name: " + character_name_lower)
+                            self.logger.log("Distance: " + str(parts_distance_final_new) + " Lora: " + filename + " Name: " + character_name_lower, "ALL")
 
             # Find the full path for the closest match
             if closest_match is not None:
@@ -116,9 +118,9 @@ class LoadLoraCharacterNode:
                 lora_path = None
 
             if lora_path:
-                print_sn0w(f"Loading Character lora: {closest_match}")
+                self.logger.log(f"Loading Character lora: {closest_match}", "GENERAL")
                 model, clip = lora_loader.load_lora(model, clip, lora_path, lora_strength, lora_strength)
             else:
-                print_sn0w(f"No matching Lora found for the character {character_name}.")
+                self.logger.log(f"No matching Lora found for the character {character_name}.", "GENERAL")
 
         return model, clip
