@@ -7,13 +7,18 @@ class ConfigReader:
     @classmethod
     def load_config(cls):
         if cls._config is None:
-            dir_path = os.path.dirname(os.path.realpath(__file__))
-            config_path = os.path.join(dir_path, 'config.json')
+            # Get the directory of the current file
+            current_file_path = os.path.realpath(__file__)
+            # Navigate up to the parent directory of the current file
+            parent_dir = os.path.dirname(os.path.dirname(current_file_path))
+            # Construct the path to the 'config.json' file located in the parent directory
+            config_path = os.path.join(parent_dir, 'config.json')
+            
             try:
                 with open(config_path, 'r') as file:
                     cls._config = json.load(file)
             except FileNotFoundError:
-                Logger.print_sn0w(f"Configuration file not found at {config_path}. Using default settings.")
+                print(f"Configuration file not found at {config_path}. Using default settings.")
                 cls._config = {}  # Use an empty dict as a fallback
         return cls._config
 
@@ -28,7 +33,7 @@ class Logger:
     PREFIX = "[sn0w] "
 
     def __init__(self):
-        self.logging_level = ConfigReader.get_setting('logging_level', 'NONE')
+        self.logging_level = ConfigReader.get_setting('logging_level', 'GENERAL')
 
     @classmethod
     def print_sn0w(cls, message):
