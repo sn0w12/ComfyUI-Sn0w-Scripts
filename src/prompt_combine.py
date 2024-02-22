@@ -148,7 +148,7 @@ class CombineStringNode:
                     combined.append(final_string)
 
         if simplify:
-            final_tags, removed_tags = self.simplify_tags(separator.join(combined))
+            final_tags, removed_tags = self.simplify_tags(separator.join(combined), separator)
         else:
             final_tags = separator.join(combined)
 
