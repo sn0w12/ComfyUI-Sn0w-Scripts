@@ -111,7 +111,12 @@ def simplify_tags(tags_string):
 
     return simplified_tags_string, removed_tags
 
-def simplify_tags_new(tags_string):
+def simplify_tags_new(tags_string, separator):
+    # dictionary defines categories with specific rules for removing or keeping tags.
+    # remove contains phrases that, if found in a prompt, suggest the tag should be removed.
+    # keep contains phrases that, if found in a prompt, indicate the tag should be kept.
+    # if a remove tag is found and no keep tag is found, it will remove all mentions of the category except the tags found in remove.
+    # keep always takes priority over remove, if any tag in keep is found nothing will be removed
     special_phrases = {
         'eye': {
             'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away'],
@@ -143,7 +148,7 @@ def simplify_tags_new(tags_string):
     
     modified_tags_string = re.sub(parenthesized_pattern, extract_parenthesized, tags_string)
 
-    tags = [tag.strip() for tag in modified_tags_string.split(',')]
+    tags = [tag.strip() for tag in modified_tags_string.split(separator)]
     final_tags = []
     removed_tags = set()
     tag_map = {}
@@ -192,24 +197,49 @@ def simplify_tags_new(tags_string):
             tag = tag.replace(f"\0{index}\0", parenthesized_parts[index], 1)
         final_tags_with_parentheses.append(tag)
 
-    numeric_tags = [tag for tag in final_tags_with_parentheses if numeric_tag_pattern.match(tag)]
-    non_numeric_tags = [tag for tag in final_tags_with_parentheses if not numeric_tag_pattern.match(tag)]
+    animagine_formatting = True
 
-    prioritized_final_tags = numeric_tags + non_numeric_tags
+    if animagine_formatting:
+        numeric_tags = [tag for tag in final_tags_with_parentheses if numeric_tag_pattern.match(tag)]
+        non_numeric_tags = [tag for tag in final_tags_with_parentheses if not numeric_tag_pattern.match(tag)]
 
-    simplified_tags_string = ', '.join(prioritized_final_tags)
-    removed_tags_string = ', '.join(removed_tags)
+        prioritized_final_tags = numeric_tags + non_numeric_tags
+    else:
+        prioritized_final_tags = final_tags_with_parentheses
+
+    simplified_tags_string = separator.join(prioritized_final_tags).strip(separator)
+    removed_tags_string = separator.join(removed_tags).strip(separator)
 
     return simplified_tags_string, removed_tags_string
 
+def combine_string(separator, simplify, **kwargs):
+        # Collect strings that are not None and strip them
+        strings = [s.strip() for s in (kwargs.get(f"string_{char}") for char in ['a', 'b', 'c', 'd']) if s]
+
+        all_words = set()
+        combined = []
+
+        for string in strings:
+            # Avoid appending the separator at the end; directly construct the final string without it
+            unique_words = [word for word in string.split(separator) if word not in all_words and not all_words.add(word)]
+            if unique_words:  # Check if there are any unique words to add
+                combined.append(separator.join(unique_words))
+
+        # Join all unique words across all strings with the separator, handle simplify directly
+        final_combined_string = separator.join(combined)
+        if simplify:
+            final_tags, removed_tags = simplify_tags(final_combined_string, separator)
+
+        return (final_tags, removed_tags)
 
 # Test the function with an example string
-tags_string = "(mirko, boku no hero academia:1.2), animal ears, breasts, dark-skinned female, large breasts, long hair, parted bangs, rabbit ears, rabbit girl, red eyes, toned, white hair, 1boy, 1girl, after ejaculation, animal ear fluff, animal hands, bell, bikini, black bikini, black thighhighs, blush, breasts apart, cat ears, cat paws, cat tail, clothed female nude male, collar, covered erect nipples, cum, cum in mouth, cum on penis, cum on tongue, facial, fake animal ears, fake tail, fang, fur collar, gloves, gluteal fold, highleg, highleg bikini, holding, holding leash, kneeling, large penis, leash, leash pull, micro bikini, navel, neck bell, nude, open mouth, paw gloves, penis, penis on face, penis over eyes, pet play, smile, stomach, swimsuit, tail, tail ornament, thighhighs, veins, veiny penis, (masterpiece, exceptional, best aesthetic, best quality, masterpiece, extremely detailed:1.1)"
-simplified_tags_string, removed_tags = simplify_tags(tags_string)
-print('Simplified Tags Old:', simplified_tags_string)
-print('Removed Tags Old:', removed_tags)
-print("\n")
+tags_string1 = "(mirko, boku no hero academia:1.2), "
+tags_string2 = "animal ears, breasts, dark-skinned female, large breasts, long hair, parted bangs, rabbit ears, rabbit girl, red eyes, toned, white hair, 1boy, 1girl, after ejaculation, animal ear fluff, animal hands, bell, bikini, black bikini, black thighhighs, blush, breasts apart, cat ears, cat paws, cat tail, clothed female nude male, collar, covered erect nipples, cum, cum in mouth, cum on penis, cum on tongue, facial, fake animal ears, fake tail, fang, fur collar, gloves, gluteal fold, highleg, highleg bikini, holding, holding leash, kneeling, large penis, leash, leash pull, micro bikini, navel, neck bell, nude, open mouth, paw gloves, penis, penis on face, penis over eyes, pet play, smile, stomach, swimsuit, tail, tail ornament, thighhighs, veins, veiny penis, (masterpiece, exceptional, best aesthetic, best quality, masterpiece, extremely detailed:1.1)"
+#simplified_tags_string, removed_tags = simplify_tags(tags_string)
+#print('Simplified Tags Old:', simplified_tags_string)
+#print('Removed Tags Old:', removed_tags)
+#print("\n")
 
-simplified_tags_string_new, removed_tags_new = simplify_tags_new(tags_string)
+simplified_tags_string_new, removed_tags_new = combine_string(", ", False, [tags_string1, tags_string2])
 print('Simplified Tags New:', simplified_tags_string_new)
 print('Removed Tags New:', removed_tags_new)

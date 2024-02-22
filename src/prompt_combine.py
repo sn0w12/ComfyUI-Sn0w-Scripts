@@ -126,22 +126,30 @@ class CombineStringNode:
     def combine_string(self, separator, simplify, **kwargs):
         # Collect strings that are not None and strip them
         strings = [s.strip() for s in (kwargs.get(f"string_{char}") for char in ['a', 'b', 'c', 'd']) if s]
+        removed_tags = ""
 
         all_words = set()
         combined = []
 
         for string in strings:
-            # Avoid appending the separator at the end; directly construct the final string without it
-            unique_words = [word for word in string.split(separator) if word not in all_words and not all_words.add(word)]
-            if unique_words:  # Check if there are any unique words to add
-                combined.append(separator.join(unique_words))
+            if string != "None" and isinstance(string, str):
+                string = string.strip()
+                if string.endswith(separator.strip()):
+                    string = string[:-len(separator.strip())]
+                if string and string not in combined:
+                    final_string = ""
+                    words = string.split(separator)
+                    for word in words:
+                        if word not in all_words:
+                            all_words.add(word)
+                            final_string += (word + separator)
+                    if final_string:
+                        final_string = final_string[:-len(separator)]
+                    combined.append(final_string)
 
-        # Join all unique words across all strings with the separator, handle simplify directly
-        final_combined_string = separator.join(combined)
         if simplify:
-            final_tags, removed_tags = self.simplify_tags(final_combined_string, separator)
+            final_tags, removed_tags = self.simplify_tags(separator.join(combined))
         else:
-            final_tags = final_combined_string
-            removed_tags = ""
+            final_tags = separator.join(combined)
 
         return (final_tags, removed_tags,)
