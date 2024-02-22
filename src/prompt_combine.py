@@ -1,4 +1,5 @@
 import re
+from .sn0w import ConfigReader
 
 class CombineStringNode:
     @classmethod
@@ -21,7 +22,7 @@ class CombineStringNode:
     FUNCTION = "combine_string"
     CATEGORY = "sn0w"
 
-    def simplify_tags(self, tags_string):
+    def simplify_tags(self, tags_string, separator):
         # dictionary defines categories with specific rules for removing or keeping tags.
         # remove contains phrases that, if found in a prompt, suggest the tag should be removed.
         # keep contains phrases that, if found in a prompt, indicate the tag should be kept.
@@ -58,7 +59,7 @@ class CombineStringNode:
         
         modified_tags_string = re.sub(parenthesized_pattern, extract_parenthesized, tags_string)
 
-        tags = [tag.strip() for tag in modified_tags_string.split(',')]
+        tags = [tag.strip() for tag in modified_tags_string.split(separator)]
         final_tags = []
         removed_tags = set()
         tag_map = {}
@@ -107,13 +108,18 @@ class CombineStringNode:
                 tag = tag.replace(f"\0{index}\0", parenthesized_parts[index], 1)
             final_tags_with_parentheses.append(tag)
 
-        numeric_tags = [tag for tag in final_tags_with_parentheses if numeric_tag_pattern.match(tag)]
-        non_numeric_tags = [tag for tag in final_tags_with_parentheses if not numeric_tag_pattern.match(tag)]
+        animagine_formatting = ConfigReader.get_setting('animagine_formatting', 'TRUE') == 'TRUE'
 
-        prioritized_final_tags = numeric_tags + non_numeric_tags
+        if animagine_formatting:
+            numeric_tags = [tag for tag in final_tags_with_parentheses if numeric_tag_pattern.match(tag)]
+            non_numeric_tags = [tag for tag in final_tags_with_parentheses if not numeric_tag_pattern.match(tag)]
 
-        simplified_tags_string = ', '.join(prioritized_final_tags)
-        removed_tags_string = ', '.join(removed_tags)
+            prioritized_final_tags = numeric_tags + non_numeric_tags
+        else:
+            prioritized_final_tags = final_tags_with_parentheses
+
+        simplified_tags_string = separator.join(prioritized_final_tags).strip(separator)
+        removed_tags_string = separator.join(removed_tags).strip(separator)
 
         return simplified_tags_string, removed_tags_string
 
@@ -133,9 +139,9 @@ class CombineStringNode:
         # Join all unique words across all strings with the separator, handle simplify directly
         final_combined_string = separator.join(combined)
         if simplify:
-            final_tags, removed_tags = self.simplify_tags(final_combined_string)
+            final_tags, removed_tags = self.simplify_tags(final_combined_string, separator)
         else:
             final_tags = final_combined_string
             removed_tags = ""
-            
+
         return (final_tags, removed_tags,)

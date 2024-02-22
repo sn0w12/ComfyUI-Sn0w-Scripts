@@ -59,7 +59,7 @@ class LoadLoraConceptNode:
                                 if prompt_part not in lora_candidates:
                                     lora_candidates[prompt_part] = []
                                 lora_candidates[prompt_part].append({'full_path': full_path, 'distance': distance})
-                                self.logger.print_sn0w("Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part)
+                                self.logger.print_sn0w("Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part, "ALL")
                                 break
 
         # Apply the Lora with the lowest distance for each prompt_part, ensuring no duplicates
@@ -67,7 +67,7 @@ class LoadLoraConceptNode:
             if candidates:
                 selected_candidate = min(candidates, key=lambda x: x['distance'])
                 if selected_candidate['full_path'] not in loaded_loras:  # Check if this Lora has already been loaded
-                    self.logger.print_sn0w(f"Loading Concept Lora: {os.path.split(selected_candidate['full_path'])[-1]}")
+                    self.logger.print_sn0w(f"Loading Concept Lora: {os.path.split(selected_candidate['full_path'])[-1]}", "GENERAL")
                     model, clip = LoraLoader().load_lora(model, clip, selected_candidate['full_path'], lora_strength, lora_strength)
                     loaded_loras.add(selected_candidate['full_path'])  # Mark this Lora as loaded
 
