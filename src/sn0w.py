@@ -28,7 +28,7 @@ class ConfigReader:
         return config.get(setting_key, default)
 
 class Logger:
-    RED_TEXT = "\033[0;35m"
+    PURPLE_TEXT = "\033[0;35m"
     RESET_TEXT = "\033[0m"
     PREFIX = "[sn0w] "
 
@@ -37,7 +37,7 @@ class Logger:
 
     @classmethod
     def print_sn0w(cls, message):
-        print(f"{cls.RED_TEXT}{cls.PREFIX}{cls.RESET_TEXT}{message}")
+        print(f"{cls.PURPLE_TEXT}{cls.PREFIX}{cls.RESET_TEXT}{message}")
 
     def log(self, message, level="GENERAL"):
         levels = {"NONE": 0, "GENERAL": 1, "ALL": 2}
