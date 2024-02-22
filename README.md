@@ -29,7 +29,7 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 
 ## Creating the Configuration File
 
-To get started, create a `config.json` file in the root directory of the `sn0w-scripts` project, alongside the `custom_nodes` folder. Here's a basic example of what this file might look like:
+To get started, create a `config.json` file in the root directory of the `sn0w-scripts` project, or simply change the name of `config.json.example`. Here's a basic example of what this file might look like:
 
 ```json
 {
