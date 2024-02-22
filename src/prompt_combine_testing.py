@@ -111,8 +111,105 @@ def simplify_tags(tags_string):
 
     return simplified_tags_string, removed_tags
 
+def simplify_tags_new(tags_string):
+    special_phrases = {
+        'eye': {
+            'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away'],
+            'keep': ['looking at viewer']
+        },
+        'sclera': {
+            'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away'],
+            'keep': ['looking at viewer']
+        },
+        'mouth': {
+            'remove': ['facing away'],
+            'keep': ['looking at viewer']
+        },
+        'teeth': {
+            'remove': ['facing away'],
+            'keep': ['looking at viewer']
+        },
+    }
+
+    # Compile regex patterns outside of loops
+    parenthesized_pattern = re.compile(r'\([^()]*\)')
+    numeric_tag_pattern = re.compile(r'\b\d+\+?(girls?|boys?)\b')
+    
+    # Extract parenthesized parts
+    parenthesized_parts = []
+    def extract_parenthesized(match):
+        parenthesized_parts.append(match.group())
+        return f"\0{len(parenthesized_parts)-1}\0"
+    
+    modified_tags_string = re.sub(parenthesized_pattern, extract_parenthesized, tags_string)
+
+    tags = [tag.strip() for tag in modified_tags_string.split(',')]
+    final_tags = []
+    removed_tags = set()
+    tag_map = {}
+
+    for tag in tags:
+        for potential_superior in tags:
+            if tag in potential_superior and tag != potential_superior:
+                tag_map[tag] = potential_superior
+
+    global_keep_conditions = {
+        keyword: any(keep_phrase in tags_string for keep_phrase in conditions['keep'])
+        for keyword, conditions in special_phrases.items()
+    }
+
+    non_removable_tags = {
+        tag
+        for tag in tags
+        for keyword, conditions in special_phrases.items()
+        if any(remove_phrase in tag for remove_phrase in conditions['remove'])
+    }
+
+    for tag in tags:
+        superior_tag = tag_map.get(tag)
+        if superior_tag and superior_tag not in final_tags:
+            removed_tags.add(tag)
+            continue
+
+        should_remove_tag = False
+        for keyword, conditions in special_phrases.items():
+            if keyword in tag and not global_keep_conditions[keyword] and any(remove_phrase in tags_string for remove_phrase in conditions['remove']) and tag not in non_removable_tags:
+                should_remove_tag = True
+                break
+
+        if should_remove_tag:
+            removed_tags.add(tag)
+        else:
+            # Avoid adding duplicates
+            if tag not in final_tags:
+                final_tags.append(tag)
+
+    # Reinsert parenthesized parts and handle removed tags
+    final_tags_with_parentheses = []
+    for tag in final_tags:
+        while "\0" in tag:
+            index = int(tag[tag.find("\0")+1:tag.rfind("\0")])
+            tag = tag.replace(f"\0{index}\0", parenthesized_parts[index], 1)
+        final_tags_with_parentheses.append(tag)
+
+    numeric_tags = [tag for tag in final_tags_with_parentheses if numeric_tag_pattern.match(tag)]
+    non_numeric_tags = [tag for tag in final_tags_with_parentheses if not numeric_tag_pattern.match(tag)]
+
+    prioritized_final_tags = numeric_tags + non_numeric_tags
+
+    simplified_tags_string = ', '.join(prioritized_final_tags)
+    removed_tags_string = ', '.join(removed_tags)
+
+    return simplified_tags_string, removed_tags_string
+
+
 # Test the function with an example string
 tags_string = "(mirko, boku no hero academia:1.2), animal ears, breasts, dark-skinned female, large breasts, long hair, parted bangs, rabbit ears, rabbit girl, red eyes, toned, white hair, 1boy, 1girl, after ejaculation, animal ear fluff, animal hands, bell, bikini, black bikini, black thighhighs, blush, breasts apart, cat ears, cat paws, cat tail, clothed female nude male, collar, covered erect nipples, cum, cum in mouth, cum on penis, cum on tongue, facial, fake animal ears, fake tail, fang, fur collar, gloves, gluteal fold, highleg, highleg bikini, holding, holding leash, kneeling, large penis, leash, leash pull, micro bikini, navel, neck bell, nude, open mouth, paw gloves, penis, penis on face, penis over eyes, pet play, smile, stomach, swimsuit, tail, tail ornament, thighhighs, veins, veiny penis, (masterpiece, exceptional, best aesthetic, best quality, masterpiece, extremely detailed:1.1)"
 simplified_tags_string, removed_tags = simplify_tags(tags_string)
-print('Simplified Tags:', simplified_tags_string)
-print('Removed Tags:', removed_tags)
+print('Simplified Tags Old:', simplified_tags_string)
+print('Removed Tags Old:', removed_tags)
+print("\n")
+
+simplified_tags_string_new, removed_tags_new = simplify_tags_new(tags_string)
+print('Simplified Tags New:', simplified_tags_string_new)
+print('Removed Tags New:', removed_tags_new)
