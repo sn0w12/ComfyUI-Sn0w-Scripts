@@ -118,29 +118,24 @@ class CombineStringNode:
         return simplified_tags_string, removed_tags_string
 
     def combine_string(self, separator, simplify, **kwargs):
-        strings = [kwargs.get(f"string_{char}") for char in ['a', 'b', 'c', 'd'] if kwargs.get(f"string_{char}") is not None]
-        combined = []
+        # Collect strings that are not None and strip them
+        strings = [s.strip() for s in (kwargs.get(f"string_{char}") for char in ['a', 'b', 'c', 'd']) if s]
+
         all_words = set()
-        removed_tags = ""
+        combined = []
 
         for string in strings:
-            if string != "None" and isinstance(string, str):
-                string = string.strip()
-                if string.endswith(separator.strip()):
-                    string = string[:-len(separator.strip())]
-                if string and string not in combined:
-                    final_string = ""
-                    words = string.split(separator)
-                    for word in words:
-                        if word not in all_words:
-                            all_words.add(word)
-                            final_string += (word + separator)
-                    if final_string:
-                        final_string = final_string[:-len(separator)]
-                    combined.append(final_string)
+            # Avoid appending the separator at the end; directly construct the final string without it
+            unique_words = [word for word in string.split(separator) if word not in all_words and not all_words.add(word)]
+            if unique_words:  # Check if there are any unique words to add
+                combined.append(separator.join(unique_words))
 
+        # Join all unique words across all strings with the separator, handle simplify directly
+        final_combined_string = separator.join(combined)
         if simplify:
-            final_tags, removed_tags = self.simplify_tags(separator.join(combined))
+            final_tags, removed_tags = self.simplify_tags(final_combined_string)
         else:
-            final_tags = separator.join(combined)
+            final_tags = final_combined_string
+            removed_tags = ""
+            
         return (final_tags, removed_tags,)
