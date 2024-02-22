@@ -18,19 +18,21 @@ class LoraStackerNode:
             },
         }
 
-    RETURN_TYPES = ("STRING", "INT","BOOLEAN",)
-    RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS","ADD_DEFAULT_GENERATION",)
-    FUNCTION = "process_lora_strength"
+    RETURN_TYPES = ("STRING", "INT",)
+    RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS",)
+    FUNCTION = "process_loras"
     CATEGORY = "sn0w"
     OUTPUT_NODE = True
 
-    def process_lora_strength(self, lora_a, lora_strength_a, lora_b, lora_strength_b, lora_c, lora_strength_c, lora_d, lora_strength_d, add_default_generation):
+    def process_loras(self, lora_a, lora_strength_a, lora_b, lora_strength_b, lora_c, lora_strength_c, lora_d, lora_strength_d, add_default_generation):
         # Function to extract lora string and format with strength
         def format_lora(lora, strength):
+            if lora.lower() == "none":  # Skip "None" loras
+                return None
             lora_string = lora.split('\\')[-1].replace('.safetensors', '')
             return f"<lora:{lora_string}:{strength:.1f}>"
 
-        # Process each lora and its strength
+        # Process each lora and its strength, filtering out "None"
         loras = [
             format_lora(lora_a, lora_strength_a),
             format_lora(lora_b, lora_strength_b),
@@ -38,8 +40,11 @@ class LoraStackerNode:
             format_lora(lora_d, lora_strength_d)
         ]
 
-        # Initialize total_loras count
-        total_loras = 4
+        # Filter out None values from the loras list
+        loras = [lora for lora in loras if lora is not None]
+
+        # Initialize total_loras count based on filtered loras
+        total_loras = len(loras)
 
         # Handle additional generation if required
         if add_default_generation:
@@ -49,5 +54,4 @@ class LoraStackerNode:
         # Join the lora strings into a single string separated by semicolons
         lora_output = ';'.join(loras)
 
-        return (lora_output, total_loras, add_default_generation, )
-
+        return (lora_output, total_loras,)

@@ -60,4 +60,4 @@ class CharacterSelectNode:
             else:
                 return ("", prompt, xl,)
 
-        return ("None", "None", "None")
+        return ("", "", "")

@@ -78,9 +78,8 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
->    - **Inputs**: Accepts up to four strings and a `separator` to combine them. An optional boolean `simplify` flag determines whether to simplify the combined string by removing redundant or incompatible tags based on predefined categories.
->    - **Simplification Process**: If enabled, the simplification process identifies and removes redundant tags (e.g., when a tag is fully encompassed by another, more descriptive tag) and tags incompatible with factors such as facing away, covered eyes, etc. Any tags that are in parentheses will not be removed.
->    - **Outputs**: Returns a combined string (`PROMPT`) with or without simplification, and a string (`REMOVED_TAGS`) listing tags that were removed during the simplification process.
+>    - If simplify is enabled, the simplification process identifies and removes redundant tags (e.g., when a tag is fully encompassed by another, more descriptive tag) and tags incompatible with factors such as facing away, covered eyes, etc. Any tags that are in parentheses will not be removed.
+>    - Simplify will also move 1girl/ 1boy to the front of the prompt to be in line with animagine 3's tagging.
 > 
 >    ![Prompt Combine](./imgs/prompt_combine.png)
 >    </details>

@@ -28,8 +28,8 @@ class LoraTestXLNode:
                      }
                 }
 
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("IMAGES",)
+    RETURN_TYPES = ("IMAGE","INT",)
+    RETURN_NAMES = ("IMAGES","TOTAL IMAGES",)
     FUNCTION = "sample"
 
     CATEGORY = "sampling"
@@ -106,4 +106,4 @@ class LoraTestXLNode:
 
         # Using WAS_Image_Batch to batch the images together
         batched_images = image_batcher.image_batch(**image_batch_kwargs)
-        return batched_images
+        return (batched_images[0], len(images))
