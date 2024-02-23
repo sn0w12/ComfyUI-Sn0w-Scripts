@@ -1,5 +1,6 @@
 import os
 import json
+import torch
 
 class ConfigReader:
     _config = None
@@ -64,3 +65,23 @@ class Utility:
             previous_row = current_row
 
         return previous_row[-1]
+    
+    @staticmethod
+    def _check_image_dimensions(tensors, names):
+        reference_dimensions = tensors[0].shape[1:]  # Ignore batch dimension
+        mismatched_images = [names[i] for i, tensor in enumerate(tensors) if tensor.shape[1:] != reference_dimensions]
+
+        if mismatched_images:
+            raise ValueError(f"Input image dimensions do not match for images: {mismatched_images}")
+
+    @staticmethod
+    def image_batch(**kwargs):
+        batched_tensors = [kwargs[key] for key in kwargs if kwargs[key] is not None]
+        image_names = [key for key in kwargs if kwargs[key] is not None]
+
+        if not batched_tensors:
+            raise ValueError("At least one input image must be provided.")
+
+        Utility._check_image_dimensions(batched_tensors, image_names)
+        batched_tensors = torch.cat(batched_tensors, dim=0)
+        return batched_tensors

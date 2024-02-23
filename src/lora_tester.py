@@ -1,6 +1,6 @@
 from nodes import KSampler, KSamplerAdvanced, VAEDecode, VAEEncode, EmptyLatentImage, CLIPTextEncode
 from custom_nodes.comfyui_lora_tag_loader.nodes import LoraTagLoader
-from .image_batch import WAS_Image_Batch
+from .sn0w import Utility
 from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel
 import comfy.samplers
 
@@ -40,7 +40,7 @@ class LoraTestNode:
         vae_encode = VAEEncode()
         text_encode = CLIPTextEncode()
         lora_loader = LoraTagLoader()
-        image_batcher = WAS_Image_Batch()
+        utility = Utility()
         upscaler = ImageUpscaleWithModel()
 
         latent_image = EmptyLatentImage().generate(width, height)[0]
@@ -74,5 +74,6 @@ class LoraTestNode:
         image_batch_kwargs = {f"images_{chr(97 + i)}": image for i, image in enumerate(images)}
 
         # Using WAS_Image_Batch to batch the images together
-        batched_images = image_batcher.image_batch(**image_batch_kwargs)
+        batched_images = utility.image_batch(**image_batch_kwargs)
+        
         return batched_images

@@ -1,5 +1,5 @@
 from nodes import KSampler, KSamplerAdvanced, VAEDecode, VAEEncode, EmptyLatentImage, LoraLoader, ImageScaleBy
-from .image_batch import WAS_Image_Batch
+from .sn0w import Utility
 from comfy_extras.nodes_clip_sdxl import CLIPTextEncodeSDXL
 from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel
 import comfy.samplers
@@ -41,7 +41,6 @@ class LoraTestXLNode:
         vae_encode = VAEEncode()
         text_encode_xl = CLIPTextEncodeSDXL()
         lora_loader = LoraLoader()
-        image_batcher = WAS_Image_Batch()
         upscaler = ImageUpscaleWithModel()
         scale_image = ImageScaleBy()
 
@@ -104,6 +103,7 @@ class LoraTestXLNode:
         # Dynamically construct kwargs for image_batch
         image_batch_kwargs = {f"images_{chr(97 + i)}": image for i, image in enumerate(images)}
 
-        # Using WAS_Image_Batch to batch the images together
-        batched_images = image_batcher.image_batch(**image_batch_kwargs)
-        return (batched_images[0], len(images))
+        # Batch the images together
+        batched_images = Utility.image_batch(**image_batch_kwargs)
+
+        return (batched_images, len(images))
