@@ -34,7 +34,8 @@ To get started, create a `config.json` file in the root directory of the `sn0w-s
 ```json
 {
   "logging_level": "GENERAL",
-  "animagine_formatting": "TRUE"
+  "animagine_formatting": "TRUE",
+  "excluded_lora_folders": "character, concept"
 }
 ```
 
