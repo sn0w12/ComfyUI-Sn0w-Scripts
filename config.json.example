@@ -1,5 +1,9 @@
 {
     "logging_level": "GENERAL",
     "animagine_formatting": "TRUE",
-    "excluded_lora_folders": "character, concept"
+    "excluded_lora_folders": "character, concept",
+    "custom_lora_loaders_xl": {
+        "Loader1": "character, style",
+        "Loader2": "concept"
+      }
 }
