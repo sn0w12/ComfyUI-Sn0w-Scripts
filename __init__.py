@@ -58,6 +58,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 }
 
 current_unique_id = 0  # Global variable to track the unique ID
+logger = Logger()
 
 def parse_custom_lora_loaders(custom_lora_loaders):
     required_folders_with_names = []
@@ -70,21 +71,21 @@ def parse_custom_lora_loaders(custom_lora_loaders):
 
 def generate_and_register_lora_node(lora_type, setting):
     global current_unique_id  # Use the global variable to keep track of IDs
-    logger = Logger()
     
-    custom_lora_loaders = ConfigReader.get_setting(setting, {})
-    required_folders_with_names = parse_custom_lora_loaders(custom_lora_loaders)
+    custom_lora_loaders = ConfigReader.get_setting(setting, None)
+    if custom_lora_loaders is not None:
+        required_folders_with_names = parse_custom_lora_loaders(custom_lora_loaders)
 
-    for name, folders in required_folders_with_names:
-        current_unique_id += 1  # Increment the unique ID for each new class
-        unique_id_with_name = str(f"{name}_{current_unique_id}")
-        
-        logger.log(f"Adding custom lora loader: {folders}, {unique_id_with_name}", "ALL")
-        DynamicLoraNode = generate_lora_node_class(lora_type, folders)
+        for name, folders in required_folders_with_names:
+            current_unique_id += 1  # Increment the unique ID for each new class
+            unique_id_with_name = str(f"{name}_{current_unique_id}")
+            
+            logger.log(f"Adding custom lora loader: {folders}, {unique_id_with_name}", "ALL")
+            DynamicLoraNode = generate_lora_node_class(lora_type, folders)
 
-        # Update NODE_CLASS_MAPPINGS and NODE_DISPLAY_NAME_MAPPINGS for each generated class
-        NODE_CLASS_MAPPINGS[unique_id_with_name] = DynamicLoraNode
-        NODE_DISPLAY_NAME_MAPPINGS[unique_id_with_name] = f"{name}"
+            # Update NODE_CLASS_MAPPINGS and NODE_DISPLAY_NAME_MAPPINGS for each generated class
+            NODE_CLASS_MAPPINGS[unique_id_with_name] = DynamicLoraNode
+            NODE_DISPLAY_NAME_MAPPINGS[unique_id_with_name] = f"{name}"
 
 generate_and_register_lora_node("loras_xl", "custom_lora_loaders_xl")
 generate_and_register_lora_node("loras_15", "custom_lora_loaders")
