@@ -18,6 +18,7 @@ from .src.get_font_size import GetFontSizeNode
 from .src.get_all_styles import GetStylesNode
 from .src.prompt_selector import PromptSelectNode
 from .src.load_lora_concept import LoadLoraConceptNode
+from.src.perlin_noise import FilmGrain
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -36,6 +37,7 @@ NODE_CLASS_MAPPINGS = {
     "Get All Styles": GetStylesNode,
     "Prompt Selector": PromptSelectNode,
     "Load Lora Concept": LoadLoraConceptNode,
+    "Colored Film Grain": FilmGrain,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -55,6 +57,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Get All Styles": "Get All Styles",
     "Prompt Selector": "Prompt Selector",
     "Load Lora Concept": "Load Lora Concept",
+    "Colored Film Grain": "Colored Film Grain",
 }
 
 current_unique_id = 0  # Global variable to track the unique ID
