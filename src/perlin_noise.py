@@ -8,8 +8,6 @@ class FilmGrain:
         self.noise_cache = {}
         script_dir = os.path.dirname(os.path.abspath(__file__))
         self.noise_img_dir = os.path.join(script_dir, 'img', 'noise')
-        os.makedirs(self.noise_img_dir, exist_ok=True)
-        self.load_noise_images()
 
     @classmethod
     def INPUT_TYPES(s):
@@ -101,22 +99,6 @@ class FilmGrain:
             noise += y1 * persistence ** octave
 
         return noise / (1 - persistence ** octaves)
-    
-    def load_noise_images(self):
-        # Adjusted to load and cache RGB noise images
-        for filename in os.listdir(self.noise_img_dir):
-            if filename.endswith('.png'):
-                settings = filename.replace('.png', '').split('_')
-                if len(settings) == 4:  # Includes channel identifier now
-                    _, height, width, channel = settings
-                    key = (int(height), int(width))
-                    img_path = os.path.join(self.noise_img_dir, filename)
-                    noise_image = np.array(Image.open(img_path)) / 255.0
-                    if key in self.noise_cache:
-                        self.noise_cache[key][int(channel)] = noise_image
-                    else:
-                        self.noise_cache[key] = [None, None, None]  # Placeholder for RGB channels
-                        self.noise_cache[key][int(channel)] = noise_image
 
     def get_noise_image(self, height, width, scale, channel):
         key = (height, width)
@@ -124,12 +106,7 @@ class FilmGrain:
             return self.noise_cache[key][channel]
         else:
             noise = self.generate_perlin_noise((height, width), scale)
-            self.save_noise_image(noise, height, width, channel)
             if key not in self.noise_cache:
                 self.noise_cache[key] = [None, None, None]
             self.noise_cache[key][channel] = noise
             return noise
-
-    def save_noise_image(self, noise, height, width, channel):
-        img_path = os.path.join(self.noise_img_dir, f'noise_{height}_{width}_{channel}.png')
-        Image.fromarray((noise * 255).astype(np.uint8)).save(img_path)
