@@ -23,7 +23,7 @@ class CharacterSelectNode:
                 for custom_character in custom_character_data:
                     for character in character_data:
                         if custom_character['name'] == character['name']:
-                            character['prompt'] += custom_character['prompt']
+                            character['prompt'] += ", " + custom_character['prompt']
                             break
                     else:  # If the custom character is not found, add it to character_data
                         character_data.append(custom_character)
