@@ -20,11 +20,14 @@ class CharacterSelectNode:
         with open(custom_json_path, 'r') as file:
             custom_character_data = json.load(file)
             if custom_character_data:  # Check if the custom data is not empty
-                # Merge custom character data, prioritizing existing data in character_data
                 for custom_character in custom_character_data:
-                    if custom_character['name'] not in [character['name'] for character in character_data]:
+                    for character in character_data:
+                        if custom_character['name'] == character['name']:
+                            character['prompt'] += custom_character['prompt']
+                            break
+                    else:  # If the custom character is not found, add it to character_data
                         character_data.append(custom_character)
-                        
+
     # Create a dictionary mapping character names to their data
     character_dict = {character['name']: character for character in character_data}
 
