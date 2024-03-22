@@ -20,6 +20,7 @@ from .src.prompt_selector import PromptSelectNode
 from .src.load_lora_concept import LoadLoraConceptNode
 from .src.perlin_noise import FilmGrain
 from .src.upscale_with_model_by import UpscaleImageBy
+from .src.custom_hires import CustomHires
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -40,6 +41,7 @@ NODE_CLASS_MAPPINGS = {
     "Load Lora Concept": LoadLoraConceptNode,
     "Colored Film Grain": FilmGrain,
     "Upscale Image With Model By": UpscaleImageBy,
+    "Sn0w Custom Hires": CustomHires,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -61,6 +63,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Load Lora Concept": "Load Lora Concept",
     "Colored Film Grain": "Colored Film Grain",
     "Upscale Image With Model By": "Upscale Image With Model By",
+    "Sn0w Custom Hires": "Sn0w Custom Hires",
 }
 
 current_unique_id = 0  # Global variable to track the unique ID
