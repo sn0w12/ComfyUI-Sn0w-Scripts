@@ -4,3 +4,4 @@ __pycache__
 custom_characters.json
 config.json
 src/img/
+src/testing.py

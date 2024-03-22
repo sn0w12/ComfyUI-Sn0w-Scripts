@@ -1,41 +1,43 @@
 class FindResolutionNode:
+    resolutions = {
+            "1024 x 1024 1:1": [
+                1024,
+                1024
+            ],
+            "1152 x 896 9:7": [
+                1152,
+                896
+            ],
+            "1216 x 832 19:13": [
+                1216,
+                832
+            ],
+            "1344 x 768 7:4": [
+                1344,
+                768
+            ],
+            "1536 x 640 12:5": [
+                1536,
+                640
+            ]
+        }
+
     @classmethod
     def INPUT_TYPES(cls):
+        resolution_names = sorted(cls.resolutions.keys())
         return {
             "required": {
-                "width": ("INT", {"default": 0, "min": 0}),
-                "height": ("INT", {"default": 0, "min": 0}),
+                "resolution": (resolution_names, ),
                 "flip": ("BOOLEAN", {"default": False},),
             },
         }
 
     RETURN_TYPES = ("INT", "INT",)
     RETURN_NAMES = ("WIDTH", "HEIGHT")
-    FUNCTION = "find_closest_resolution"
+    FUNCTION = "get_resolution"
     CATEGORY = "sn0w"
 
-    def find_closest_resolution(self, width, height, flip):
-        resolutions = [
-            512, 576, 640, 704, 768, 832, 896, 960, 1024, 1088, 1152, 1216, 1280, 1344, 1408, 1472, 1536, 1600, 1664, 1728, 1792, 1856, 1920, 1984, 2048
-        ]
-        if flip:
-            width, height = height, width
-
-        closest_width = self._find_closest_value(width, resolutions)
-        closest_height = self._find_closest_value(height, resolutions)
-        
-        return closest_width, closest_height
-
-    @staticmethod
-    def _find_closest_value(input_value, resolutions):
-        closest = resolutions[0]
-        smallest_difference = abs(input_value - closest)
-
-        for resolution in resolutions:
-            difference = abs(input_value - resolution)
-            if difference < smallest_difference:
-                closest = resolution
-                smallest_difference = difference
-
-        return closest
+    def get_resolution(self, resolution, flip):
+        resolutions = self.resolutions
+        return (resolutions[resolution][1], resolutions[resolution][0]) if flip else (resolutions[resolution][0], resolutions[resolution][1])
     
