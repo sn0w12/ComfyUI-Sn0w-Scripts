@@ -92,7 +92,7 @@
     {
         "name": "Eris Greyrat (Mushoku Tensei)",
         "associated_string": "eris greyrat, mushoku tensei",
-        "prompt": "ahoge, hair between eyes, large breasts, long hair, red eyes, red hair"
+        "prompt": "ahoge, hair between eyes, large breasts, long hair, red eyes, red hair, aged up"
     },
     {
         "name": "Karin (Blue Archive)",
@@ -278,5 +278,55 @@
         "name": "Inoue Orihime (Bleach)",
         "associated_string": "inoue orihime, bleach",
         "prompt": "brown eyes, hair ornament, large breasts, long hair, orange hair, parted bangs"
+    },
+    {
+        "name": "Aizawa Tomo (Tomo-Chan)",
+        "associated_string": "aizawa tomo , tomo-chan wa onna no ko",
+        "prompt": "fang, hair between eyes, large breasts, long bangs, red eyes, red hair, short hair, tomboy"
+    },
+    {
+        "name": "Inuyama Aoi (Yurucamp)",
+        "associated_string": "inuyama aoi, yurucamp",
+        "prompt": "asymmetrical hair, brown hair, green eyes, hair ornament, large breasts, long hair, side ponytail, skin fang"
+    },
+    {
+        "name": "Sarashina Ruka (Rent a Girlfriend)",
+        "associated_string": "sarashina ruka, kanojo okarishimasu",
+        "prompt": "black hair, green eyes, hair ribbon, large breasts, ribbon, short hair"
+    },
+    {
+        "name": "Mizuhara Chizuru (Rent a Girlfriend)",
+        "associated_string": "mizuhara chizuru, kanojo okarishimasu",
+        "prompt": "brown eyes, brown hair, large breasts, long hair, braid"
+    },
+    {
+        "name": "Sakurasawa Sumi (Rent a Girlfriend)",
+        "associated_string": "sakurasawa sumi, kanojo okarishimasu",
+        "prompt": "braid, hair ribbon, large breasts, red eyes, red hair, ribbon, short hair, single braid, white ribbon"
+    },
+    {
+        "name": "Baiken (Guilty Gear)",
+        "associated_string": "baiken, guilty gear",
+        "prompt": "big hair, large breasts, long hair, pink hair, ponytail, red eyes, scar, scar across eye, scar on face, amputee"
+    },
+    {
+        "name": "Alicia (Granblue Fantasy)",
+        "associated_string": "alicia \\(granblue fantasy\\), granblue fantasy",
+        "prompt": "blunt bangs, demon horns, horns, large breasts, long hair, pointy ears, red eyes, very long hair, draph"
+    },
+    {
+        "name": "Narmaya (Granblue Fantasy)",
+        "associated_string": "narmaya \\(granblue fantasy\\), granblue fantasy",
+        "prompt": "blue eyes, braid, hair ornament, horns, large breasts, long hair, pointy ears, draph"
+    },
+    {
+        "name": "Izmir (Granblue Fantasy)",
+        "associated_string": "izmir, granblue fantasy",
+        "prompt": "black horns, brown eyes, hair between eyes, horns, large breasts, long hair, mole, mole under mouth, pointy ears, very long hair, grey hair, draph"
+    },
+    {
+        "name": "Anila (Granblue Fantasy)",
+        "associated_string": "anila \\(granblue fantasy\\), granblue fantasy",
+        "prompt": "blonde hair, blunt bangs, brown eyes, curved horns, horns, large breasts, long hair, draph"
     }
 ]
