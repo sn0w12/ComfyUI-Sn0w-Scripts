@@ -30,11 +30,11 @@ class CombineStringNode:
         # keep always takes priority over remove, if any tag in keep is found nothing will be removed
         special_phrases = {
             'eye': {
-                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away', 'blindfold'],
+                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away', 'blindfold', 'head out of frame'],
                 'keep': ['looking at viewer']
             },
             'sclera': {
-                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away', 'blindfold'],
+                'remove': ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away', 'blindfold', 'head out of frame'],
                 'keep': ['looking at viewer']
             },
             'mouth': {
