@@ -1,18 +1,37 @@
 [
     {
-        "name": "Positive",
-        "prompt": "(masterpiece, exceptional, best aesthetic, best quality, masterpiece, extremely detailed:1.1), "
-    },
-    {
-        "name": "Negative_XL",
-        "prompt": "(lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts:1.15), (signature, watermark, username, gumroad username, patreon username, artist name:1.1), multiple views, text, error, blurry"
-    },
-    {
-        "name": "Negative_safe_XL",
-        "prompt": "(lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts:1.15), (rating:explicit, rating:questionable, rating:sensitive, signature, watermark, username, gumroad username, patreon username, artist name:1.1), multiple views, text, error, blurry"
-    },
-    {
-        "name": "Negative_1.5",
-        "prompt": "embedding:aid210, embedding:easynegative, embedding:verybadimagenegative_v1.3, speech bubble, disfigured, extra limbs, low quality, blurred, multiple views, futanari, loli, chibi, gumroad username, patreon username, (extra fingers, watermark, deformed hands, polydactyl, asymmetrical breasts, monochrome, greyscale:1.1)"
+        "positive": [
+            {
+                "name": "Positive_Ani",
+                "prompt": "(masterpiece, exceptional, best aesthetic, best quality, masterpiece, extremely detailed:1.1), "
+            },
+            {
+                "name": "Positive Pony",
+                "prompt": "(score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, BREAK:1.1)"
+            },
+            {
+                "name": "Positive Pony Explicit",
+                "prompt": "(score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, BREAK, rating_explicit:1.1)"
+            }
+        ],
+        "negative": [
+            {
+                "name": "Negative_XL_Ani",
+                "prompt": "(lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts:1.15), (signature, watermark, username, gumroad username, patreon username, artist name:1.1), multiple views, text, error, blurry"
+            },
+            {
+                "name": "Negative_safe_XL_Ani",
+                "prompt": "(lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts:1.15), (rating:explicit, rating:questionable, rating:sensitive, signature, watermark, username, gumroad username, patreon username, artist name:1.1), multiple views, text, error, blurry"
+            },
+            {
+                "name": "Negative_1.5",
+                "prompt": "embedding:aid210, embedding:easynegative, embedding:verybadimagenegative_v1.3, speech bubble, disfigured, extra limbs, low quality, blurred, multiple views, futanari, loli, chibi, gumroad username, patreon username, (extra fingers, watermark, deformed hands, polydactyl, asymmetrical breasts, monochrome, greyscale:1.1)"
+            },
+            
+            {
+                "name": "Negative Pony",
+                "prompt": "score_6, score_5, score_4, censored, monochrome, 3d, signature, watermark, username"
+            }
+        ]
     }
 ]
