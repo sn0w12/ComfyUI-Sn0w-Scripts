@@ -1,27 +1,38 @@
+import os
 import folder_paths
 from nodes import LoraLoader
 from pathlib import Path
-from .sn0w import ConfigReader
+from .sn0w import ConfigReader, Logger
 
 def generate_lora_node_class(lora_type, required_folders):
     class DynamicLoraNode:
         @classmethod
         def INPUT_TYPES(cls):
-            # Sort the loras_xl list alphabetically
-            loras_xl = folder_paths.get_filename_list(lora_type)
-            sorted_loras_xl = sorted(loras_xl, key=lambda p: [part.lower() for part in Path(p).parts])
+            logger = Logger()
 
-            # Filter sorted_loras_xl to include items containing any of the required folder names
-            filtered_sorted_loras_xl = [
-                lora for lora in sorted_loras_xl
-                if any(folder.lower() in (part.lower() for part in Path(lora).parts) for folder in required_folders)
+            # Get the list of filenames based on the lora_type
+            loras = folder_paths.get_filename_list(lora_type)
+            
+            # Normalize the paths and sort them alphabetically
+            sorted_loras = sorted(loras, key=lambda p: [part.lower() for part in Path(p).parts])
+            
+            # Normalize required_folders to handle subdirectory paths correctly
+            normalized_required_folders = [str(Path(folder)).lower() for folder in required_folders]
+            logger.log(normalized_required_folders, "ALL")
+
+            # Filter the sorted list to include paths that contain any of the required folder names
+            filtered_sorted_loras = [
+                lora for lora in sorted_loras
+                if any(required_folder in str(Path(lora)).lower() for required_folder in normalized_required_folders)
             ]
+
+            logger.log(filtered_sorted_loras, "ALL")
 
             return {
                 "required": {
                     "model": ("MODEL",),
                     "clip": ("CLIP",),
-                    "lora": (['None'] + filtered_sorted_loras_xl,),
+                    "lora": (['None'] + filtered_sorted_loras,),
                     "lora_strength": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01}),
                 },
             }
