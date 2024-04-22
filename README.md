@@ -37,8 +37,8 @@ To get started, create a `config.json` file in the root directory of the `sn0w-s
     "animagine_formatting": "TRUE",
     "excluded_lora_folders": "character, concept",
     "custom_lora_loaders_xl": {
-        "Loader1": "character, style",
-        "name": "included folders"
+        "name": "style",
+        "name": "pony/style"
       }
 }
 ```
