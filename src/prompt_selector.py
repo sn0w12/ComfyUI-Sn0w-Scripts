@@ -2,38 +2,42 @@ import os
 import json
 
 class PromptSelectNode:
-    # Compute the directory path, ensuring cross-platform compatibility
+    # Determine the base directory path without the src subdirectory
     dir_path = os.path.dirname(os.path.realpath(__file__))
     if os.sep + "src" in dir_path:
         dir_path = dir_path.replace(os.sep + "src", "")
+
+    # Define the path to the JSON file containing prompts
     json_path = os.path.join(dir_path, 'prompts.json')
     
-    # Load prompt data from JSON file
+    # Load prompts from the JSON file
     with open(json_path, 'r') as file:
-        prompt_data = json.load(file)
-    prompt_dict = {prompt['name']: prompt for prompt in prompt_data}
+        prompts = json.load(file)
+    
+    # Separate positive and negative prompts into dictionaries
+    positive_prompts = {item['name']: item['prompt'] for item in prompts[0]['positive']}
+    negative_prompts = {item['name']: item['prompt'] for item in prompts[0]['negative']}
 
     @classmethod
     def INPUT_TYPES(cls):
         # Generate input types dynamically from the loaded prompts
-        prompt_names = ['None'] + list(cls.prompt_dict.keys())
+        positive_prompt_names = ['None'] + list(cls.positive_prompts.keys())
+        negative_prompt_names = ['None'] + list(cls.negative_prompts.keys())
         return {
             "required": {
-                "prompt": (prompt_names, ),
+                "positive": (positive_prompt_names, ),
+                "negative": (negative_prompt_names, ),
             },
         }
 
     # Define static properties for the class
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("PROMPT",)
-    FUNCTION = "find_associated_string"
+    RETURN_TYPES = ("STRING", "STRING",)
+    RETURN_NAMES = ("POSITIVE", "NEGATIVE",)
+    FUNCTION = "find_chosen_prompts"
     CATEGORY = "sn0w"
         
-    def find_associated_string(self, prompt):
-        # Lookup the prompt and return the associated string
-        char_item = self.prompt_dict.get(prompt)
-        if char_item:
-            prompt_string = char_item['prompt']
-            if prompt_string:
-                return (prompt_string, )
-        return ("", )
+    def find_chosen_prompts(self, positive, negative):
+        # Lookup the prompt name in both positive and negative dictionaries and return the associated strings
+        positive_prompt = self.positive_prompts.get(positive, "")
+        negative_prompt = self.negative_prompts.get(negative, "")
+        return (positive_prompt, negative_prompt,)
