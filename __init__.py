@@ -14,7 +14,6 @@ from .src.get_font_size import GetFontSizeNode
 from .src.prompt_selector import PromptSelectNode
 from .src.perlin_noise import FilmGrain
 from .src.upscale_with_model_by import UpscaleImageBy
-from .src.custom_hires import CustomHires
 from .src.load_lora_from_folder import LoadLoraFolderNode
 
 NODE_CLASS_MAPPINGS = {
@@ -31,7 +30,6 @@ NODE_CLASS_MAPPINGS = {
     "Prompt Selector": PromptSelectNode,
     "Colored Film Grain": FilmGrain,
     "Upscale Image With Model By": UpscaleImageBy,
-    "Sn0w Custom Hires": CustomHires,
     "Load Lora Folder": LoadLoraFolderNode,
 }
 
@@ -49,7 +47,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Prompt Selector": "Prompt Selector",
     "Colored Film Grain": "Colored Film Grain",
     "Upscale Image With Model By": "Upscale Image With Model By",
-    "Sn0w Custom Hires": "Sn0w Custom Hires",
     "Load Lora Folder": "Load Lora Folder",
 }
 
