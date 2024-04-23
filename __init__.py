@@ -93,8 +93,12 @@ def generate_and_register_lora_node(lora_type, setting):
             DynamicLoraNode = generate_lora_node_class(lora_type, folders)
 
             # Update NODE_CLASS_MAPPINGS and NODE_DISPLAY_NAME_MAPPINGS for each generated class
-            NODE_CLASS_MAPPINGS[unique_id_with_name] = DynamicLoraNode
-            NODE_DISPLAY_NAME_MAPPINGS[unique_id_with_name] = f"{name}"
+            if name in NODE_CLASS_MAPPINGS:
+                NODE_CLASS_MAPPINGS[unique_id_with_name] = DynamicLoraNode
+                NODE_DISPLAY_NAME_MAPPINGS[unique_id_with_name] = f"{name}"
+            else:
+                NODE_CLASS_MAPPINGS[name] = DynamicLoraNode
+                NODE_DISPLAY_NAME_MAPPINGS[name] = f"{name}"
 
 generate_and_register_lora_node("loras_xl", "custom_lora_loaders_xl")
 generate_and_register_lora_node("loras_15", "custom_lora_loaders")
