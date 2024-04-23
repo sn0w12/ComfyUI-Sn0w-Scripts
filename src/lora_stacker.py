@@ -20,7 +20,7 @@ class LoraStackerNode:
     RETURN_TYPES = ("STRING", "INT",)
     RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS",)
     FUNCTION = "process_loras"
-    CATEGORY = "sn0w"
+    CATEGORY = "sn0w/lora"
     OUTPUT_NODE = True
 
     def process_loras(self, lora_a, lora_strength_a, lora_b, lora_strength_b, lora_c, lora_strength_c, lora_d, lora_strength_d, add_default_generation):

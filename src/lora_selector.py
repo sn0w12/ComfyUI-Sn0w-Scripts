@@ -16,7 +16,7 @@ class LoraSelectorNode:
     RETURN_TYPES = ("STRING", "INT",)
     RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS",)
     FUNCTION = "process_lora_strength"
-    CATEGORY = "sn0w"
+    CATEGORY = "sn0w/lora"
     OUTPUT_NODE = True
 
     def process_lora_strength(self, lora, lora_strength, highest_lora, total_loras, add_default_generation):

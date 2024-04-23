@@ -22,7 +22,7 @@ class LoraLora15Node:
     RETURN_TYPES = ("MODEL", "CLIP",)
     RETURN_NAMES = ("MODEL", "CLIP",)
     FUNCTION = "find_lora"
-    CATEGORY = "sn0w"
+    CATEGORY = "sn0w/lora"
     OUTPUT_NODE = True
 
     def find_lora(self, model, clip, lora, lora_strength):

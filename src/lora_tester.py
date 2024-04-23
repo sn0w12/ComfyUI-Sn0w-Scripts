@@ -1,8 +1,8 @@
-from nodes import KSampler, KSamplerAdvanced, VAEDecode, VAEEncode, EmptyLatentImage, CLIPTextEncode
-from custom_nodes.comfyui_lora_tag_loader.nodes import LoraTagLoader
+from nodes import KSampler, KSamplerAdvanced, VAEDecode, VAEEncode, EmptyLatentImage, LoraLoader, ImageScaleBy, CLIPTextEncode
 from .sn0w import Utility
 from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel
 import comfy.samplers
+import folder_paths
 
 class LoraTestNode:
     @classmethod
@@ -27,8 +27,8 @@ class LoraTestNode:
                      }
                 }
 
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("IMAGES",)
+    RETURN_TYPES = ("IMAGE","INT",)
+    RETURN_NAMES = ("IMAGES","TOTAL IMAGES",)
     FUNCTION = "sample"
 
     CATEGORY = "sampling"
@@ -39,31 +39,60 @@ class LoraTestNode:
         vae_decode = VAEDecode()
         vae_encode = VAEEncode()
         text_encode = CLIPTextEncode()
-        lora_loader = LoraTagLoader()
-        utility = Utility()
+        lora_loader = LoraLoader()
         upscaler = ImageUpscaleWithModel()
+        scale_image = ImageScaleBy()
 
         latent_image = EmptyLatentImage().generate(width, height)[0]
+
+        full_loras_list = folder_paths.get_filename_list("loras")
 
         loras = lora_info.split(";")
         images = []
 
         for lora in loras:
-            modified_model, modified_clip, lora_text = lora_loader.load_lora(model, clip, lora)
+            # Skip empty or improperly formatted lora strings
+            modified = False
+            if lora.startswith("<lora:"):
+                modified = True
+                trimmed_string = lora[6:-1]
+                parts = trimmed_string.split(':')
 
-            positive_prompt = text_encode.encode(modified_clip, positive)[0]
-            negative_prompt = text_encode.encode(modified_clip, negative)[0]
+                if len(parts) < 2 or not parts[1]:
+                    continue  # Skip if lora string is incomplete or strength is missing
 
-            # Sampling
-            samples = k_sampler_node.sample(modified_model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
+                lora_name_suffix = parts[0] + ".safetensors"
+                lora_strength = float(parts[1])
+
+                # Find the full path of the lora
+                full_lora_path = next((full_path for full_path in full_loras_list if lora_name_suffix in full_path), None)
+
+                if full_lora_path:
+                    modified_model, modified_clip = lora_loader.load_lora(model, clip, full_lora_path, lora_strength, lora_strength)
+
+                positive_prompt = text_encode.encode(modified_clip, width, height, 0, 0, width, height, positive, positive)[0]
+                negative_prompt = text_encode.encode(modified_clip, width, height, 0, 0, width, height, negative, negative)[0]
+
+                # Sampling
+                samples = k_sampler_node.sample(modified_model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
+            else:
+                positive_prompt = text_encode.encode(clip, width, height, 0, 0, width, height, positive, positive)[0]
+                negative_prompt = text_encode.encode(clip, width, height, 0, 0, width, height, negative, negative)[0]
+
+                # Sampling
+                samples = k_sampler_node.sample(model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
 
             if (hires):
                 # Decode the samples
-                image = vae_decode.decode(vae, samples)[0] 
-
+                image = vae_decode.decode(vae, samples)[0]
+                
                 upscaled_image = upscaler.upscale(upscale_model, image)[0]
+                upscaled_image = scale_image.upscale(upscaled_image, "nearest-exact", 0.5)[0]
                 upscaled_latent = vae_encode.encode(vae, upscaled_image)[0]
-                upscaled_samples = k_sampleradvanced_node.sample(modified_model, "enable", seed, 30, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 17, 1000, "disable")[0]
+                if modified:
+                    upscaled_samples = k_sampleradvanced_node.sample(modified_model, "enable", seed, 25, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 20, 1000, "disable")[0]
+                else:
+                    upscaled_samples = k_sampleradvanced_node.sample(model, "enable", seed, 25, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 20, 1000, "disable")[0]
                 image = vae_decode.decode(vae, upscaled_samples)[0]
             else:
                 image = vae_decode.decode(vae, samples)[0]
@@ -73,7 +102,7 @@ class LoraTestNode:
         # Dynamically construct kwargs for image_batch
         image_batch_kwargs = {f"images_{chr(97 + i)}": image for i, image in enumerate(images)}
 
-        # Using WAS_Image_Batch to batch the images together
-        batched_images = utility.image_batch(**image_batch_kwargs)
-        
-        return batched_images
+        # Batch the images together
+        batched_images = Utility.image_batch(**image_batch_kwargs)
+
+        return (batched_images, len(images))

@@ -24,7 +24,7 @@ class LoadLoraFolderNode:
     RETURN_TYPES = ("MODEL", "CLIP",)
     RETURN_NAMES = ("MODEL", "CLIP",)
     FUNCTION = "find_and_apply_lora"
-    CATEGORY = "sn0w"
+    CATEGORY = "sn0w/lora"
 
     def clean_string(self, input_string):
         cleaned_string = input_string.replace(r'\(', '(').replace(r'\)', ')')

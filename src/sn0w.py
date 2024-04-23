@@ -1,7 +1,6 @@
 import os
 import json
 import torch
-import requests
 
 class ConfigReader:
     _config = None
