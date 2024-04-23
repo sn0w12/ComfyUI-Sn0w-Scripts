@@ -21,6 +21,7 @@ from .src.load_lora_concept import LoadLoraConceptNode
 from .src.perlin_noise import FilmGrain
 from .src.upscale_with_model_by import UpscaleImageBy
 from .src.custom_hires import CustomHires
+from .src.load_lora_from_folder import LoadLoraFolderNode
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -34,14 +35,13 @@ NODE_CLASS_MAPPINGS = {
     "Lora Stacker": LoraStackerNode,
     "Load Lora XL": LoraLoraXLNode,
     "Load Lora 1.5": LoraLora15Node,
-    "Load Lora Character": LoadLoraCharacterNode,
     "Get Font Size": GetFontSizeNode,
     "Get All Styles": GetStylesNode,
     "Prompt Selector": PromptSelectNode,
-    "Load Lora Concept": LoadLoraConceptNode,
     "Colored Film Grain": FilmGrain,
     "Upscale Image With Model By": UpscaleImageBy,
     "Sn0w Custom Hires": CustomHires,
+    "Load Lora Folder": LoadLoraFolderNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -56,14 +56,13 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Lora Stacker": "Lora Stacker",
     "Load Lora XL": "Load Lora XL",
     "Load Lora 1.5": "Load Lora 1.5",
-    "Load Lora Character": "Load Lora Character",
     "Get Font Size": "Get Font Size",
     "Get All Styles": "Get All Styles",
     "Prompt Selector": "Prompt Selector",
-    "Load Lora Concept": "Load Lora Concept",
     "Colored Film Grain": "Colored Film Grain",
     "Upscale Image With Model By": "Upscale Image With Model By",
     "Sn0w Custom Hires": "Sn0w Custom Hires",
+    "Load Lora Folder": "Load Lora Folder",
 }
 
 current_unique_id = 0  # Global variable to track the unique ID

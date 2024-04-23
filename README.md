@@ -143,30 +143,24 @@ Below is a table detailing the configuration options available in `config.json`,
 >    ![Example](./imgs/lora_paths_example.png)
 >    </details>
 
-## Load Lora Character
-> Finds and applies the closest matching Lora model to a character based on name similarity.
-> <details>
->    <summary>ℹ️ <i>See More Information</i></summary>
->
->    - The process begins by cleaning the input character string for comparison. It then searches a JSON file for a matching character name. If a match is found, it proceeds to select the appropriate folder based on the `xl` boolean flag.
->    - To find the closest Lora model, it calculates the Levenshtein distance between the character name (in full and in parts) and the filenames of available Lora models. This ensures a case-insensitive match with the best possible model.
->    - If no lora is found it just returns the input model and the workflow can continue.
->
->    ![Load Lora Character](./imgs/load_lora_character.png)
->    </details>
-
-## Load Lora Concept
+## Load Lora Folder
 > Dynamically applies Lora models based on similarity to a provided prompt.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
->    - This node processes a given prompt to identify and apply the most similar Lora models of the tags found in the prompt. 
->    - For each part of the prompt, the node calculates a distance between tags and available Lora model filenames. Models with a difference of under 5 is applied to the input `model` and `clip`.
->    - Note: You need the loras you want to be selected to be in a folder called `concept` for this to work, they also need to be seperated into XL and 1.5 like stated in the `Important Note`.
->    - Note: Loras need to be named very similarly to the tag, with at most 5 different characters different. The words in the lora can be seperated by spaces or underscores.
+>    - This node processes a given prompt to identify and apply the most similar Lora models of the tags found in the prompt.
+>    - For each part of the prompt, the node calculates a distance between tags and available Lora model filenames. Models with a difference of under 5 are applied to the input `model` and `clip`.
+>    - **Example folder input:** `*master_folder, subfolder1:3, -excludefolder, subfolder2`
+>        - `*master_folder` specifies all paths must include `master_folder`.
+>        - `subfolder1:3` indicates up to 3 models from `subfolder1` can be loaded.
+>        - `-excludefolder` ensures any path containing `excludefolder` is ignored.
+>        - `subfolder2` loads models from this subfolder without a numeric limit.
+>    - Note: You need the loras separated into XL and 1.5 as stated in the `Important Note`.
+>    - Note: Loras need to be named very similarly to the tag, with at most 5 characters different. Words in the lora filename can be separated by spaces or underscores.
 >
->    ![Load Lora Concept](./imgs/load_lora_concept.png)
+>    ![Load Lora Folder](./imgs/load_lora_Folder.png)
 >    </details>
+
 
 ## Get Font Size Node
 > Estimates the optimal font size for text to fit within an image based on Lora information.
