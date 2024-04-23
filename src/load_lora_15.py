@@ -6,28 +6,15 @@ from .sn0w import ConfigReader
 class LoraLora15Node:
     @classmethod
     def INPUT_TYPES(cls):
-        # Get excluded folders setting, ensuring it's in list form
-        excluded_lora_folders_str = ConfigReader.get_setting('excluded_lora_folders', '')
-        # Split the string into a list if it's not empty, otherwise default to an empty list
-        excluded_lora_folders = excluded_lora_folders_str.split(',') if excluded_lora_folders_str else []
-        excluded_folders_lower = [folder.lower().strip() for folder in excluded_lora_folders]
-
         # Sort the loras_15 list alphabetically before using it
         loras = folder_paths.get_filename_list("loras_15")
         sorted_loras = sorted(loras, key=lambda p: [part.lower() for part in Path(p).parts])
-
-        # Filter sorted_loras to exclude items containing any excluded folder names
-        filtered_sorted_loras = [
-            lora for lora in sorted_loras
-            if not any(folder.lower() in (part.lower() for part in Path(lora).parts) 
-                    for folder in excluded_folders_lower)
-        ]
 
         return {
             "required": {
                 "model": ("MODEL",),
                 "clip": ("CLIP", ),
-                "lora": (['None'] + filtered_sorted_loras, ),
+                "lora": (['None'] + sorted_loras, ),
                 "lora_strength": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01}),
             },
         }

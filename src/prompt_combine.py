@@ -108,7 +108,7 @@ class CombineStringNode:
                 tag = tag.replace(f"\0{index}\0", parenthesized_parts[index], 1)
             final_tags_with_parentheses.append(tag)
 
-        animagine_formatting = ConfigReader.get_setting('animagine_formatting', 'TRUE') == 'TRUE'
+        animagine_formatting = ConfigReader.get_setting('sn0w.PromptFormat', False)
 
         if animagine_formatting:
             numeric_tags = [tag for tag in final_tags_with_parentheses if numeric_tag_pattern.match(tag)]

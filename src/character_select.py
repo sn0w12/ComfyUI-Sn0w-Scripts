@@ -35,7 +35,7 @@ class CharacterSelectNode:
 
         cls.character_dict = {character['name']: character for character in character_data}
 
-        if ConfigReader.get_setting("sort_characters_by_series", False):
+        if ConfigReader.get_setting("sn0w.SortBySeries", False):
             cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict, key=cls.extract_series_name)}
         else:
             cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict)}

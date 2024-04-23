@@ -65,16 +65,23 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Load Lora Folder": "Load Lora Folder",
 }
 
+WEB_DIRECTORY = "./web"
+
 current_unique_id = 0  # Global variable to track the unique ID
 logger = Logger()
 
 def parse_custom_lora_loaders(custom_lora_loaders):
     required_folders_with_names = []
-    for name, folders_str in custom_lora_loaders.items():
-        # Treat every value as a comma-separated list
-        folders = [folder.strip() for folder in folders_str.split(',')]
-        required_folders_with_names.append((name, folders))
+    # Split the input string by new lines to get each name-value pair
+    entries = custom_lora_loaders.split('\n')
+    for entry in entries:
+        if entry.strip():  # Make sure the entry is not just whitespace
+            name, _, value = entry.partition(':')
+            name = name.strip()
+            value = value.strip()
+            required_folders_with_names.append((name, value.split(',')))  # Assuming values are comma-separated
     return required_folders_with_names
+
 
 
 def generate_and_register_lora_node(lora_type, setting):
@@ -99,5 +106,5 @@ def generate_and_register_lora_node(lora_type, setting):
                 NODE_CLASS_MAPPINGS[name] = DynamicLoraNode
                 NODE_DISPLAY_NAME_MAPPINGS[name] = f"{name}"
 
-generate_and_register_lora_node("loras_xl", "custom_lora_loaders_xl")
-generate_and_register_lora_node("loras_15", "custom_lora_loaders")
+generate_and_register_lora_node("loras_xl", "sn0w.CustomLoraLoadersXL")
+generate_and_register_lora_node("loras_15", "sn0w.CustomLoraLoaders1.5")

@@ -1,6 +1,7 @@
 import os
 import json
 import torch
+import requests
 
 class ConfigReader:
     _config = None
@@ -22,11 +23,24 @@ class ConfigReader:
                 print(f"Configuration file not found at {config_path}. Using default settings.")
                 cls._config = {}  # Use an empty dict as a fallback
         return cls._config
-
-    @classmethod
-    def get_setting(cls, setting_key, default=None):
-        config = cls.load_config()
-        return config.get(setting_key, default)
+    
+    @staticmethod
+    def get_setting(setting_id, default=None):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # Construct the relative path
+        relative_path = '../../../user/default/comfy.settings.json'
+        # Combine paths and normalize it
+        file_path = os.path.abspath(os.path.join(current_dir, relative_path))
+        try:
+            with open(file_path, 'r') as file:
+                settings = json.load(file)
+            return settings.get(setting_id, default)
+        except FileNotFoundError:
+            print(f"Local configuration file not found at {file_path}.")
+            return default
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {file_path}.")
+            return default
 
 class Logger:
     PURPLE_TEXT = "\033[0;35m"
@@ -34,7 +48,7 @@ class Logger:
     PREFIX = "[sn0w] "
 
     def __init__(self):
-        self.logging_level = ConfigReader.get_setting('logging_level', 'GENERAL')
+        self.logging_level = ConfigReader.get_setting('sn0w.LoggingLevel', 'GENERAL')
 
     @classmethod
     def print_sn0w(cls, message):
