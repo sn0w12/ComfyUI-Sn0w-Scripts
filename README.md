@@ -142,6 +142,15 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 >    ![Get Font Size](./imgs/get_font_size.png)
 >    </details>
 
+## Simple Sampler
+> Ksampler Advanced that takes in width, height, positive and negative. Outputs image, positive and negative conditioning.
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    - Made to keep workflows more clean without latent images and text encodes.
+>
+>    ![Simple Sampler](./imgs/simple_sampler.png)
+>    </details>
 
 # Example Workflows
 ## Lora Tester
