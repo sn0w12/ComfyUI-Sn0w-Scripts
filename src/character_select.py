@@ -9,8 +9,6 @@ class CharacterSelectNode:
 
     @classmethod
     def initialize(cls):
-        print("Initializing CharacterSelectNode...")
-
         dir_path = os.path.dirname(os.path.realpath(__file__))
         if os.path.basename(dir_path) == "src":
             dir_path = os.path.dirname(dir_path)
@@ -41,8 +39,6 @@ class CharacterSelectNode:
             cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict, key=cls.extract_series_name)}
         else:
             cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict)}
-
-        print("Final character dict initialized with:", len(cls.final_character_dict))
 
     @staticmethod
     def extract_series_name(character_name):
@@ -75,7 +71,7 @@ class CharacterSelectNode:
             strength_part = f":{character_strength}" if character_strength != 1 else ""
 
             if associated_string:
-                return (f"{associated_string}{strength_part}, ", prompt, xl,)
+                return (f"({associated_string}{strength_part}), ", prompt, xl,)
             else:
                 return ("", prompt, xl,)
 
