@@ -8,8 +8,6 @@ def generate_lora_node_class(lora_type, required_folders):
     class DynamicLoraNode:
         @classmethod
         def INPUT_TYPES(cls):
-            logger = Logger()
-
             # Get the list of filenames based on the lora_type
             loras = folder_paths.get_filename_list(lora_type)
             
@@ -18,15 +16,12 @@ def generate_lora_node_class(lora_type, required_folders):
             
             # Normalize required_folders to handle subdirectory paths correctly
             normalized_required_folders = [str(Path(folder)).lower() for folder in required_folders]
-            logger.log(normalized_required_folders, "ALL")
 
             # Filter the sorted list to include paths that contain any of the required folder names
             filtered_sorted_loras = [
                 lora for lora in sorted_loras
                 if any(required_folder in str(Path(lora)).lower() for required_folder in normalized_required_folders)
             ]
-
-            logger.log(filtered_sorted_loras, "ALL")
 
             return {
                 "required": {
