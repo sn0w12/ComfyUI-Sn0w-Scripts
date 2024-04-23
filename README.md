@@ -119,7 +119,7 @@ Many of the nodes require these paths to be in your extra_model_paths.yaml (with
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
 >    - This node processes a given prompt to identify and apply the most similar Lora models of the tags found in the prompt.
->    - For each part of the prompt, the node calculates a distance between tags and available Lora model filenames. Models with a difference of under 5 are applied to the input `model` and `clip`.
+>    - For each part of the prompt, the node calculates a distance between tags and available Lora model filenames. The max distance can be chosen in the settings.
 >    - **Example folder input:** `*master_folder, subfolder1:3, -excludefolder, subfolder2`
 >        - `*master_folder` specifies all paths must include `master_folder`.
 >        - `subfolder1:3` indicates up to 3 models from `subfolder1` can be loaded.
