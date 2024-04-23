@@ -42,7 +42,8 @@ To get started, create a `config.json` file in the root directory of the `sn0w-s
     "custom_lora_loaders_xl": {
         "name": "style",
         "name": "pony/style"
-      }
+      },
+    "sort_characters_by_series": false
 }
 ```
 
