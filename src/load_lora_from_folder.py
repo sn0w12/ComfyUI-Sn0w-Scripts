@@ -1,5 +1,6 @@
 import os
 import re
+import time
 import folder_paths
 from nodes import LoraLoader
 from .sn0w import Logger, Utility, ConfigReader
@@ -30,6 +31,7 @@ class LoadLoraFolderNode:
         cleaned_string = input_string.replace(r'\(', '(').replace(r'\)', ')')
         cleaned_string = re.sub(r'[:]+(\d+(\.\d+)?)?', '', cleaned_string)
         cleaned_string = re.sub(r',\s*$', '', cleaned_string.strip())
+        cleaned_string = cleaned_string.replace('(', '').replace(')', '')
         return cleaned_string.lower()
 
     def normalize_folder_name(self, folder_name):
@@ -60,6 +62,7 @@ class LoadLoraFolderNode:
         # Set default prompt if None provided
         if prompt is None:
             prompt = ''
+        
         # Clean and split the prompt into parts
         prompt_parts = [self.clean_string(part) for part in prompt.split(separator)]
 
@@ -79,7 +82,7 @@ class LoadLoraFolderNode:
         lora_candidates = {}
         loaded_loras = set()
 
-        max_distance = ConfigReader.get_setting('sn0w.LoraFolderMinDistance', 5)
+        max_distance = int(ConfigReader.get_setting('sn0w.LoraFolderMinDistance', 5))
 
         # Match prompt parts with Lora filenames
         for prompt_part in prompt_parts:
@@ -108,7 +111,7 @@ class LoadLoraFolderNode:
                 # Load Lora if not already loaded and within the allowed number per folder
                 if selected_candidate['full_path'] not in loaded_loras and (folder_name not in include_folders or len(loaded_loras) < include_folders[folder_name]):
                     self.logger.log(f"Loading Lora: {os.path.split(selected_candidate['full_path'])[-1]}", "GENERAL")
-                    model, clip = LoraLoader().load_lora(model, clip, selected_candidate['full_path'], lora_strength)
+                    model, clip = LoraLoader().load_lora(model, clip, selected_candidate['full_path'], lora_strength, lora_strength)
                     loaded_loras.add(selected_candidate['full_path'])
             else:
                 self.logger.log(f"No matching Lora found for any tags.", "GENERAL")
