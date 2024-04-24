@@ -328,5 +328,15 @@
         "name": "Anila (Granblue Fantasy)",
         "associated_string": "anila \\(granblue fantasy\\), granblue fantasy",
         "prompt": "blonde hair, blunt bangs, brown eyes, curved horns, horns, large breasts, long hair, draph"
+    },
+    {
+        "name": "Smug Alana (Vtuber)",
+        "associated_string": "smug alana, indie virtual youtuber",
+        "prompt": "animal ear fluff, animal ears, blue eyes, fox ears, fox girl, fox tail, grey hair, hair ornament, large breasts, long hair, tail"
+    },
+    {
+        "name": "Buffpup (Vtuber)",
+        "associated_string": "smug alana, indie virtual youtuber",
+        "prompt": "animal ears, blue eyes, hair ornament, large breasts, multicolored hair, orange hair, red hair, scar, two-tone hair, bone hair ornament, wolf ears, tail"
     }
 ]
