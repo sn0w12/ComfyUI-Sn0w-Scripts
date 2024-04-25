@@ -43,20 +43,55 @@ class ConfigReader:
 
 class Logger:
     PURPLE_TEXT = "\033[0;35m"
+    RED_TEXT = "\033[0;31m"
+    YELLOW_TEXT = "\033[0;33m"
     RESET_TEXT = "\033[0m"
     PREFIX = "[sn0w] "
 
     def __init__(self):
-        self.logging_level = ConfigReader.get_setting('sn0w.LoggingLevel', 'GENERAL')
+        # Default to Informational level if not configured
+        self.logging_level = ConfigReader.get_setting('sn0w.LoggingLevel', 'INFORMATIONAL')
 
     @classmethod
-    def print_sn0w(cls, message):
-        print(f"{cls.PURPLE_TEXT}{cls.PREFIX}{cls.RESET_TEXT}{message}")
+    def print_sn0w(cls, message, color):
+        print(f"{color}{cls.PREFIX}{cls.RESET_TEXT}{message}")
 
-    def log(self, message, level="GENERAL"):
-        levels = {"NONE": 0, "GENERAL": 1, "ALL": 2}
-        if levels.get(level, 0) <= levels.get(self.logging_level, 0):
-            self.print_sn0w(message)
+    def log(self, message, level="ERROR"):
+        # Map the high-level settings to specific log level thresholds
+        settings_to_levels = {
+            "ERRORS_ONLY": 3,         # Logs only Critical, Alert, Emergency, and Error
+            "WARNINGS_ABOVE": 4,      # Logs Warning and higher severity
+            "INFO_ABOVE": 6,          # Logs Informational and higher severity
+            "ALL": 7                  # Logs everything including Debug
+        }
+
+        # Standard log levels with corresponding numeric values
+        levels = {
+            "EMERGENCY": 0,
+            "ALERT": 1,
+            "CRITICAL": 2,
+            "ERROR": 3,
+            "WARNING": 4,
+            "NOTICE": 5,
+            "INFORMATIONAL": 6,
+            "DEBUG": 7
+        }
+
+        # Determine the minimum level to log based on configuration
+        min_level_to_log = settings_to_levels.get(self.logging_level, 3)
+        message_level = levels.get(level.upper(), 6)  # Default to "INFORMATIONAL" if level is unrecognized
+
+        # Decide the color based on the type of message
+        if level.upper() in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"]:
+            color = self.RED_TEXT
+        elif level.upper() == "WARNING":
+            color = self.YELLOW_TEXT
+        else:
+            color = self.PURPLE_TEXT  # Default color
+
+        # Log the message if the severity is greater than or equal to the configured threshold
+        if message_level <= min_level_to_log:
+            self.print_sn0w(message, color)
 
 class Utility:
     @staticmethod

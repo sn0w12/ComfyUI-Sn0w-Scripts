@@ -5,11 +5,12 @@ const settingDefinition = {
     id,
     name: "[Sn0w] Logging Level",
     type: "combo",
-    defaultValue: "NONE",
+    defaultValue: "ERRORS_ONLY",
     options: [
-        { text: "None", value: "NONE" },
-        { text: "General", value: "GENERAL" },
-        { text: "All", value: "ALL" }
+        { text: "Errors Only", value: "ERRORS_ONLY" },
+        { text: "Warnings and Above", value: "WARNINGS_ABOVE" },
+        { text: "Informational and Above", value: "INFO_ABOVE" },
+        { text: "All Logs", value: "ALL" }
     ],
 };
 

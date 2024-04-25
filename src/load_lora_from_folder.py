@@ -62,6 +62,7 @@ class LoadLoraFolderNode:
         # Set default prompt if None provided
         if prompt is None:
             prompt = ''
+            self.logger.log("No prompt provided", "WARNING")
         
         # Clean and split the prompt into parts
         prompt_parts = [self.clean_string(part) for part in prompt.split(separator)]
@@ -81,6 +82,7 @@ class LoadLoraFolderNode:
 
         lora_candidates = {}
         loaded_loras = set()
+        lora_found = False
 
         max_distance = int(ConfigReader.get_setting('sn0w.LoraFolderMinDistance', 5))
 
@@ -90,30 +92,33 @@ class LoadLoraFolderNode:
                 lora_filename = os.path.split(lora_path)[-1].lower()
                 # Clean up the filename for matching
                 processed_lora_filename = lora_filename.replace(".safetensors", "").replace("_", " ")
-
+                
                 # Check if prompt part matches the cleaned filename
                 if prompt_part in processed_lora_filename:
                     distance = Utility.levenshtein_distance(prompt_part, processed_lora_filename)
+                    self.logger.log("Processing: Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part, "DEBUG")
                     # Store matching Loras if within acceptable distance
                     for full_path in full_lora_paths:
                         if lora_filename in full_path.lower() and distance <= max_distance:
                             if prompt_part not in lora_candidates:
                                 lora_candidates[prompt_part] = []
                             lora_candidates[prompt_part].append({'full_path': full_path, 'distance': distance})
-                            self.logger.log("Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part, "ALL")
+                            self.logger.log("Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part, "INFORMATIONAL")
                             break
 
         # Load the best candidate Lora for each prompt part
         for prompt_part, candidates in lora_candidates.items():
             if candidates:
+                lora_found = True
                 selected_candidate = min(candidates, key=lambda x: x['distance'])
                 folder_name = self.normalize_folder_name(os.path.dirname(selected_candidate['full_path']))
                 # Load Lora if not already loaded and within the allowed number per folder
                 if selected_candidate['full_path'] not in loaded_loras and (folder_name not in include_folders or len(loaded_loras) < include_folders[folder_name]):
-                    self.logger.log(f"Loading Lora: {os.path.split(selected_candidate['full_path'])[-1]}", "GENERAL")
+                    self.logger.log(f"Loading Lora: {os.path.split(selected_candidate['full_path'])[-1]}", "INFORMATIONAL")
                     model, clip = LoraLoader().load_lora(model, clip, selected_candidate['full_path'], lora_strength, lora_strength)
                     loaded_loras.add(selected_candidate['full_path'])
-            else:
-                self.logger.log(f"No matching Lora found for any tags.", "GENERAL")
+        
+        if not lora_found:
+            self.logger.log(f"No matching Lora found for any tags.", "INFORMATIONAL")
 
         return (model, clip)
