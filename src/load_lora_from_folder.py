@@ -85,6 +85,7 @@ class LoadLoraFolderNode:
         lora_found = False
 
         max_distance = int(ConfigReader.get_setting('sn0w.LoraFolderMinDistance', 5))
+        self.logger.log("Max Distance: " + str(max_distance), "DEBUG")
 
         # Match prompt parts with Lora filenames
         for prompt_part in prompt_parts:
