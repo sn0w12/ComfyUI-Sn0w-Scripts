@@ -1,12 +1,15 @@
 import os
 import json
 import random
-from .sn0w import ConfigReader
+from .sn0w import ConfigReader, Logger
 
 class CharacterSelectNode:
     # Initialize class variables
     character_dict = {}
     final_character_dict = {}
+    cached_sorting_setting = ConfigReader.get_setting("sn0w.SortBySeries", False)
+
+    logger = Logger()
 
     @classmethod
     def initialize(cls):
@@ -36,19 +39,30 @@ class CharacterSelectNode:
 
         cls.character_dict = {character['name']: character for character in character_data}
 
-        if ConfigReader.get_setting("sn0w.SortBySeries", False):
-            cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict, key=cls.extract_series_name)}
-        else:
-            cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict)}
+        cls.sort_characters(True)
 
     @staticmethod
     def extract_series_name(character_name):
         return character_name.split('(')[-1].split(')')[0].strip()
+    
+    @classmethod
+    def sort_characters(cls, force_sort = False):
+        current_sorting_setting = ConfigReader.get_setting("sn0w.SortBySeries", False)
+        if current_sorting_setting != cls.cached_sorting_setting or force_sort:
+            cls.logger.log("Sorting characters", "DEBUG")
+            if current_sorting_setting:
+                cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict, key=cls.extract_series_name)}
+            else:
+                cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict)}
+
+            cls.cached_sorting_setting = current_sorting_setting
 
     @classmethod
     def INPUT_TYPES(cls):
         if not cls.final_character_dict:  # Check if initialization is needed
             cls.initialize()
+        else:
+            cls.sort_characters()
         character_names = ['None'] + list(cls.final_character_dict.keys())
         return {
             "required": {
