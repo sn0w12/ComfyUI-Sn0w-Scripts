@@ -1,5 +1,6 @@
 import os
 import json
+import random
 from .sn0w import ConfigReader
 
 class CharacterSelectNode:
@@ -55,16 +56,28 @@ class CharacterSelectNode:
                 "character_strength": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.05, "round": 0.01}),
                 "character_prompt": ("BOOLEAN", {"default": False}),
                 "xl": ("BOOLEAN", {"default": False}),
+                "random_character": ("BOOLEAN", {"default": False}),
             },
         }
+    
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return float("NaN")
 
     RETURN_TYPES = ("STRING", "STRING", "BOOLEAN")
     RETURN_NAMES = ("CHARACTER STRING", "CHARACTER PROMPT", "XL")
     FUNCTION = "find_associated_string"
     CATEGORY = "sn0w"
         
-    def find_associated_string(self, character, character_strength, character_prompt, xl):
-        char_item = self.character_dict.get(character)
+    def find_associated_string(self, character, character_strength, character_prompt, xl, random_character):
+        if character == "None":
+            return ("", "", "")
+
+        if random_character:
+            char_item = self.final_character_dict.get(random.choice(list(self.final_character_dict.keys())))
+        else:
+            char_item = self.final_character_dict.get(character)
+
         if char_item:
             associated_string = char_item['associated_string']
             prompt = char_item['prompt'] if character_prompt else ""
