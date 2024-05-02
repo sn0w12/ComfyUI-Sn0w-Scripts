@@ -3,7 +3,7 @@ import re
 import time
 import folder_paths
 from nodes import LoraLoader
-from .sn0w import Logger, Utility, ConfigReader
+from ..sn0w import Logger, Utility, ConfigReader
 
 class LoadLoraFolderNode:
     logger = Logger()

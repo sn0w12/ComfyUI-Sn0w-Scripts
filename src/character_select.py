@@ -1,7 +1,7 @@
 import os
 import json
 import random
-from .sn0w import ConfigReader, Logger
+from ..sn0w import ConfigReader, Logger
 
 class CharacterSelectNode:
     # Initialize class variables

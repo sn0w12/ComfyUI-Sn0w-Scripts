@@ -1,5 +1,5 @@
 from nodes import KSampler, KSamplerAdvanced, VAEDecode, VAEEncode, EmptyLatentImage, LoraLoader, ImageScaleBy, CLIPTextEncode
-from .sn0w import Utility
+from ..sn0w import Utility
 from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel
 import comfy.samplers
 import folder_paths

@@ -1,7 +1,6 @@
 import folder_paths
 from nodes import LoraLoader
 from pathlib import Path
-from .sn0w import ConfigReader
 
 class LoraLora15Node:
     @classmethod

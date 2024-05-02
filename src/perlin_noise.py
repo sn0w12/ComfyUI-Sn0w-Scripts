@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import torch
-from PIL import Image
 
 class FilmGrain:
     def __init__(self):

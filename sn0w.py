@@ -3,31 +3,11 @@ import json
 import torch
 
 class ConfigReader:
-    _config = None
-
-    @classmethod
-    def load_config(cls):
-        if cls._config is None:
-            # Get the directory of the current file
-            current_file_path = os.path.realpath(__file__)
-            # Navigate up to the parent directory of the current file
-            parent_dir = os.path.dirname(os.path.dirname(current_file_path))
-            # Construct the path to the 'config.json' file located in the parent directory
-            config_path = os.path.join(parent_dir, 'config.json')
-            
-            try:
-                with open(config_path, 'r') as file:
-                    cls._config = json.load(file)
-            except FileNotFoundError:
-                print(f"Configuration file not found at {config_path}. Using default settings.")
-                cls._config = {}  # Use an empty dict as a fallback
-        return cls._config
-    
     @staticmethod
     def get_setting(setting_id, default=None):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         # Construct the relative path
-        relative_path = '../../../user/default/comfy.settings.json'
+        relative_path = '../../user/default/comfy.settings.json'
         # Combine paths and normalize it
         file_path = os.path.abspath(os.path.join(current_dir, relative_path))
         try:
@@ -35,10 +15,10 @@ class ConfigReader:
                 settings = json.load(file)
             return settings.get(setting_id, default)
         except FileNotFoundError:
-            print(f"Local configuration file not found at {file_path}.")
+            Logger.print_sn0w(f"Local configuration file not found at {file_path}.", "\033[0;33m")
             return default
         except json.JSONDecodeError:
-            print(f"Error decoding JSON from {file_path}.")
+            Logger.print_sn0w(f"Error decoding JSON from {file_path}.", "\033[0;31m")
             return default
 
 class Logger:

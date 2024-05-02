@@ -1,5 +1,5 @@
 from .src.dynamic_lora_loader import generate_lora_node_class
-from .src.sn0w import ConfigReader, Logger
+from .sn0w import ConfigReader, Logger
 
 from .src.find_resolution import FindResolutionNode
 from .src.lora_selector import LoraSelectorNode
