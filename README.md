@@ -17,7 +17,7 @@ A collection of nodes and improvements created for general ease and testing lora
 
 # Configuration
 
-Settings can be changed in the comfyui settings, a restart is required for them to take effect.
+In the ComfyUI settings, you can modify various settings. Some changes will apply immediately, while others require a refresh to take effect.
 
 ## Important Note
 Many of the nodes require these paths to be in your extra_model_paths.yaml (with your real directories of course).
