@@ -1,7 +1,9 @@
 import re
-from .sn0w import ConfigReader
+from .sn0w import ConfigReader, Logger
 
 class CombineStringNode:
+    logger = Logger()
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -55,7 +57,7 @@ class CombineStringNode:
         def extract_parenthesized(match):
             parenthesized_parts.append(match.group())
             return f"\0{len(parenthesized_parts)-1}\0"
-        
+
         modified_tags_string = re.sub(parenthesized_pattern, extract_parenthesized, tags_string)
 
         tags = [tag.strip() for tag in modified_tags_string.split(separator)]
@@ -101,11 +103,20 @@ class CombineStringNode:
 
         # Reinsert parenthesized parts and handle removed tags
         final_tags_with_parentheses = []
-        for tag in final_tags:
+        for tag in tags:
             while "\0" in tag:
-                index = int(tag[tag.find("\0")+1:tag.rfind("\0")])
-                tag = tag.replace(f"\0{index}\0", parenthesized_parts[index], 1)
-            final_tags_with_parentheses.append(tag)
+                try:
+                    start_index = tag.find("\0")+1
+                    end_index = tag.rfind("\0")
+                    index = int(tag[start_index:end_index].strip())
+                    tag = tag.replace(f"\0{index}\0", parenthesized_parts[index], 1)
+                except ValueError:
+                    # Handle or log the error appropriately
+                    self.logger.log(f"Error converting tag index in tag: {tag}", "ERROR")
+                    break
+            else:
+                # If no ValueError was caught, add the tag to the final list
+                final_tags_with_parentheses.append(tag)
 
         simplified_tags_string = separator.join(final_tags_with_parentheses).strip(separator)
         removed_tags_string = separator.join(removed_tags).strip(separator)
