@@ -76,7 +76,6 @@ class CharacterSelectNode:
     
     @classmethod
     def IS_CHANGED(cls, **kwargs):
-        cls.logger.log(str(cls.random_character_chosen), "DEBUG")
         if cls.random_character_chosen:
             return float("NaN")
 
