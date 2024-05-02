@@ -48,10 +48,6 @@ class Logger:
     RESET_TEXT = "\033[0m"
     PREFIX = "[sn0w] "
 
-    def __init__(self):
-        # Default to Informational level if not configured
-        self.logging_level = ConfigReader.get_setting('sn0w.LoggingLevel', 'INFORMATIONAL')
-
     @classmethod
     def print_sn0w(cls, message, color):
         print(f"{color}{cls.PREFIX}{cls.RESET_TEXT}{message}")
@@ -78,7 +74,7 @@ class Logger:
         }
 
         # Determine the minimum level to log based on configuration
-        min_level_to_log = settings_to_levels.get(self.logging_level, 3)
+        min_level_to_log = settings_to_levels.get(ConfigReader.get_setting('sn0w.LoggingLevel', 'INFORMATIONAL'), 3)
         message_level = levels.get(level.upper(), 6)  # Default to "INFORMATIONAL" if level is unrecognized
 
         # Decide the color based on the type of message
