@@ -49,7 +49,6 @@ class CombineStringNode:
 
         # Compile regex patterns outside of loops
         parenthesized_pattern = re.compile(r'\([^()]*\)')
-        numeric_tag_pattern = re.compile(r'\b\d+\+?(girls?|boys?)\b')
         
         # Extract parenthesized parts
         parenthesized_parts = []
@@ -108,20 +107,25 @@ class CombineStringNode:
                 tag = tag.replace(f"\0{index}\0", parenthesized_parts[index], 1)
             final_tags_with_parentheses.append(tag)
 
-        animagine_formatting = ConfigReader.get_setting('sn0w.PromptFormat', False)
-
-        if animagine_formatting:
-            numeric_tags = [tag for tag in final_tags_with_parentheses if numeric_tag_pattern.match(tag)]
-            non_numeric_tags = [tag for tag in final_tags_with_parentheses if not numeric_tag_pattern.match(tag)]
-
-            prioritized_final_tags = numeric_tags + non_numeric_tags
-        else:
-            prioritized_final_tags = final_tags_with_parentheses
-
-        simplified_tags_string = separator.join(prioritized_final_tags).strip(separator)
+        simplified_tags_string = separator.join(final_tags_with_parentheses).strip(separator)
         removed_tags_string = separator.join(removed_tags).strip(separator)
 
         return simplified_tags_string, removed_tags_string
+    
+    def format_text(self, tags, separator):
+        numeric_tag_pattern = re.compile(r'\b\d+\+?(girls?|boys?)\b')
+        animagine_formatting = ConfigReader.get_setting('sn0w.PromptFormat', False)
+
+        tags = [tag.strip() for tag in tags.split(separator)]
+
+        if animagine_formatting:
+            numeric_tags = [tag for tag in tags if numeric_tag_pattern.match(tag)]
+            non_numeric_tags = [tag for tag in tags if not numeric_tag_pattern.match(tag)]
+            prioritized_tags = numeric_tags + non_numeric_tags
+        else:
+            prioritized_tags = tags
+
+        return separator.join(prioritized_tags).strip(separator)
 
     def combine_string(self, separator, simplify, **kwargs):
         # Collect strings that are not None and strip them
@@ -151,5 +155,8 @@ class CombineStringNode:
             final_tags, removed_tags = self.simplify_tags(separator.join(combined), separator)
         else:
             final_tags = separator.join(combined)
+
+        if ConfigReader.get_setting('sn0w.PromptFormat', False):
+            final_tags = self.format_text(final_tags, separator)
 
         return (final_tags, removed_tags,)
