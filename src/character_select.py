@@ -76,7 +76,9 @@ class CharacterSelectNode:
     
     @classmethod
     def IS_CHANGED(cls, **kwargs):
-        return float("NaN")
+        cls.logger.log(str(cls.random_character_chosen), "DEBUG")
+        if cls.random_character_chosen:
+            return float("NaN")
 
     RETURN_TYPES = ("STRING", "STRING", "BOOLEAN")
     RETURN_NAMES = ("CHARACTER STRING", "CHARACTER PROMPT", "XL")
@@ -88,6 +90,7 @@ class CharacterSelectNode:
             return ("", "", "")
 
         if random_character:
+            self.random_character_chosen = True
             char_item = self.final_character_dict.get(random.choice(list(self.final_character_dict.keys())))
             self.logger.log("Random Character: " + str(char_item["name"]), "INFORMATIONAL")
         else:
