@@ -50,7 +50,6 @@ class CharacterSelectNode:
     def sort_characters(cls, force_sort = False):
         current_sorting_setting = ConfigReader.get_setting("sn0w.SortBySeries", False)
         if current_sorting_setting != cls.cached_sorting_setting or force_sort:
-            cls.logger.log("Sorting characters", "DEBUG")
             if current_sorting_setting:
                 cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict, key=cls.extract_series_name)}
             else:
