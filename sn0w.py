@@ -70,6 +70,9 @@ class Logger:
             self.print_sn0w(message, color)
 
 class Utility:
+    logger = Logger()
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
     @staticmethod
     def levenshtein_distance(s1, s2):
         if len(s1) < len(s2):
@@ -109,3 +112,57 @@ class Utility:
         Utility._check_image_dimensions(batched_tensors, image_names)
         batched_tensors = torch.cat(batched_tensors, dim=0)
         return batched_tensors
+    
+    @staticmethod
+    def initialize_state():
+        # Default values
+        default_state = {
+            'random_character_chosen': False
+        }
+
+        state_path = os.path.join(Utility.ROOT_DIR, 'state.json')
+
+        # Check if state.json exists; if not, create it with default values
+        if not os.path.exists(state_path):
+            with open(state_path, 'w') as f:
+                json.dump(default_state, f)
+            Utility.logger.log("Initialized state file with default values at the root.", "DEBUG")
+        else:
+            # Ensure all default keys exist in the file, if file exists
+            with open(state_path, 'r') as f:
+                state = json.load(f)
+            # Update the file with any missing default values
+            state_updated = False
+            for key, value in default_state.items():
+                if key not in state:
+                    state[key] = value
+                    state_updated = True
+            if state_updated:
+                with open(state_path, 'w') as f:
+                    json.dump(state, f)
+            Utility.logger.log("State file checked and updated with any missing default values at the root.", "DEBUG")
+    
+    @staticmethod
+    def save_state(name, value):
+        state_path = os.path.join(Utility.ROOT_DIR, 'state.json')
+        state = {}
+        if os.path.exists(state_path):
+            with open(state_path, 'r') as f:
+                state = json.load(f)
+        state[name] = value
+        with open(state_path, 'w') as f:
+            json.dump(state, f)
+
+    @staticmethod
+    def load_state(name):
+        state_path = os.path.join(Utility.ROOT_DIR, 'state.json')
+        try:
+            with open(state_path, 'r') as f:
+                state = json.load(f)
+                return state.get(name, None)
+        except FileNotFoundError:
+            Utility.logger.log("State file not found at the root. Creating new state file.", "ERROR")
+            # Create a new state.json with default values or empty
+            with open(state_path, 'w') as f:
+                json.dump({}, f)
+            return None

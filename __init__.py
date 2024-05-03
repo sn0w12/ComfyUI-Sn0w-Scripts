@@ -1,5 +1,5 @@
 from .src.dynamic_lora_loader import generate_lora_node_class
-from .sn0w import ConfigReader, Logger
+from .sn0w import ConfigReader, Logger, Utility
 
 from .src.find_resolution import FindResolutionNode
 from .src.lora_selector import LoraSelectorNode
@@ -52,6 +52,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
 WEB_DIRECTORY = "./web"
 
+Utility.initialize_state()
+
 current_unique_id = 0  # Global variable to track the unique ID
 logger = Logger()
 
@@ -66,8 +68,6 @@ def parse_custom_lora_loaders(custom_lora_loaders):
             value = value.strip()
             required_folders_with_names.append((name, value.split(',')))  # Assuming values are comma-separated
     return required_folders_with_names
-
-
 
 def generate_and_register_lora_node(lora_type, setting):
     global current_unique_id  # Use the global variable to keep track of IDs
