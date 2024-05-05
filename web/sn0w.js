@@ -1,7 +1,5 @@
 export class SettingUtils {
     static createMultilineSetting(name, setter, value, attrs) {
-        console.log(attrs)
-
         const tr = document.createElement("tr");
         const tdLabel = document.createElement("td");
         const tdInput = document.createElement("td");
