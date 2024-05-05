@@ -177,7 +177,7 @@ class MessageHolder:
     @classmethod
     def addMessage(self, id, message):
         self.messages[str(id)] = message
-        print(f"Adding message for ID: {id}, Message: {message}")
+        Utility.logger.log(f"Adding message for ID: {id}, Message: {message}", "DEBUG")
 
     @classmethod
     def waitForMessage(self, id, period = 0.1):
