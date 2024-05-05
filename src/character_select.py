@@ -89,8 +89,7 @@ class CharacterSelectNode:
             return ("", "", "")
 
         if random_character:
-            random_character_name = random.choice(list(self.final_character_dict.keys()))
-            char_item = self.final_character_dict.get(random_character_name)
+            char_item = self.select_random_character()
             self.logger.log("Random Character: " + str(char_item["name"]), "INFORMATIONAL")
         else:
             char_item = self.final_character_dict.get(character)
@@ -106,3 +105,34 @@ class CharacterSelectNode:
                 return ("", prompt, xl,)
 
         return ("", "", "")
+    
+    def select_random_character(self):
+        # Fetching the exclusion or inclusion settings
+        excluded_characters = ConfigReader.get_setting("sn0w.ExcludedRandomCharacters", "")
+        
+        # Splitting the string by commas to create a list of names
+        if excluded_characters.startswith("only:"):
+            mode = "inclusive"
+            character_names = excluded_characters[5:].split(",")
+        else:
+            mode = "exclusive"
+            character_names = excluded_characters.split(",")
+
+        # Filtering the dictionary based on the mode
+        if mode == "inclusive":
+            filtered_characters = {name: char for name, char in self.final_character_dict.items() if name in character_names}
+        else:
+            filtered_characters = {name: char for name, char in self.final_character_dict.items() if name not in character_names}
+        
+        # Choosing a random character from the filtered list
+        if filtered_characters:
+            random_character_name = random.choice(list(filtered_characters.keys()))
+            char_item = filtered_characters[random_character_name]
+            # Logging the chosen character's name
+            self.logger.log("Random Character: " + str(char_item["name"]), "INFORMATIONAL")
+            return char_item
+        else:
+            # Handling the case where no characters meet the criteria
+            self.logger.log("No valid characters found based on the specified criteria.", "WARNING")
+        
+        return ""
