@@ -1,4 +1,4 @@
-import { SettingUtils } from '../sn0w.js';  // Adjust path as needed
+import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
 
 const xlId = "sn0w.CustomLoraLoadersXL";
@@ -7,7 +7,10 @@ const xlSettingDefinition = {
     name: "[Sn0w] Custom Lora Loaders XL",
     type: SettingUtils.createMultilineSetting,
     defaultValue: "ExampleName1:Value1\nExampleName2:Value2",
-    tooltip: "Enter each name-value pair on a new line, separated by a colon (:)."
+    attrs: {
+        height: "80",
+        tooltip: "Enter each name-value pair on a new line, separated by a colon (:).",
+    }
 };
 
 const nonXlId = "sn0w.CustomLoraLoaders1.5";
@@ -16,7 +19,10 @@ const nonXlSettingDefinition = {
     name: "[Sn0w] Custom Lora Loaders 1.5",
     type: SettingUtils.createMultilineSetting,
     defaultValue: "ExampleName1:Value1\nExampleName2:Value2",
-    tooltip: "Enter each name-value pair on a new line, separated by a colon (:)."
+    attrs: {
+        height: "80",
+        tooltip: "Enter each name-value pair on a new line, separated by a colon (:).",
+    }
 };
 
 const registerSetting = (settingDefinition) => {
