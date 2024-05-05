@@ -90,7 +90,6 @@ class CharacterSelectNode:
 
         if random_character:
             char_item = self.select_random_character()
-            self.logger.log("Random Character: " + str(char_item["name"]), "INFORMATIONAL")
         else:
             char_item = self.final_character_dict.get(character)
 
