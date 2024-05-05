@@ -2,7 +2,7 @@ import os
 import json
 import random
 import hashlib
-from ..sn0w import ConfigReader, Logger, Utility
+from ..sn0w import ConfigReader, Logger
 
 class CharacterSelectNode:
     # Initialize class variables
@@ -76,10 +76,8 @@ class CharacterSelectNode:
     
     @classmethod
     def IS_CHANGED(cls, **kwargs):
-        if Utility.load_state("random_character_chosen"):
+        if kwargs["random_character"]:
             return float("NaN")
-        else:
-            return hashlib.sha256(b'false').hexdigest()
 
     RETURN_TYPES = ("STRING", "STRING", "BOOLEAN")
     RETURN_NAMES = ("CHARACTER STRING", "CHARACTER PROMPT", "XL")
@@ -91,11 +89,10 @@ class CharacterSelectNode:
             return ("", "", "")
 
         if random_character:
-            Utility.save_state("random_character_chosen", True)
-            char_item = self.final_character_dict.get(random.choice(list(self.final_character_dict.keys())))
+            random_character_name = random.choice(list(self.final_character_dict.keys()))
+            char_item = self.final_character_dict.get(random_character_name)
             self.logger.log("Random Character: " + str(char_item["name"]), "INFORMATIONAL")
         else:
-            Utility.save_state("random_character_chosen", False)
             char_item = self.final_character_dict.get(character)
 
         if char_item:
