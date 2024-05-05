@@ -1,6 +1,10 @@
 import os
 import json
+import time
 import torch
+
+from server import PromptServer
+from aiohttp import web
 
 class ConfigReader:
     @staticmethod
@@ -117,7 +121,7 @@ class Utility:
     def initialize_state():
         # Default values
         default_state = {
-            'random_character_chosen': False
+            'character': "None"
         }
 
         state_path = os.path.join(Utility.ROOT_DIR, 'state.json')
@@ -166,3 +170,28 @@ class Utility:
             with open(state_path, 'w') as f:
                 json.dump({}, f)
             return None
+        
+class MessageHolder:
+    messages = {}
+
+    @classmethod
+    def addMessage(self, id, message):
+        self.messages[str(id)] = message
+        print(f"Adding message for ID: {id}, Message: {message}")
+
+    @classmethod
+    def waitForMessage(self, id, period = 0.1):
+        sid = str(id)
+
+        while not (sid in self.messages):
+            time.sleep(period)
+
+        message = self.messages.pop(str(id),None)
+        return message
+    
+routes = PromptServer.instance.routes
+@routes.post('/textbox_string')
+async def handle_textbox_string(request):
+    data = await request.json()  # Parse JSON from request
+    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
+    return web.json_response({"status": "ok"})

@@ -15,6 +15,7 @@ from .src.prompt_selector import PromptSelectNode
 from .src.perlin_noise import FilmGrain
 from .src.upscale_with_model_by import UpscaleImageBy
 from .src.load_lora_from_folder import LoadLoraFolderNode
+from .src.textbox import TextboxNode
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -31,6 +32,7 @@ NODE_CLASS_MAPPINGS = {
     "Colored Film Grain": FilmGrain,
     "Upscale Image With Model By": UpscaleImageBy,
     "Load Lora Folder": LoadLoraFolderNode,
+    "Copy/Paste Textbox": TextboxNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -48,6 +50,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Colored Film Grain": "Colored Film Grain",
     "Upscale Image With Model By": "Upscale Image With Model By",
     "Load Lora Folder": "Load Lora Folder",
+    "Copy/Paste Textbox": "Textbox",
 }
 
 WEB_DIRECTORY = "./web"
