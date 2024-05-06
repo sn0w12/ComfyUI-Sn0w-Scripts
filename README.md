@@ -32,17 +32,35 @@ loras:
 
 # Nodes
 
-## Find Resolution
-> An easy way to select a width and height.
+## Image Processing
+Nodes that are specifically for generating and processing images.
+
+### Simple Sampler
+> Ksampler Advanced that takes in width, height, positive and negative. Outputs image, positive and negative conditioning.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
->    - Enable flip if you want to swap the resolutions
+>    - Made to keep workflows more clean without latent images and text encodes.
 >
->    ![Find Resolution](./imgs/find_res.png)
+>    ![Simple Sampler](./imgs/simple_sampler.png)
 >    </details>
 
-## Lora Selector
+### Lora Tester
+> Automatically generates X amount of images with provided loras.
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    - I recommend making lora_info and add_default_generation inputs and using the outputs from the Lora Selector.
+>    - Takes normal KSampler input but takes positive and negative inputs as text.
+>    - Outputs a batch of images.
+> 
+>    ![Lora Tester](./imgs/lora_tester.png)
+>    </details>
+
+## Lora Management
+Nodes that handle lora selection, stacking, and loading.
+
+### Lora Selector
 > Automatically selects X amount of loras between two numbers.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
@@ -57,42 +75,7 @@ loras:
 >    ![Lora Selector](./imgs/lora_selector.png)
 >    </details>
 
-## Lora Tester
-> Automatically generates X amount of images with provided loras.
-> <details>
->    <summary>ℹ️ <i>See More Information</i></summary>
->
->    - I recommend making lora_info and add_default_generation inputs and using the outputs from the Lora Selector.
->    - Takes normal KSampler input but takes positive and negative inputs as text.
->    - Outputs a batch of images.
-> 
->    ![Lora Tester](./imgs/lora_tester.png)
->    </details>
-
-## Character Selector
-> Outputs a character name and prompt.
-> <details>
->    <summary>ℹ️ <i>See More Information</i></summary>
->
->    - Loads `characters.json` and outputs prompt based on it.
->    - You can create a file named `custom_characters.json` and add characters there if you want, they will be loaded with all the other characters if you format it like the `characters.json` file.
->    - If `custom_characters.json` has a character with the same name as `characters.json` it will add the custom prompt at the end of the normal one, this can be useful if you have loras that need activation tags.
-> 
->    ![Character Selector](./imgs/character_selector.png)
->    </details>
-
-## Prompt Combine
-> Combines multiple strings with a specified separator and optionally simplifies the result by removing redundant or incompatible tags.
-> <details>
->    <summary>ℹ️ <i>See More Information</i></summary>
->
->    - If simplify is enabled, the simplification process identifies and removes redundant tags (e.g., when a tag is fully encompassed by another, more descriptive tag) and tags incompatible with factors such as facing away, covered eyes, etc. Any tags that are in parentheses will not be removed.
->    - Simplify will also move 1girl/ 1boy to the front of the prompt to be in line with animagine 3's tagging if the option is enabled.
-> 
->    ![Prompt Combine](./imgs/prompt_combine.png)
->    </details>
-
-## Lora Stacker
+### Lora Stacker
 > Outputs a list of loras for Lora Tester. Does not load any loras by itself.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
@@ -103,7 +86,7 @@ loras:
 >    ![Lora Stacker](./imgs/lora_stacker.png)
 >    </details>
 
-## Load Lora XL/1.5
+### Load Lora XL/1.5
 > Normal load lora but from another folder.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
@@ -116,7 +99,7 @@ loras:
 >    ![Example](./imgs/lora_paths_example.png)
 >    </details>
 
-## Load Lora Folder
+### Load Lora Folder
 > Dynamically applies Lora models based on similarity to a provided prompt.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
@@ -134,8 +117,46 @@ loras:
 >    ![Load Lora Folder](./imgs/load_lora_Folder.png)
 >    </details>
 
+## Character and Text Processing
+Nodes for selecting and combining character and textual elements.
 
-## Get Font Size Node
+### Character Selector
+> Outputs a character name and prompt.
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    - Loads `characters.json` and outputs prompt based on it.
+>    - You can create a file named `custom_characters.json` and add characters there if you want, they will be loaded with all the other characters if you format it like the `characters.json` file.
+>    - If `custom_characters.json` has a character with the same name as `characters.json` it will add the custom prompt at the end of the normal one, this can be useful if you have loras that need activation tags.
+> 
+>    ![Character Selector](./imgs/character_selector.png)
+>    </details>
+
+### Prompt Combine
+> Combines multiple strings with a specified separator and optionally simplifies the result by removing redundant or incompatible tags.
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    - If simplify is enabled, the simplification process identifies and removes redundant tags (e.g., when a tag is fully encompassed by another, more descriptive tag) and tags incompatible with factors such as facing away, covered eyes, etc. Any tags that are in parentheses will not be removed.
+>    - Simplify will also move 1girl/ 1boy to the front of the prompt to be in line with animagine 3's tagging if the option is enabled.
+> 
+>    ![Prompt Combine](./imgs/prompt_combine.png)
+>    </details>
+
+## Utility Nodes
+Nodes that provide utility functions across the system.
+
+### Find Resolution
+> An easy way to select a width and height.
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    - Enable flip if you want to swap the resolutions
+>
+>    ![Find Resolution](./imgs/find_res.png)
+>    </details>
+
+### Get Font Size Node
 > Estimates the optimal font size for text to fit within an image based on Lora information.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
@@ -145,15 +166,6 @@ loras:
 >    ![Get Font Size](./imgs/get_font_size.png)
 >    </details>
 
-## Simple Sampler
-> Ksampler Advanced that takes in width, height, positive and negative. Outputs image, positive and negative conditioning.
-> <details>
->    <summary>ℹ️ <i>See More Information</i></summary>
->
->    - Made to keep workflows more clean without latent images and text encodes.
->
->    ![Simple Sampler](./imgs/simple_sampler.png)
->    </details>
 
 # Example Workflows
 ## Lora Tester
