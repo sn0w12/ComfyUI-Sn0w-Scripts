@@ -3,7 +3,6 @@ import { app } from "../../../scripts/app.js";
 import { api } from '../../scripts/api.js';
 
 function updateLoggingLevel() {
-    console.log("UPDATING LOGGING LEVEL");
     api.fetchApi("/logging_level", {
         method: "POST",
         headers: {
