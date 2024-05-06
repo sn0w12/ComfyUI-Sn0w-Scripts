@@ -1,5 +1,5 @@
 from .src.dynamic_lora_loader import generate_lora_node_class
-from .sn0w import ConfigReader, Logger, Utility
+from .sn0w import ConfigReader, Logger
 
 from .src.find_resolution import FindResolutionNode
 from .src.lora_selector import LoraSelectorNode
@@ -8,8 +8,6 @@ from .src.character_select import CharacterSelectNode
 from .src.prompt_combine import CombineStringNode
 from .src.simple_sampler import SimpleSamplerNode
 from .src.lora_stacker import LoraStackerNode
-from .src.load_lora_xl import LoraLoraXLNode
-from .src.load_lora_15 import LoraLora15Node
 from .src.get_font_size import GetFontSizeNode
 from .src.prompt_selector import PromptSelectNode
 from .src.perlin_noise import FilmGrain
@@ -25,8 +23,8 @@ NODE_CLASS_MAPPINGS = {
     "Prompt Combine": CombineStringNode,
     "Simple Sampler": SimpleSamplerNode,
     "Lora Stacker": LoraStackerNode,
-    "Load Lora XL": LoraLoraXLNode,
-    "Load Lora 1.5": LoraLora15Node,
+    "Load Lora XL": generate_lora_node_class("loras_xl"),
+    "Load Lora 1.5": generate_lora_node_class("loras_15"),
     "Get Font Size": GetFontSizeNode,
     "Prompt Selector": PromptSelectNode,
     "Colored Film Grain": FilmGrain,
