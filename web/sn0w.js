@@ -1,4 +1,6 @@
 export class SettingUtils {
+    static API_PREFIX = '/sn0w';
+
     static createMultilineSetting(name, setter, value, attrs) {
         const tr = document.createElement("tr");
         const tdLabel = document.createElement("td");

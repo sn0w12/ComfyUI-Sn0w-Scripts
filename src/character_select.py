@@ -1,7 +1,6 @@
 import os
 import json
 import random
-import hashlib
 from ..sn0w import ConfigReader, Logger
 
 class CharacterSelectNode:

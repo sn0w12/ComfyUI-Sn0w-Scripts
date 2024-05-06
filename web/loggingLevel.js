@@ -3,7 +3,7 @@ import { app } from "../../../scripts/app.js";
 import { api } from '../../scripts/api.js';
 
 function updateLoggingLevel() {
-    api.fetchApi("/logging_level", {
+    api.fetchApi(`${SettingUtils.API_PREFIX}/update_sorting`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

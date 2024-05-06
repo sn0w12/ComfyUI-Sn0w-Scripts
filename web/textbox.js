@@ -1,3 +1,4 @@
+import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
 import { api } from '../../scripts/api.js';
 import { ComfyWidgets } from "../../../scripts/widgets.js";
@@ -36,12 +37,13 @@ app.registerExtension({
                 this.populate();
                 // Bind the getTextboxText to this instance
                 this.getTextboxText = this.getTextboxText.bind(this);
+                console.log(SettingUtils.API_PREFIX)
 
                 api.addEventListener('textbox', (event) => {
                     const data = event.detail
                     const outputText = this.getTextboxText();
                     if (this.id == data.id) {
-                        api.fetchApi("/textbox_string", {
+                        api.fetchApi(`${SettingUtils.API_PREFIX}/textbox_string`, {
                             method: "POST",
                             headers: {
                               "Content-Type": "application/json",
