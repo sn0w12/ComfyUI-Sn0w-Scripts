@@ -7,6 +7,10 @@ from server import PromptServer
 from aiohttp import web
 
 class ConfigReader:
+    @classmethod
+    def print_sn0w(cls, message, color):
+        print(f"{color}[sn0w] \033[0m{message}")
+
     @staticmethod
     def get_setting(setting_id, default=None):
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,10 +23,10 @@ class ConfigReader:
                 settings = json.load(file)
             return settings.get(setting_id, default)
         except FileNotFoundError:
-            Logger.print_sn0w(f"Local configuration file not found at {file_path}.", "\033[0;33m")
+            ConfigReader.print_sn0w(f"Local configuration file not found at {file_path}.", "\033[0;33m")
             return default
         except json.JSONDecodeError:
-            Logger.print_sn0w(f"Error decoding JSON from {file_path}.", "\033[0;31m")
+            ConfigReader.print_sn0w(f"Error decoding JSON from {file_path}.", "\033[0;31m")
             return default
 
 class Logger:
