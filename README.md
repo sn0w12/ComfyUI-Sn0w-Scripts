@@ -22,10 +22,13 @@ In the ComfyUI settings, you can modify various settings. Some changes will appl
 ## Important Note
 Many of the nodes require these paths to be in your extra_model_paths.yaml (with your real directories of course).
 
-- loras_xl: C:/path/XL
-- loras_15: C:/path/1.5
+```yaml
+loras:
+    base_path: D:/Ai/Lora/loras
 
-![Example](./imgs/lora_paths_example.png)
+    loras_xl: /XL
+    loras_15: /1.5
+```
 
 # Nodes
 
