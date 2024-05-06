@@ -1,5 +1,19 @@
 import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
+import { api } from '../../scripts/api.js';
+
+function updateLoggingLevel() {
+    console.log("UPDATING LOGGING LEVEL");
+    api.fetchApi("/logging_level", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ update: true }),
+    });
+}
+
+const debouncedUpdateLoggingLevel = SettingUtils.debounce(updateLoggingLevel, 1000);
 
 const id = "sn0w.LoggingLevel";
 const settingDefinition = {
@@ -7,6 +21,7 @@ const settingDefinition = {
     name: "[Sn0w] Logging Level",
     type: SettingUtils.createCheckboxSetting,
     defaultValue: ["WARNING", "INFORMATIONAL"],
+    onChange: debouncedUpdateLoggingLevel,
     attrs: {
         options: [
             { label: "Warnings", value: "WARNING" },

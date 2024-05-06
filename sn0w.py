@@ -33,14 +33,18 @@ class Logger:
     RESET_TEXT = "\033[0m"
     PREFIX = "[sn0w] "
 
+    enabled_levels = ConfigReader.get_setting('sn0w.LoggingLevel', ["INFORMATIONAL", "WARNING"])
+
+    @classmethod
+    def reload_config(cls):
+        cls.enabled_levels = ConfigReader.get_setting('sn0w.LoggingLevel', ["INFORMATIONAL", "WARNING"])
+
+
     @classmethod
     def print_sn0w(cls, message, color):
         print(f"{color}{cls.PREFIX}{cls.RESET_TEXT}{message}")
 
     def log(self, message, level="ERROR"):
-        # Retrieve the list of enabled log levels from the configuration
-        enabled_levels = ConfigReader.get_setting('sn0w.LoggingLevel', ["INFORMATIONAL", "WARNING"])
-
         # Determine the color based on the type of message
         if level.upper() in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"]:
             color = self.RED_TEXT
@@ -50,7 +54,7 @@ class Logger:
             color = self.PURPLE_TEXT  # Default color
 
         # Check if the message's level is in the enabled log levels
-        if level.upper() in enabled_levels:
+        if level.upper() in self.enabled_levels:
             self.print_sn0w(message, color)
 
 class Utility:
@@ -120,4 +124,10 @@ routes = PromptServer.instance.routes
 async def handle_textbox_string(request):
     data = await request.json()  # Parse JSON from request
     MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
+    return web.json_response({"status": "ok"})
+
+routes = PromptServer.instance.routes
+@routes.post('/logging_level')
+async def handle_textbox_string(request):
+    Logger.reload_config()
     return web.json_response({"status": "ok"})
