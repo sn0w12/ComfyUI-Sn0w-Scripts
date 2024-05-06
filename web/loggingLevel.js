@@ -4,7 +4,7 @@ import { app } from "../../../scripts/app.js";
 const id = "sn0w.LoggingLevel";
 const settingDefinition = {
     id,
-    name: "[Sn0w] Logging Level TESTING",
+    name: "[Sn0w] Logging Level",
     type: SettingUtils.createCheckboxSetting,
     defaultValue: ["WARNING", "INFORMATIONAL"],
     attrs: {
