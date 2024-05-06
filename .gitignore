@@ -6,3 +6,4 @@ config.json
 src/img/
 src/testing.py
 state.json
+testing/success_log.txt
