@@ -1,17 +1,20 @@
+import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
 
 const id = "sn0w.LoggingLevel";
 const settingDefinition = {
     id,
-    name: "[Sn0w] Logging Level",
-    type: "combo",
-    defaultValue: "ERRORS_ONLY",
-    options: [
-        { text: "Errors Only", value: "ERRORS_ONLY" },
-        { text: "Warnings and Above", value: "WARNINGS_ABOVE" },
-        { text: "Informational and Above", value: "INFO_ABOVE" },
-        { text: "All Logs", value: "ALL" }
-    ],
+    name: "[Sn0w] Logging Level TESTING",
+    type: SettingUtils.createCheckboxSetting,
+    defaultValue: ["WARNING", "INFORMATIONAL"],
+    attrs: {
+        options: [
+            { label: "Warnings", value: "WARNING" },
+            { label: "Informational", value: "INFORMATIONAL" },
+            { label: "Debug", value: "DEBUG" },
+        ],
+        tooltip: ""
+    }
 };
 
 let setting;
