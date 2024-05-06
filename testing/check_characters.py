@@ -11,6 +11,9 @@ BASE_URL = "https://gelbooru.com/index.php?page=dapi&s=tag&q=index&name="
 REQUEST_DELAY = 0.5  # Delay between requests in seconds
 MIN_USES = 100
 
+RED_TEXT = "\033[0;31m"
+GREEN_TEXT = "\033[0;32m"
+
 # Load the JSON data from the character file
 with open(CHARACTER_FILE_PATH, 'r') as file:
     data = json.load(file)
@@ -59,9 +62,9 @@ with open(LOG_FILE_PATH, 'a') as log_file:
                 try:
                     tag_count = int(root.find('tag').find('count').text)
                     if tag_count < MIN_USES:
-                        print(f"{tag} DOES NOT HAVE ENOUGH USES: {tag_count}")
+                        print(f"{RED_TEXT}{tag} DOES NOT HAVE ENOUGH USES: {tag_count}")
                     else:
-                        print(f"{tag} is good: {tag_count}")
+                        print(f"{GREEN_TEXT}{tag} is good: {tag_count}")
                         log_file.write(f"{tag}[:] {tag_count}\n")
                 except AttributeError:
                     print(f"Could not find count for {tag}")
