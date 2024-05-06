@@ -29,6 +29,7 @@ class Logger:
     PURPLE_TEXT = "\033[0;35m"
     RED_TEXT = "\033[0;31m"
     YELLOW_TEXT = "\033[0;33m"
+    GREEN_TEXT = "\033[0;32m"
     RESET_TEXT = "\033[0m"
     PREFIX = "[sn0w] "
 
