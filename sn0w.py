@@ -133,6 +133,6 @@ async def handle_textbox_string(request):
     return web.json_response({"status": "ok"})
 
 @routes.post(f'{API_PREFIX}/logging_level')
-async def handle_textbox_string(request):
+async def handle_logging_level(request):
     Logger.reload_config()
     return web.json_response({"status": "ok"})
