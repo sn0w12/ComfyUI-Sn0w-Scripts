@@ -58,7 +58,7 @@ class Logger:
             color = self.PURPLE_TEXT  # Default color
 
         # Check if the message's level is in the enabled log levels
-        if level.upper() in self.enabled_levels:
+        if level.upper() in self.enabled_levels or level.upper() in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"]:
             self.print_sn0w(message, color)
 
 class Utility:
