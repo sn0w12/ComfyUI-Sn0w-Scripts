@@ -1,9 +1,11 @@
 from nodes import VAEDecode, EmptyLatentImage, CLIPTextEncode
 from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler
 from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
+from ..sn0w import Logger
 import comfy.samplers
 
 class SimpleSamplerCustom:
+    logger = Logger()
     scheduler_list = comfy.samplers.KSampler.SCHEDULERS + ["align_your_steps"]
 
     @classmethod
@@ -22,10 +24,10 @@ class SimpleSamplerCustom:
                     "scheduler_name": (cls.scheduler_list, ),
                     "width": ("INT", {"default": 0, "min": 0, "step":64}),
                     "height": ("INT", {"default": 0, "min": 0, "step":64}),
-                    "positive": ("STRING", {"default": ""}),
-                    "negative": ("STRING", {"default": ""}),
                 },
                 "optional": {
+                    "positive": ("*"),
+                    "negative": ("*"),
                     "sigmas (optional)": ("SIGMAS", ),
                 }
             }
@@ -37,14 +39,14 @@ class SimpleSamplerCustom:
 
     CATEGORY = "sampling/custom_sampling"
 
-    def sample(self, model, model_type, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, scheduler_name, width, height, positive, negative, **kwargs):
+    def sample(self, model, model_type, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, scheduler_name, width, height, **kwargs):
         custom_sampler = SamplerCustom()
         vae_decode = VAEDecode()
         text_encode = CLIPTextEncode()
 
         # Encode inputs
-        positive_prompt = text_encode.encode(clip, positive)[0]
-        negative_prompt = text_encode.encode(clip, negative)[0]
+        positive_prompt = self.get_prompt("positive", text_encode, clip, kwargs)
+        negative_prompt = self.get_prompt("negative", text_encode, clip, kwargs)
 
         # Create latent
         latent_image = EmptyLatentImage().generate(width, height)[0]
@@ -73,3 +75,13 @@ class SimpleSamplerCustom:
             sigmas = BasicScheduler.get_sigmas(self, model, scheduler_name, steps, 1)[0]
         
         return sigmas
+    
+    def get_prompt(self, name, text_encode, clip, kwargs):
+        if name in kwargs and kwargs[name] is not None:
+            if isinstance(kwargs[name], str):
+                return text_encode.encode(clip, kwargs[name])[0]
+            elif isinstance(kwargs[name], list):
+                return kwargs[name]
+            else:
+                self.logger.log(f"{name} prompt is incorrect.", "ERROR")
+                raise TypeError(f"{name} prompt has to be either a string or conditioning.")
