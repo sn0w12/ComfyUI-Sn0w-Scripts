@@ -31,7 +31,7 @@ class SimpleSamplerCustom:
             }
     
     RETURN_TYPES = ("IMAGE", "LATENT", "CONDITIONING", "CONDITIONING")
-    RETURN_NAMES = ("IMAGE", "LATENT" "POSITIVE", "NEGATIVE")
+    RETURN_NAMES = ("IMAGE", "LATENT", "POSITIVE", "NEGATIVE")
 
     FUNCTION = "sample"
 
