@@ -83,5 +83,6 @@ class SimpleSamplerCustom:
             elif isinstance(kwargs[name], list):
                 return kwargs[name]
             else:
-                self.logger.log(f"{name} prompt is incorrect.", "ERROR")
-                raise TypeError(f"{name} prompt has to be either a string or conditioning.")
+                log = f"{name} prompt cannot be {type(kwargs[name]).__name__}, it has to be either a string or conditioning."
+                self.logger.log(log, "ERROR")
+                raise TypeError(log)
