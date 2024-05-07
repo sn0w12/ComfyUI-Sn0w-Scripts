@@ -12,6 +12,11 @@ app.registerExtension({
                 onConnectionsChange?.apply(side, slot, connect, link_info, output);
             }
 
+            nodeType.prototype.onNodeCreated = function () {
+                findInputType(this, 3);
+                findInputType(this, 4);
+            }
+
             function findInputType(node, input_id) {
                 const input = node.inputs[input_id];
                 try {
@@ -40,6 +45,7 @@ app.registerExtension({
                     if (input_type == "STRING" || input_type == "CONDITIONING") {
                         node.inputs[input_id].color_on = app.canvas.default_connection_color_byType[input_type];
                     } else {
+                        console.error(`The input type has to be STRING or CONDITIONING, it cannot be ${input_type}.`)
                         node.inputs[input_id].color_on = app.canvas.default_connection_color_byType["VAE"];
                     }
                 } catch {
