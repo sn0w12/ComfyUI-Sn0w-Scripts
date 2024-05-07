@@ -6,7 +6,6 @@ from .src.lora_selector import LoraSelectorNode
 from .src.lora_tester import LoraTestNode
 from .src.character_select import CharacterSelectNode
 from .src.prompt_combine import CombineStringNode
-from .src.simple_sampler import SimpleSamplerNode
 from .src.lora_stacker import LoraStackerNode
 from .src.get_font_size import GetFontSizeNode
 from .src.prompt_selector import PromptSelectNode
@@ -22,7 +21,6 @@ NODE_CLASS_MAPPINGS = {
     "Lora Tester": LoraTestNode,
     "Character Selector": CharacterSelectNode,
     "Prompt Combine": CombineStringNode,
-    "Simple Sampler": SimpleSamplerNode,
     "Sn0w Lora Stacker": LoraStackerNode,
     "Load Lora XL": generate_lora_node_class("loras_xl"),
     "Load Lora 1.5": generate_lora_node_class("loras_15"),
@@ -41,7 +39,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Lora Tester": "Lora Tester",
     "Character Selector": "Character Selector",
     "Prompt Combine": "Prompt Combine",
-    "Simple Sampler": "Simple Sampler",
     "Sn0w Lora Stacker": "Sn0w Lora Stacker",
     "Load Lora XL": "Load Lora XL",
     "Load Lora 1.5": "Load Lora 1.5",
