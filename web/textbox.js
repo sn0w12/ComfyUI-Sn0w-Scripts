@@ -37,7 +37,6 @@ app.registerExtension({
                 this.populate();
                 // Bind the getTextboxText to this instance
                 this.getTextboxText = this.getTextboxText.bind(this);
-                console.log(SettingUtils.API_PREFIX)
 
                 api.addEventListener('textbox', (event) => {
                     const data = event.detail
