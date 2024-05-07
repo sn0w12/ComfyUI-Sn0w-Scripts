@@ -16,7 +16,7 @@ class LoadLoraFolderNode:
                 "clip": ("CLIP", ),
                 "prompt": ("STRING", {"default": ""}),
                 "folders": ("STRING", {"default": "character:1,concept"}),
-                "xl": ("BOOLEAN", {"default": False}),
+                "model_type": (["SD1", "SDXL", "SVD"], ),
                 "lora_strength": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01}),
                 "separator": ("STRING", {"default": ", "}),
             },
@@ -58,7 +58,10 @@ class LoadLoraFolderNode:
 
         return master_folder, include_folders, exclude_folders
 
-    def find_and_apply_lora(self, model, clip, prompt, folders, xl, lora_strength, separator):
+    def find_and_apply_lora(self, model, clip, prompt, folders, model_type, lora_strength, separator):
+        print(model_type)
+        print(type(model_type))
+
         # Set default prompt if None provided
         if prompt is None:
             prompt = ''
@@ -69,7 +72,12 @@ class LoadLoraFolderNode:
 
         # Retrieve and filter Lora file paths
         full_lora_paths = folder_paths.get_filename_list("loras")
-        filtered_lora_paths = folder_paths.get_filename_list("loras_xl" if xl else "loras_15")
+        if model_type == "SD1":
+            filtered_lora_paths = folder_paths.get_filename_list("loras_15")
+        elif model_type == "SDXL":
+            filtered_lora_paths = folder_paths.get_filename_list("loras_xl")
+        else:
+            filtered_lora_paths = folder_paths.get_filename_list("loras_vd")
         master_folder, include_folders, exclude_folders = self.parse_folders(folders)
 
         # Include only paths in the master folder, if specified

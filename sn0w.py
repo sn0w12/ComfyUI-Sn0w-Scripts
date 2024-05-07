@@ -104,6 +104,10 @@ class Utility:
         Utility._check_image_dimensions(batched_tensors, image_names)
         batched_tensors = torch.cat(batched_tensors, dim=0)
         return batched_tensors
+    
+class AnyType(str):
+    def __ne__(self, __value: object) -> bool:
+        return False
         
 class MessageHolder:
     messages = {}

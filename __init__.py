@@ -14,6 +14,7 @@ from .src.perlin_noise import FilmGrain
 from .src.upscale_with_model_by import UpscaleImageBy
 from .src.load_lora_from_folder import LoadLoraFolderNode
 from .src.textbox import TextboxNode
+from .src.simple_sampler_custom import SimpleSamplerCustom
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -22,7 +23,7 @@ NODE_CLASS_MAPPINGS = {
     "Character Selector": CharacterSelectNode,
     "Prompt Combine": CombineStringNode,
     "Simple Sampler": SimpleSamplerNode,
-    "Lora Stacker": LoraStackerNode,
+    "Sn0w Lora Stacker": LoraStackerNode,
     "Load Lora XL": generate_lora_node_class("loras_xl"),
     "Load Lora 1.5": generate_lora_node_class("loras_15"),
     "Get Font Size": GetFontSizeNode,
@@ -31,6 +32,7 @@ NODE_CLASS_MAPPINGS = {
     "Upscale Image With Model By": UpscaleImageBy,
     "Load Lora Folder": LoadLoraFolderNode,
     "Copy/Paste Textbox": TextboxNode,
+    "Simple Sampler Custom": SimpleSamplerCustom,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -40,7 +42,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Character Selector": "Character Selector",
     "Prompt Combine": "Prompt Combine",
     "Simple Sampler": "Simple Sampler",
-    "Lora Stacker": "Lora Stacker",
+    "Sn0w Lora Stacker": "Sn0w Lora Stacker",
     "Load Lora XL": "Load Lora XL",
     "Load Lora 1.5": "Load Lora 1.5",
     "Get Font Size": "Get Font Size",
@@ -49,6 +51,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Upscale Image With Model By": "Upscale Image With Model By",
     "Load Lora Folder": "Load Lora Folder",
     "Copy/Paste Textbox": "Textbox",
+    "Simple Sampler Custom": "Simple Sampler Custom",
 }
 
 WEB_DIRECTORY = "./web"

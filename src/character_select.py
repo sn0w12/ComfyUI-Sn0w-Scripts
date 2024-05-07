@@ -1,7 +1,9 @@
 import os
 import json
 import random
-from ..sn0w import ConfigReader, Logger
+from ..sn0w import ConfigReader, Logger, AnyType
+
+any = AnyType("*")
 
 class CharacterSelectNode:
     # Initialize class variables
@@ -66,9 +68,9 @@ class CharacterSelectNode:
         return {
             "required": {
                 "character": (character_names, ),
+                "model_type": (["SD1", "SDXL", "SVD"], ),
                 "character_strength": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.05, "round": 0.01}),
                 "character_prompt": ("BOOLEAN", {"default": False}),
-                "xl": ("BOOLEAN", {"default": False}),
                 "random_character": ("BOOLEAN", {"default": False}),
             },
         }
@@ -78,14 +80,14 @@ class CharacterSelectNode:
         if kwargs["random_character"]:
             return float("NaN")
 
-    RETURN_TYPES = ("STRING", "STRING", "BOOLEAN")
-    RETURN_NAMES = ("CHARACTER STRING", "CHARACTER PROMPT", "XL")
+    RETURN_TYPES = ("STRING", "STRING", any)
+    RETURN_NAMES = ("CHARACTER NAME", "CHARACTER PROMPT", "MODEL_TYPE")
     FUNCTION = "find_character"
     CATEGORY = "sn0w"
         
-    def find_character(self, character, character_strength, character_prompt, xl, random_character):
+    def find_character(self, character, character_strength, character_prompt, model_type, random_character):
         if character == "None":
-            return ("", "", "")
+            return ("", "", model_type,)
 
         if random_character:
             char_item = self.select_random_character()
@@ -98,11 +100,11 @@ class CharacterSelectNode:
             strength_part = f":{character_strength}" if character_strength != 1 else ""
 
             if associated_string:
-                return (f"({associated_string}{strength_part}), ", prompt, xl,)
+                return (f"({associated_string}{strength_part}), ", prompt, model_type,)
             else:
-                return ("", prompt, xl,)
+                return ("", prompt, model_type,)
 
-        return ("", "", "")
+        return ("", "", "",)
     
     def select_random_character(self):
         # Fetching the exclusion or inclusion settings
