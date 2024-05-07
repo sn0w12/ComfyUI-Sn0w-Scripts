@@ -59,9 +59,6 @@ class LoadLoraFolderNode:
         return master_folder, include_folders, exclude_folders
 
     def find_and_apply_lora(self, model, clip, prompt, folders, model_type, lora_strength, separator):
-        print(model_type)
-        print(type(model_type))
-
         # Set default prompt if None provided
         if prompt is None:
             prompt = ''
