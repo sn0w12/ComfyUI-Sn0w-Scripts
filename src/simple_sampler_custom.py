@@ -86,27 +86,19 @@ class SimpleSamplerCustom:
         elif scheduler_name == "polyexponential":
             values = self.get_scheduler_values(unique_id)
             
-            # Extract the values from the list of dictionaries
-            for param in values:
-                if param['name'] == 'sigma_max':
-                    sigma_max = param['value']
-                elif param['name'] == 'sigma_min':
-                    sigma_min = param['value']
-                elif param['name'] == 'rho':
-                    rho = param['value']
+            sigma_max = values["sigma_max"]["value"]
+            sigma_min = values["sigma_min"]["value"]
+            rho = values["rho"]["value"]
+            self.logger.log(f"Sigma Max: {sigma_max}, Sigma Min: {sigma_min}, Rho: {rho}", "DEBUG")
 
             sigmas = PolyexponentialScheduler.get_sigmas(self, steps, sigma_max, sigma_min, rho)[0]
         elif scheduler_name == "vp":
             values = self.get_scheduler_values(unique_id)
             
-            # Extract the values from the list of dictionaries
-            for param in values:
-                if param['name'] == 'beta_d':
-                    beta_d = param['value']
-                elif param['name'] == 'beta_min':
-                    beta_min = param['value']
-                elif param['name'] == 'eps_s':
-                    eps_s = param['value']
+            beta_d = values["beta_d"]["value"]
+            beta_min = values["beta_min"]["value"]
+            eps_s = values["eps_s"]["value"]
+            self.logger.log(f"Beta D: {beta_d}, Beta Min: {beta_min}, Eps S: {eps_s}", "DEBUG")
 
             sigmas = VPScheduler.get_sigmas(self, steps, beta_d, beta_min, eps_s)[0]
         else:

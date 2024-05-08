@@ -30,7 +30,6 @@ app.registerExtension({
 
                 if (schedulerWidget && schedulerWidget.callback) {
                     schedulerWidget.callback = (newValue) => {
-                        console.log("Scheduler value changed to:", newValue);
                         setUpCustomInputs(this, newValue);
                     };
                 }
@@ -77,21 +76,28 @@ app.registerExtension({
 
             function getWidgetOutputs(node, totalWidgetsToGet) {
                 const widgets = node.widgets;
-                // Calculate the starting index for removing the last three widgets
                 let startIndex = widgets.length - (totalWidgetsToGet + 3);
-                console.log(startIndex)
 
-                // Check if there are at least three widgets to move
+            
                 if (startIndex < 0) {
-                    console.log("Not enough widgets to move.");
-                    return widgets;
+                    console.warning("Not enough widgets to move.");
+                    return Object.fromEntries(
+                        widgets.map(widget => [
+                            widget.name, 
+                            { value: widget.value }
+                        ])
+                    );
                 }
-
-                // Get the last `totalWidgetsToGet` widgets from the array
+            
                 let outputWidgets = widgets.slice(startIndex, startIndex + totalWidgetsToGet);
-                console.log(outputWidgets);
-                return outputWidgets;
-            }
+            
+                return Object.fromEntries(
+                    outputWidgets.map(widget => [
+                        widget.name, 
+                        { value: widget.value }
+                    ])
+                );
+            }                       
 
             function removeWidget(node, widgetName) {
                 const w = node.widgets?.findIndex((w) => w.name === widgetName);
@@ -121,7 +127,7 @@ app.registerExtension({
 
                 // Check if there are at least three widgets to move
                 if (startIndex < 0) {
-                    console.log("Not enough widgets to move.");
+                    console.warning("Not enough widgets to move.");
                     return widgets;
                 }
 
@@ -172,7 +178,6 @@ app.registerExtension({
                 }
 
                 rearrangeWidgets(node, findWidgetIndex(node.widgets, findWidget(node, "scheduler_name")) + 1, widgetsAdded)
-                getWidgetOutputs(node, widgetsAdded)
                 let totalWidgets = widgetsAdded - widgetsRemoved;
 
                 node.size[0] = (originalWidth);
