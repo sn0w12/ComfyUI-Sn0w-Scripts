@@ -158,15 +158,15 @@ app.registerExtension({
                         "rho": ["FLOAT", 1.0, 0.0, 100.0, 0.01, false],
                     },
                     "vp": { //TODO: fix default values
-                        "beta_d": ["FLOAT", 19.9, 0.0, 5000.0, 0.01, false], 
-                        "beta_min": ["FLOAT", 0.1, 0.0, 5000.0, 0.01, false],
-                        "eps_s": ["FLOAT", 0.001, 0.0, 1.0, 0.0001, false],
+                        "beta_d": ["FLOAT", 14.0, 0.0, 5000.0, 0.01, false], 
+                        "beta_min": ["FLOAT", 0.05, 0.0, 5000.0, 0.01, false],
+                        "eps_s": ["FLOAT", 0.075, 0.0, 1.0, 0.0001, false],
                     }
                 }
 
                 const widget = widgets[inputName];
                 if (widget != undefined) {
-                    // If you need to iterate over the inner properties like sigma_max, sigma_min, rho
+                    // Iterate over all widgets to add
                     Object.keys(widget).forEach(prop => {
                         const [type, defaultValue, min, max, step, round] = widget[prop];
                         
@@ -177,9 +177,11 @@ app.registerExtension({
                     });
                 }
 
+                // Put ne wwidgets under scheduler_name
                 rearrangeWidgets(node, findWidgetIndex(node.widgets, findWidget(node, "scheduler_name")) + 1, widgetsAdded)
                 let totalWidgets = widgetsAdded - widgetsRemoved;
 
+                // Add or remove height based on widgets added/ removed
                 node.size[0] = (originalWidth);
                 node.size[1] = (originalHeight + totalWidgets * (70 / 3));
             }
