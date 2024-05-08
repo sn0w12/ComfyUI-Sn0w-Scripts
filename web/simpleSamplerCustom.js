@@ -36,6 +36,11 @@ app.registerExtension({
                 onNodeCreated?.apply()
             }
 
+            nodeType.prototype.onConfigure = function () {
+                const scheduler = findWidget(this, "scheduler_name");
+                setUpCustomInputs(this, scheduler.value);
+            }
+
             function findWidget(node, name) {
                 const widget = node.widgets.find(widget => widget.name === name);
                 return widget;
@@ -56,8 +61,7 @@ app.registerExtension({
                 let widgetsRemoved = 0;
 
                 widgetsToRemove.forEach(widget => {
-                    let removed = removeWidget(node, widget);
-                    if (removed)
+                    if (removeWidget(node, widget))
                         widgetsRemoved++;
                 });
                 return widgetsRemoved;
