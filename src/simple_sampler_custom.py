@@ -1,7 +1,8 @@
 from nodes import VAEDecode, EmptyLatentImage, CLIPTextEncode
 from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler, PolyexponentialScheduler, VPScheduler
 from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
-from ..sn0w import Logger
+from server import PromptServer
+from ..sn0w import Logger, MessageHolder
 import comfy.samplers
 
 class SimpleSamplerCustom:
@@ -30,7 +31,10 @@ class SimpleSamplerCustom:
                     "positive": ("*"),
                     "negative": ("*"),
                     "sigmas (optional)": ("SIGMAS", ),
-                }
+                },
+                "hidden": {
+                    "unique_id": "UNIQUE_ID",
+                },
             }
     
     RETURN_TYPES = ("IMAGE", "LATENT", "CONDITIONING", "CONDITIONING")
@@ -45,8 +49,6 @@ class SimpleSamplerCustom:
         vae_decode = VAEDecode()
         text_encode = CLIPTextEncode()
 
-        print(kwargs)
-
         # Encode inputs
         positive_prompt = self.get_prompt("positive", text_encode, clip, kwargs)
         negative_prompt = self.get_prompt("negative", text_encode, clip, kwargs)
@@ -59,7 +61,7 @@ class SimpleSamplerCustom:
         if 'sigmas (optional)' in kwargs and kwargs['sigmas (optional)'] is not None:
             sigmas = kwargs['sigmas (optional)']
         else:
-            sigmas = self.get_custom_sigmas(model, model_type, scheduler_name, steps, denoise)
+            sigmas = self.get_custom_sigmas(model, model_type, scheduler_name, steps, denoise, kwargs["unique_id"])
 
         # Generate and decode image
         samples = custom_sampler.sample(model, add_noise, noise_seed, cfg, positive_prompt, negative_prompt, sampler, sigmas, latent_image)
@@ -71,13 +73,42 @@ class SimpleSamplerCustom:
         sampler = comfy.samplers.sampler_object(sampler_name)
         return (sampler, )
     
-    def get_custom_sigmas(self, model, model_type, scheduler_name, steps, denoise):
+    def get_scheduler_values(self, unique_id):
+        PromptServer.instance.send_sync("get_scheduler_values", {
+            "id": unique_id,
+        })
+        outputs = MessageHolder.waitForMessage(unique_id)
+        return outputs
+    
+    def get_custom_sigmas(self, model, model_type, scheduler_name, steps, denoise, unique_id):
         if scheduler_name == "align_your_steps":
             sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, denoise)[0]
         elif scheduler_name == "polyexponential":
-            sigmas = PolyexponentialScheduler.get_sigmas(self, steps, 14.61, 0.03, 1.00)[0] # Temporary hardcoded values
+            values = self.get_scheduler_values(unique_id)
+            
+            # Extract the values from the list of dictionaries
+            for param in values:
+                if param['name'] == 'sigma_max':
+                    sigma_max = param['value']
+                elif param['name'] == 'sigma_min':
+                    sigma_min = param['value']
+                elif param['name'] == 'rho':
+                    rho = param['value']
+
+            sigmas = PolyexponentialScheduler.get_sigmas(self, steps, sigma_max, sigma_min, rho)[0]
         elif scheduler_name == "vp":
-            sigmas = VPScheduler.get_sigmas(self, steps, 19.90, 0.10, 0.0010)[0] # Temporary hardcoded values
+            values = self.get_scheduler_values(unique_id)
+            
+            # Extract the values from the list of dictionaries
+            for param in values:
+                if param['name'] == 'beta_d':
+                    beta_d = param['value']
+                elif param['name'] == 'beta_min':
+                    beta_min = param['value']
+                elif param['name'] == 'eps_s':
+                    eps_s = param['value']
+
+            sigmas = VPScheduler.get_sigmas(self, steps, beta_d, beta_min, eps_s)[0]
         else:
             sigmas = BasicScheduler.get_sigmas(self, model, scheduler_name, steps, denoise)[0]
         

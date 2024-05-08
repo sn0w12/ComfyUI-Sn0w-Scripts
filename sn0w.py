@@ -132,11 +132,17 @@ API_PREFIX = '/sn0w'
 
 @routes.post(f'{API_PREFIX}/textbox_string')
 async def handle_textbox_string(request):
-    data = await request.json()  # Parse JSON from request
+    data = await request.json()
     MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
     return web.json_response({"status": "ok"})
 
 @routes.post(f'{API_PREFIX}/logging_level')
 async def handle_logging_level(request):
     Logger.reload_config()
+    return web.json_response({"status": "ok"})
+
+@routes.post(f'{API_PREFIX}/scheduler_values')
+async def handle_textbox_string(request):
+    data = await request.json()
+    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
     return web.json_response({"status": "ok"})
