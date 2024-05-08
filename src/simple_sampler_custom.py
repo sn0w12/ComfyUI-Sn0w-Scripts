@@ -1,12 +1,12 @@
 from nodes import VAEDecode, EmptyLatentImage, CLIPTextEncode
-from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler
+from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler, PolyexponentialScheduler, VPScheduler
 from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
 from ..sn0w import Logger
 import comfy.samplers
 
 class SimpleSamplerCustom:
     logger = Logger()
-    scheduler_list = comfy.samplers.KSampler.SCHEDULERS + ["align_your_steps"]
+    scheduler_list = comfy.samplers.KSampler.SCHEDULERS + ["align_your_steps", "polyexponential", "vp"]
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -24,6 +24,7 @@ class SimpleSamplerCustom:
                     "scheduler_name": (cls.scheduler_list, ),
                     "width": ("INT", {"default": 0, "min": 0, "step":64}),
                     "height": ("INT", {"default": 0, "min": 0, "step":64}),
+                    "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step":0.01, "round": 0.01}),
                 },
                 "optional": {
                     "positive": ("*"),
@@ -39,10 +40,12 @@ class SimpleSamplerCustom:
 
     CATEGORY = "sampling/custom_sampling"
 
-    def sample(self, model, model_type, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, scheduler_name, width, height, **kwargs):
+    def sample(self, model, model_type, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, scheduler_name, width, height, denoise, **kwargs):
         custom_sampler = SamplerCustom()
         vae_decode = VAEDecode()
         text_encode = CLIPTextEncode()
+
+        print(kwargs)
 
         # Encode inputs
         positive_prompt = self.get_prompt("positive", text_encode, clip, kwargs)
@@ -56,7 +59,7 @@ class SimpleSamplerCustom:
         if 'sigmas (optional)' in kwargs and kwargs['sigmas (optional)'] is not None:
             sigmas = kwargs['sigmas (optional)']
         else:
-            sigmas = self.get_custom_sigmas(model, model_type, scheduler_name, steps)
+            sigmas = self.get_custom_sigmas(model, model_type, scheduler_name, steps, denoise)
 
         # Generate and decode image
         samples = custom_sampler.sample(model, add_noise, noise_seed, cfg, positive_prompt, negative_prompt, sampler, sigmas, latent_image)
@@ -68,11 +71,15 @@ class SimpleSamplerCustom:
         sampler = comfy.samplers.sampler_object(sampler_name)
         return (sampler, )
     
-    def get_custom_sigmas(self, model, model_type, scheduler_name, steps):
+    def get_custom_sigmas(self, model, model_type, scheduler_name, steps, denoise):
         if scheduler_name == "align_your_steps":
-            sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, 1)[0]
+            sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, denoise)[0]
+        elif scheduler_name == "polyexponential":
+            sigmas = PolyexponentialScheduler.get_sigmas(self, steps, 14.61, 0.03, 1.00)[0] # Temporary hardcoded values
+        elif scheduler_name == "vp":
+            sigmas = VPScheduler.get_sigmas(self, steps, 19.90, 0.10, 0.0010)[0] # Temporary hardcoded values
         else:
-            sigmas = BasicScheduler.get_sigmas(self, model, scheduler_name, steps, 1)[0]
+            sigmas = BasicScheduler.get_sigmas(self, model, scheduler_name, steps, denoise)[0]
         
         return sigmas
     
