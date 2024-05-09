@@ -3,11 +3,12 @@ from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler, Pol
 from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
 from server import PromptServer
 from ..sn0w import Logger, MessageHolder
+from .custom_schedulers.get_sigmas_sigmoid import get_sigmas_sigmoid
 import comfy.samplers
 
 class SimpleSamplerCustom:
     logger = Logger()
-    scheduler_list = comfy.samplers.KSampler.SCHEDULERS + ["align_your_steps", "polyexponential", "vp"]
+    scheduler_list = comfy.samplers.KSampler.SCHEDULERS + ["align_your_steps", "polyexponential", "vp", "sigmoid"]
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -73,9 +74,10 @@ class SimpleSamplerCustom:
         sampler = comfy.samplers.sampler_object(sampler_name)
         return (sampler, )
     
-    def get_scheduler_values(self, unique_id):
+    def get_scheduler_values(self, unique_id, widgets_needed):
         PromptServer.instance.send_sync("get_scheduler_values", {
             "id": unique_id,
+            "widgets_needed": widgets_needed,
         })
         outputs = MessageHolder.waitForMessage(unique_id)
         return outputs
@@ -84,16 +86,16 @@ class SimpleSamplerCustom:
         if scheduler_name == "align_your_steps":
             sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, denoise)[0]
         elif scheduler_name == "polyexponential":
-            values = self.get_scheduler_values(unique_id)
+            values = self.get_scheduler_values(unique_id, 3)
             
-            sigma_max = values["sigma_max"]["value"]
-            sigma_min = values["sigma_min"]["value"]
+            sigma_max = values["sigma_max_poly"]["value"]
+            sigma_min = values["sigma_min_poly"]["value"]
             rho = values["rho"]["value"]
             self.logger.log(f"Sigma Max: {sigma_max}, Sigma Min: {sigma_min}, Rho: {rho}", "DEBUG")
 
             sigmas = PolyexponentialScheduler.get_sigmas(self, steps, sigma_max, sigma_min, rho)[0]
         elif scheduler_name == "vp":
-            values = self.get_scheduler_values(unique_id)
+            values = self.get_scheduler_values(unique_id, 3)
             
             beta_d = values["beta_d"]["value"]
             beta_min = values["beta_min"]["value"]
@@ -101,9 +103,20 @@ class SimpleSamplerCustom:
             self.logger.log(f"Beta D: {beta_d}, Beta Min: {beta_min}, Eps S: {eps_s}", "DEBUG")
 
             sigmas = VPScheduler.get_sigmas(self, steps, beta_d, beta_min, eps_s)[0]
+        elif scheduler_name == "sigmoid":
+            values = self.get_scheduler_values(unique_id, 4)
+            
+            midpoint_ratio = values["midpoint_ratio"]["value"]
+            sigma_max = values["sigma_max_sig"]["value"]
+            sigma_min = values["sigma_min_sig"]["value"]
+            steepness = values["steepness"]["value"]
+            self.logger.log(f"Sigma Max: {sigma_max}, Sigma Min: {sigma_min}, Steepness: {steepness}, Midpoint Ratio: {midpoint_ratio}", "DEBUG")
+
+            sigmas = get_sigmas_sigmoid(self, steps, sigma_max, sigma_min, steepness, midpoint_ratio)[0]
         else:
             sigmas = BasicScheduler.get_sigmas(self, model, scheduler_name, steps, denoise)[0]
         
+        self.logger.print_sigmas_differences(scheduler_name, sigmas)
         return sigmas
     
     def get_prompt(self, name, text_encode, clip, kwargs):

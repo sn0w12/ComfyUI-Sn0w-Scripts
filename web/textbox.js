@@ -15,7 +15,7 @@ app.registerExtension({
 
             nodeType.prototype.populate = function() {
                 // Adding a multiline text widget and storing a reference to the input element
-                let textWidget = ComfyWidgets["STRING"](this, "text", ["STRING", { default: "", multiline: true }], app).widget;
+                let textWidget = ComfyWidgets["STRING"](this, "text", ["STRING", { default: "hello", multiline: true }], app).widget;
                 this.inputEl = textWidget.inputEl || textWidget.querySelector('input, textarea');
 
                 // Implement copy functionality with proper callback

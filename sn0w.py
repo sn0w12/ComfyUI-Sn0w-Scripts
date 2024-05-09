@@ -43,7 +43,6 @@ class Logger:
     def reload_config(cls):
         cls.enabled_levels = ConfigReader.get_setting('sn0w.LoggingLevel', ["INFORMATIONAL", "WARNING"])
 
-
     @classmethod
     def print_sn0w(cls, message, color):
         print(f"{color}{cls.PREFIX}{cls.RESET_TEXT}{message}")
@@ -60,6 +59,33 @@ class Logger:
         # Check if the message's level is in the enabled log levels
         if level.upper() in self.enabled_levels or level.upper() in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"]:
             self.print_sn0w(message, color)
+
+    def print_sigmas_differences(self, name, sigmas):
+        """
+        Takes a tensor of sigmas and prints each sigma along with the difference to the next sigma
+        and the percentage difference to the next sigma.
+        
+        Args:
+        sigmas (torch.Tensor): A 1D tensor of sigmas with a zero appended at the end.
+        """
+        if ("DEBUG" in self.enabled_levels):
+            self.print_sn0w(f"Scheduler: {name}", self.PURPLE_TEXT)
+            print("Index | Sigma Value | Difference to Next | % Difference")
+            print("-" * 65)
+            
+            # Compute the differences
+            differences = sigmas[1:] - sigmas[:-1]
+            
+            # Iterate over sigmas and differences
+            for i in range(len(sigmas) - 1):
+                if sigmas[i] != 0:
+                    percent_diff = (differences[i] / sigmas[i]) * 100
+                else:
+                    percent_diff = float('inf')  # To handle division by zero in a meaningful way
+                print(f"{i:<5} | {sigmas[i]:<11.4f} | {differences[i]:<18.4f} | {percent_diff:<12.2f}")
+            
+            # Print the last sigma value without a difference (since it's the appended zero)
+            print(f"{len(sigmas) - 1:<5} | {sigmas[-1]:<11.4f} | {'N/A':<18} | {'N/A':<12}")
 
 class Utility:
     logger = Logger()
