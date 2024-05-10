@@ -4,8 +4,6 @@ import { app } from "../../../scripts/app.js";
 import { api } from '../../scripts/api.js';
 import { ComfyWidgets } from "../../../scripts/widgets.js";
 
-const CONVERTED_TYPE = "converted-widget";
-
 app.registerExtension({
     name: "sn0w.SimpleSamplerCustom",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
@@ -149,13 +147,13 @@ app.registerExtension({
             
                 for (const widget of widgetsToRemove) {
                     if (!desiredWidgets.has(widget)) {
-                        hideWidget(node, findWidget(node, widget));
+                        SettingUtils.hideWidget(node, findWidget(node, widget));
                     }
                 }
             
                 for (const widgetName of desiredWidgets) {
                     const widget = findWidget(node, widgetName);
-                    showWidget(widget);
+                    SettingUtils.showWidget(widget);
                     if (widget.type === undefined) {
                         widget.type = originalWidgetTypes.get(widget.name);
                     }
@@ -201,7 +199,7 @@ app.registerExtension({
                 let nodesHidden = 0;
                 for (const widget of node.widgets) {
                     if (allSettings.has(widget.name)) {
-                        hideWidget(node, widget);
+                        SettingUtils.hideWidget(node, widget);
                         nodesHidden++;
                     }
                 }
@@ -210,51 +208,6 @@ app.registerExtension({
                 node.size[0] = originalWidth;
                 node.size[1] = originalHeight + (-nodesHidden * (70 / 3));
             }            
-
-            function hideWidget(node, widget, suffix = "") {
-                if (widget.type?.startsWith(CONVERTED_TYPE)) return;
-                widget.origType = widget.type;
-                widget.origComputeSize = widget.computeSize;
-                widget.origSerializeValue = widget.serializeValue;
-                widget.computeSize = () => [0, -4]; // -4 is due to the gap litegraph adds between widgets automatically
-                widget.type = CONVERTED_TYPE + suffix;
-                widget.serializeValue = () => {
-                    // Prevent serializing the widget if we have no input linked
-                    if (!node.inputs) {
-                        return undefined;
-                    }
-                    let node_input = node.inputs.find((i) => i.widget?.name === widget.name);
-            
-                    if (!node_input || !node_input.link) {
-                        return undefined;
-                    }
-                    return widget.origSerializeValue ? widget.origSerializeValue() : widget.value;
-                };
-            
-                // Hide any linked widgets, e.g. seed+seedControl
-                if (widget.linkedWidgets) {
-                    for (const w of widget.linkedWidgets) {
-                        hideWidget(node, w, ":" + widget.name);
-                    }
-                }
-            }
-            
-            function showWidget(widget) {
-                widget.type = widget.origType;
-                widget.computeSize = widget.origComputeSize;
-                widget.serializeValue = widget.origSerializeValue;
-            
-                delete widget.origType;
-                delete widget.origComputeSize;
-                delete widget.origSerializeValue;
-            
-                // Hide any linked widgets, e.g. seed+seedControl
-                if (widget.linkedWidgets) {
-                    for (const w of widget.linkedWidgets) {
-                        showWidget(w);
-                    }
-                }
-            }
         }
     },
 });
