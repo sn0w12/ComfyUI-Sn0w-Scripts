@@ -1,5 +1,5 @@
 from nodes import VAEDecode, EmptyLatentImage, CLIPTextEncode
-from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler, PolyexponentialScheduler, VPScheduler
+from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler, PolyexponentialScheduler, VPScheduler, SplitSigmasDenoise
 from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
 from server import PromptServer
 from ..sn0w import Logger, MessageHolder
@@ -48,6 +48,7 @@ class SimpleSamplerCustom:
                     "positive": ("*"),
                     "negative": ("*"),
                     "sigmas (optional)": ("SIGMAS", ),
+                    "latent (optional)": ("LATENT", ),
                 },
                 "hidden": {
                     "unique_id": "UNIQUE_ID",
@@ -71,7 +72,10 @@ class SimpleSamplerCustom:
         negative_prompt = self.get_prompt("negative", text_encode, clip, kwargs)
 
         # Create latent
-        latent_image = EmptyLatentImage().generate(width, height)[0]
+        if 'latent (optional)' in kwargs and kwargs['latent (optional)'] is not None:
+            latent_image = kwargs['latent (optional)']
+        else:
+            latent_image = EmptyLatentImage().generate(width, height)[0]
 
         # Get sampler and sigmas
         sampler = self.get_sampler(sampler_name)[0]
@@ -98,6 +102,13 @@ class SimpleSamplerCustom:
         outputs = MessageHolder.waitForMessage(unique_id)
         return outputs
     
+    def get_denoised_sigmas(self, sigmas, denoise):
+        if denoise == 1:
+            return (None, sigmas, )
+        
+        return SplitSigmasDenoise.get_sigmas(self, sigmas, denoise)
+    
+    # TODO make denoise actually work on non normal schedulers
     def get_custom_sigmas(self, model, model_type, scheduler_name, steps, denoise, unique_id):
         if scheduler_name == "align_your_steps":
             sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, denoise)[0]
@@ -109,7 +120,8 @@ class SimpleSamplerCustom:
             rho = values["rho"]["value"]
             self.logger.log(f"Sigma Max: {sigma_max}, Sigma Min: {sigma_min}, Rho: {rho}", "DEBUG")
 
-            sigmas = PolyexponentialScheduler.get_sigmas(self, steps, sigma_max, sigma_min, rho)[0]
+            sigmas = self.get_denoised_sigmas(PolyexponentialScheduler.get_sigmas(self, steps, sigma_max, sigma_min, rho)[0], denoise)[1]
+                
         elif scheduler_name == "vp":
             values = self.get_scheduler_values(unique_id, ["beta_d", "beta_min", "eps_s"])
             
@@ -118,7 +130,7 @@ class SimpleSamplerCustom:
             eps_s = values["eps_s"]["value"]
             self.logger.log(f"Beta D: {beta_d}, Beta Min: {beta_min}, Eps S: {eps_s}", "DEBUG")
 
-            sigmas = VPScheduler.get_sigmas(self, steps, beta_d, beta_min, eps_s)[0]
+            sigmas = self.get_denoised_sigmas(VPScheduler.get_sigmas(self, steps, beta_d, beta_min, eps_s)[0], denoise)[1]
         elif scheduler_name in comfy.samplers.KSampler.SCHEDULERS:
             sigmas = BasicScheduler.get_sigmas(self, model, scheduler_name, steps, denoise)[0]
         else:
@@ -128,7 +140,6 @@ class SimpleSamplerCustom:
 
             # Fetch settings from the node API
             values = self.get_scheduler_values(unique_id, scheduler_settings)
-            print(values)
 
             # Map the settings to their actual values using the names from the scheduler settings
             mapped_settings = [values[setting_name]["value"] for setting_name in scheduler_settings]
@@ -137,7 +148,7 @@ class SimpleSamplerCustom:
             self.logger.log(f"Fetched settings for {scheduler_name}: {mapped_settings}", "DEBUG")
 
             # Get sigmas using the custom scheduler
-            sigmas = self.get_custom_class_sigmas(scheduler_name, steps, *mapped_settings)[0]
+            sigmas = self.get_denoised_sigmas(self.get_custom_class_sigmas(scheduler_name, steps, *mapped_settings)[0], denoise)[1]
         
         self.logger.print_sigmas_differences(scheduler_name, sigmas)
         return sigmas
