@@ -63,13 +63,10 @@ class CustomSchedulers:
         raise ValueError(f"No scheduler found with the name {name}")
     
     def export_scheduler_settings_to_js(self):
-        # Go up two directories from this script
+        # Go settings directory
         base_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        # Specify the target directory within 'web/settings'
         target_dir = os.path.join(base_path, 'web', 'settings')
-        # Ensure this directory exists
         os.makedirs(target_dir, exist_ok=True)
-        # Define the full file path for the JavaScript file
         filepath = os.path.join(target_dir, 'scheduler_settings.js')
         
         # Initialize the JavaScript content with default settings

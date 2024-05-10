@@ -1,8 +1,9 @@
 import torch
 
+# Necessary map for it to work with simple sampler
 settings = {
     "name": "sigmoid",
-    "settings": {
+    "settings": { # name: [type, default value, min val, max val, snap to, round] Note: this is only for floats, most inputs are different. 
         "sigma_max_sig": ["FLOAT", 25.0, 0.0, 5000.0, 0.01, False],
         "sigma_min_sig": ["FLOAT", 0.0, 0.0, 5000.0, 0.01, False],
         "steepness": ["FLOAT", 3.5, 0.0, 10.0, 0.01, False],
