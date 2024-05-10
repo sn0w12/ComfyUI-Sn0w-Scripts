@@ -171,3 +171,9 @@ async def handle_textbox_string(request):
     data = await request.json()
     MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
     return web.json_response({"status": "ok"})
+
+@routes.post(f'{API_PREFIX}/should_decode_image')
+async def handle_textbox_string(request):
+    data = await request.json()
+    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
+    return web.json_response({"status": "ok"})

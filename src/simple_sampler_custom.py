@@ -86,7 +86,10 @@ class SimpleSamplerCustom:
 
         # Generate and decode image
         samples = custom_sampler.sample(model, add_noise, noise_seed, cfg, positive_prompt, negative_prompt, sampler, sigmas, latent_image)
-        image = vae_decode.decode(vae, samples[1])
+        if (self.should_decode_image(kwargs["unique_id"])):
+            image = vae_decode.decode(vae, samples[1])
+        else:
+            image = (None, )
 
         return (image[0], samples[1], positive_prompt, negative_prompt)
     
@@ -107,8 +110,7 @@ class SimpleSamplerCustom:
             return (None, sigmas, )
         
         return SplitSigmasDenoise.get_sigmas(self, sigmas, denoise)
-    
-    # TODO make denoise actually work on non normal schedulers
+
     def get_custom_sigmas(self, model, model_type, scheduler_name, steps, denoise, unique_id):
         if scheduler_name == "align_your_steps":
             sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, denoise)[0]
@@ -163,3 +165,11 @@ class SimpleSamplerCustom:
                 log = f"{name} prompt cannot be {type(kwargs[name]).__name__}, it has to be either a string or conditioning."
                 self.logger.log(log, "ERROR")
                 raise TypeError(log)
+            
+    def should_decode_image(self, unique_id):
+        PromptServer.instance.send_sync("should_decode_image", {
+            "id": unique_id,
+        })
+        outputs = MessageHolder.waitForMessage(unique_id)
+        print(outputs)
+        return outputs

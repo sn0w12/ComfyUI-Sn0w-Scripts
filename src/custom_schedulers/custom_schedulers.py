@@ -72,15 +72,15 @@ class CustomSchedulers:
         # Initialize the JavaScript content with default settings
         js_content = "const widgets = {\n"
         js_content += """    "polyexponential": {
-            "sigma_max_poly": ["FLOAT", 14.614642, 0.0, 5000.0, 0.01, false],
-            "sigma_min_poly": ["FLOAT", 0.0291675, 0.0, 5000.0, 0.01, false],
-            "rho": ["FLOAT", 1.0, 0.0, 100.0, 0.01, false]
-        },
-        "vp": {
-            "beta_d": ["FLOAT", 14.0, 0.0, 5000.0, 0.01, false],
-            "beta_min": ["FLOAT", 0.05, 0.0, 5000.0, 0.01, false],
-            "eps_s": ["FLOAT", 0.075, 0.0, 1.0, 0.0001, false]
-        },"""
+        "sigma_max_poly": ["FLOAT", 14.614642, 0.0, 5000.0, 0.01, false],
+        "sigma_min_poly": ["FLOAT", 0.0291675, 0.0, 5000.0, 0.01, false],
+        "rho": ["FLOAT", 1.0, 0.0, 100.0, 0.01, false]
+    },
+    "vp": {
+        "beta_d": ["FLOAT", 14.0, 0.0, 5000.0, 0.01, false],
+        "beta_min": ["FLOAT", 0.05, 0.0, 5000.0, 0.01, false],
+        "eps_s": ["FLOAT", 0.075, 0.0, 1.0, 0.0001, false]
+    },"""
         
         # Convert the Python dictionary to a JavaScript object
         for name, settings in self.scheduler_defaults.items():
@@ -91,7 +91,7 @@ class CustomSchedulers:
                 js_content += "    },\n"
             else:
                 # Add new entries if not already covered by defaults
-                js_content += f"    \"{name}\": {{\n"
+                js_content += f"\n    \"{name}\": {{\n"
                 for setting, details in settings.items():
                     if isinstance(details, list) and len(details) == 6 and details[0] == "FLOAT":
                         js_content += f"        \"{setting}\": {json.dumps(details)},\n"

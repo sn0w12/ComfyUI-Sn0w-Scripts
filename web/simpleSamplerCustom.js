@@ -13,6 +13,8 @@ app.registerExtension({
             nodeType.prototype.onConnectInput = function (targetSlot, type, output, originNode, originSlot) {
                 const slot = type[0]
                 const inputType = type[1]
+                console.log(this)
+                console.log(JSON.parse(JSON.stringify(targetSlot.inputs[slot])))
 
                 if (slot == 3 || slot == 4) {
                     if (inputType == "STRING" || inputType == "CONDITIONING") {
@@ -24,6 +26,7 @@ app.registerExtension({
                 }
 
                 onConnectInput?.apply(targetSlot, type, output, originNode, originSlot);
+                console.log(targetSlot.inputs[slot])
             }
 
             nodeType.prototype.onNodeCreated = function () {
@@ -32,6 +35,8 @@ app.registerExtension({
             
                 // Set up all inputs
                 createEverything(this);
+                this.inputs[3].type = ["STRING", "CONDITIONING"];
+                this.inputs[4].type = ["STRING", "CONDITIONING"];
             
                 if (schedulerWidget && schedulerWidget.callback) {
                     const originalCallback = schedulerWidget.callback;
@@ -60,12 +65,32 @@ app.registerExtension({
                         })
                     }
                 })
+
+                api.addEventListener('should_decode_image', (event) => {
+                    const data = event.detail
+                    const output = checkImageOutput(this);
+                    console.log(output);
+                    if (this.id == data.id) {
+                        api.fetchApi(`${SettingUtils.API_PREFIX}/should_decode_image`, {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(
+                                {
+                                    node_id: data.id,
+                                    outputs: output,
+                                }
+                            ),
+                        })
+                    }
+                })
             }
 
             nodeType.prototype.onConfigure = function () {
                 const inputName = findWidget(this, "scheduler_name");
                 const desiredWidgets = widgets[inputName.value] ? Object.keys(widgets[inputName.value]) : [];
-                showSchedulerInputs(this, inputName, desiredWidgets)
+                showSchedulerInputs(this, inputName, desiredWidgets);
             };            
 
             function findWidget(node, name) {
@@ -86,7 +111,13 @@ app.registerExtension({
                         { value: widget.value }
                     ])
                 );
-            }                                  
+            }   
+            
+            function checkImageOutput(node) {
+                if (node.outputs[0].links.length === 0)
+                    return false;
+                return true;
+            }
 
             function createWidgetsToRemove(widgets) {
                 // Use a set to avoid duplicates
@@ -203,8 +234,7 @@ app.registerExtension({
                         nodesHidden++;
                     }
                 }
-            
-                console.log(nodesHidden)
+
                 node.size[0] = originalWidth;
                 node.size[1] = originalHeight + (-nodesHidden * (70 / 3));
             }            
