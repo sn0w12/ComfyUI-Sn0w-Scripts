@@ -24,8 +24,22 @@ app.registerExtension({
                         console.error(`The input type has to be STRING or CONDITIONING, it cannot be ${inputType}.`)
                         targetSlot.inputs[slot].color_on = app.canvas.default_connection_color_byType["VAE"];
                     }
+                } else if (slot === 5) {
+                    const initialCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
+
+                    hideAllSchedulerWidgets(targetSlot);
+                    SettingUtils.hideWidget(targetSlot, findWidget(targetSlot, "scheduler_name"));
+
+                    const finalCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
+                    targetSlot.size[0] = targetSlot.size[0];
+                    targetSlot.size[1] = targetSlot.size[1] + (initialCount - finalCount) * (70 / 3);
                 } else if (slot === 6) {
+                    const initialCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
+
                     hideAllLatentWidgets(targetSlot);
+                    const finalCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
+                    targetSlot.size[0] = targetSlot.size[0];
+                    targetSlot.size[1] = targetSlot.size[1] + (initialCount - finalCount) * (70 / 3);
                 }
 
                 onConnectInput?.apply(targetSlot, type, output, originNode, originSlot);
@@ -34,9 +48,31 @@ app.registerExtension({
             // Handle when connection is disconnected
             const onConnectionsChange = nodeType.prototype.onConnectionsChange;
             nodeType.prototype.onConnectionsChange = function (side, slot, connect, link_info, output) {
-                if (slot == 6) {
+                if (slot === 5) {
+                    if (this.inputs[slot].link === null) {
+                        const initialCount = countWidgetsOfType(this.widgets, "converted-widget");
+                        const originalSize = [this.size[0], this.size[1]]
+
+                        const schedulerWidget = findWidget(this, "scheduler_name");
+                        showSchedulerInputs(this, schedulerWidget.value);
+                        SettingUtils.showWidget(schedulerWidget);
+                        if (schedulerWidget.type === undefined)
+                            schedulerWidget.type = "combo";
+
+                        const finalCount = countWidgetsOfType(this.widgets, "converted-widget");
+                        this.size[0] = originalSize[0];
+                        this.size[1] = originalSize[1] + (initialCount - finalCount) * (70 / 3);
+                    }
+                } else if (slot === 6) {
+                    const initialCount = countWidgetsOfType(this.widgets, "converted-widget");
+                    const originalSize = [this.size[0], this.size[1]]
+
                     if (this.inputs[slot].link === null)
                         showAllLatentWidgets(this);
+
+                    const finalCount = countWidgetsOfType(this.widgets, "converted-widget");
+                    this.size[0] = originalSize[0];
+                    this.size[1] = originalSize[1] + (initialCount - finalCount) * (70 / 3);
                 }
                 onConnectionsChange?.apply(side, slot, connect, link_info, output);
             }
@@ -104,6 +140,11 @@ app.registerExtension({
                 const desiredWidgets = widgets[inputName.value] ? Object.keys(widgets[inputName.value]) : [];
                 showSchedulerInputs(this, inputName, desiredWidgets);
 
+
+                if (this.inputs[5].link !== null) {
+                    hideAllSchedulerWidgets(this);
+                    SettingUtils.hideWidget(this, findWidget(this, "scheduler_name"));
+                }
                 if (this.inputs[6].link !== null) {
                     hideAllLatentWidgets(this);
                 }
@@ -112,6 +153,10 @@ app.registerExtension({
             function findWidget(node, name) {
                 const widget = node.widgets.find(widget => widget.name === name);
                 return widget;
+            }
+
+            function countWidgetsOfType(widgets, type) {
+                return widgets.filter(widget => widget.type === type).length;
             }
 
             function getWidgetOutputs(node, WidgetsToGet) {
@@ -231,9 +276,6 @@ app.registerExtension({
             }    
             
             function hideAllSchedulerWidgets(node) {
-                const originalWidth = node.size[0];
-                const originalHeight = node.size[1];
-
                 let nodesHidden = 0;
                 for (const widget of node.widgets) {
                     if (allSettings.has(widget.name)) {
@@ -241,9 +283,7 @@ app.registerExtension({
                         nodesHidden++;
                     }
                 }
-
-                node.size[0] = originalWidth;
-                node.size[1] = originalHeight + (-nodesHidden * (70 / 3));
+                return nodesHidden;
             }
 
             function hideAllLatentWidgets(node) {
@@ -290,9 +330,15 @@ app.registerExtension({
                         allSettings.add(prop);
                     }
                 }
+
+                const originalWidth = node.size[0];
+                const originalHeight = node.size[1];
             
                 rearrangeWidgets(node, 8, 10);
-                hideAllSchedulerWidgets(node);
+                const nodesHidden = hideAllSchedulerWidgets(node);
+
+                node.size[0] = originalWidth;
+                node.size[1] = originalHeight + (-nodesHidden * (70 / 3));
             }            
         }
     },
