@@ -42,7 +42,7 @@ Nodes that are specifically for generating and processing images.
 >
 >    - Can take both text and conditioning as positive and negative input.
 >    - Can take a latent image or can generate one if none is provided.
->    - Supports schedulers such as align your steps, you can also create your own sampler in `src/custom_schedulers/`, make sure to follow the example provided in `get_sigmas_sigmoid.py`.
+>    - Supports schedulers such as align your steps, you can also create your own scheduler in `src/custom_schedulers/`, make sure to follow the example provided in `get_sigmas_sigmoid.py`.
 >    - You can also just get the sigmas from any of the scheduler nodes and drag them into `sigmas (optional)`, if you do the scheduler widget will not be used.
 >
 >    ![Simple Sampler](./imgs/simple_sampler.png)
