@@ -3,15 +3,31 @@ from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler, Pol
 from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
 from server import PromptServer
 from ..sn0w import Logger, MessageHolder
-from .custom_schedulers.get_sigmas_sigmoid import get_sigmas_sigmoid
+from .custom_schedulers.custom_schedulers import CustomSchedulers
 import comfy.samplers
 
 class SimpleSamplerCustom:
     logger = Logger()
-    scheduler_list = comfy.samplers.KSampler.SCHEDULERS + ["align_your_steps", "polyexponential", "vp", "sigmoid"]
+
+    @classmethod
+    def initialize(cls):
+        cls.custom_schedulers = CustomSchedulers()
+        cls.build_scheduler_list()
+
+    @classmethod
+    def build_scheduler_list(cls):
+        custom_scheduler_names = list(cls.custom_schedulers.get_scheduler_settings().keys())
+        print(custom_scheduler_names)
+        cls.scheduler_list = comfy.samplers.KSampler.SCHEDULERS + ["align_your_steps", "polyexponential", "vp"] + custom_scheduler_names
+        cls.scheduler_settings = {name: settings for name, settings in cls.custom_schedulers.get_scheduler_settings().items()}
+
+    @classmethod
+    def get_custom_class_sigmas(cls, scheduler_name, *args, **kwargs):
+        return cls.custom_schedulers.get_sigmas(scheduler_name, *args, **kwargs)
 
     @classmethod
     def INPUT_TYPES(cls):
+        cls.initialize()
         return {
                 "required": {
                     "model": ("MODEL",),
@@ -86,7 +102,7 @@ class SimpleSamplerCustom:
         if scheduler_name == "align_your_steps":
             sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, denoise)[0]
         elif scheduler_name == "polyexponential":
-            values = self.get_scheduler_values(unique_id, 3)
+            values = self.get_scheduler_values(unique_id, ["sigma_max_poly", "sigma_min_poly", "rho"])
             
             sigma_max = values["sigma_max_poly"]["value"]
             sigma_min = values["sigma_min_poly"]["value"]
@@ -95,7 +111,7 @@ class SimpleSamplerCustom:
 
             sigmas = PolyexponentialScheduler.get_sigmas(self, steps, sigma_max, sigma_min, rho)[0]
         elif scheduler_name == "vp":
-            values = self.get_scheduler_values(unique_id, 3)
+            values = self.get_scheduler_values(unique_id, ["beta_d", "beta_min", "eps_s"])
             
             beta_d = values["beta_d"]["value"]
             beta_min = values["beta_min"]["value"]
@@ -103,18 +119,25 @@ class SimpleSamplerCustom:
             self.logger.log(f"Beta D: {beta_d}, Beta Min: {beta_min}, Eps S: {eps_s}", "DEBUG")
 
             sigmas = VPScheduler.get_sigmas(self, steps, beta_d, beta_min, eps_s)[0]
-        elif scheduler_name == "sigmoid":
-            values = self.get_scheduler_values(unique_id, 4)
-            
-            midpoint_ratio = values["midpoint_ratio"]["value"]
-            sigma_max = values["sigma_max_sig"]["value"]
-            sigma_min = values["sigma_min_sig"]["value"]
-            steepness = values["steepness"]["value"]
-            self.logger.log(f"Sigma Max: {sigma_max}, Sigma Min: {sigma_min}, Steepness: {steepness}, Midpoint Ratio: {midpoint_ratio}", "DEBUG")
-
-            sigmas = get_sigmas_sigmoid(self, steps, sigma_max, sigma_min, steepness, midpoint_ratio)[0]
-        else:
+        elif scheduler_name in comfy.samplers.KSampler.SCHEDULERS:
             sigmas = BasicScheduler.get_sigmas(self, model, scheduler_name, steps, denoise)[0]
+        else:
+            scheduler_settings = self.scheduler_settings.get(scheduler_name)
+            if not scheduler_settings:
+                raise ValueError(f"No settings found for scheduler '{scheduler_name}'")
+
+            # Fetch settings from the node API
+            values = self.get_scheduler_values(unique_id, scheduler_settings)
+            print(values)
+
+            # Map the settings to their actual values using the names from the scheduler settings
+            mapped_settings = [values[setting_name]["value"] for setting_name in scheduler_settings]
+
+            # Log the fetched settings
+            self.logger.log(f"Fetched settings for {scheduler_name}: {mapped_settings}", "DEBUG")
+
+            # Get sigmas using the custom scheduler
+            sigmas = self.get_custom_class_sigmas(scheduler_name, steps, *mapped_settings)[0]
         
         self.logger.print_sigmas_differences(scheduler_name, sigmas)
         return sigmas

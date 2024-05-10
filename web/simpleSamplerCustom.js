@@ -1,31 +1,15 @@
 import { SettingUtils } from './sn0w.js';
+import { widgets } from './settings/scheduler_settings.js';
 import { app } from "../../../scripts/app.js";
 import { api } from '../../scripts/api.js';
 import { ComfyWidgets } from "../../../scripts/widgets.js";
+
+const CONVERTED_TYPE = "converted-widget";
 
 app.registerExtension({
     name: "sn0w.SimpleSamplerCustom",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
         if (nodeData.name === "Simple Sampler Custom") {
-            const widgets = { // Name: [Type, Default, Min, Max, Snap, Round]
-                "polyexponential": {
-                    "sigma_max_poly": ["FLOAT", 14.614642, 0.0, 5000.0, 0.01, false],
-                    "sigma_min_poly": ["FLOAT", 0.0291675, 0.0, 5000.0, 0.01, false],
-                    "rho": ["FLOAT", 1.0, 0.0, 100.0, 0.01, false],
-                },
-                "vp": { //TODO: fix default values
-                    "beta_d": ["FLOAT", 14.0, 0.0, 5000.0, 0.01, false], 
-                    "beta_min": ["FLOAT", 0.05, 0.0, 5000.0, 0.01, false],
-                    "eps_s": ["FLOAT", 0.075, 0.0, 1.0, 0.0001, false],
-                },
-                "sigmoid": {
-                    "sigma_max_sig": ["FLOAT", 25.0, 0.0, 5000.0, 0.01, false], 
-                    "sigma_min_sig": ["FLOAT", 0.0, 0.0, 5000.0, 0.01, false],
-                    "steepness": ["FLOAT", 3.5, 0.0, 10.0, 0.01, false],
-                    "midpoint_ratio": ["FLOAT", 0.8, 0.0, 1.0, 0.01, false],
-                },
-            }    
-
             // Set positive and negative connection colors
             const onConnectInput = nodeType.prototype.onConnectInput;
             nodeType.prototype.onConnectInput = function (targetSlot, type, output, originNode, originSlot) {
@@ -46,17 +30,15 @@ app.registerExtension({
 
             nodeType.prototype.onNodeCreated = function () {
                 const schedulerWidget = findWidget(this, "scheduler_name");
-                console.log(nodeType.prototype)
                 schedulerWidget.value = schedulerWidget.value;
             
                 // Set up all inputs
                 createEverything(this);
-                console.log(app)
             
                 if (schedulerWidget && schedulerWidget.callback) {
                     const originalCallback = schedulerWidget.callback;
                     schedulerWidget.callback = (newValue) => {
-                        setUpCustomInputs(this, newValue);
+                        showSchedulerInputs(this, newValue);
                         if (originalCallback) originalCallback.call(this, newValue);
                     };
                 }
@@ -64,7 +46,7 @@ app.registerExtension({
                 api.addEventListener('get_scheduler_values', (event) => {
                     const data = event.detail
                     const output = getWidgetOutputs(this, data.widgets_needed);
-                    console.log(output)
+                    console.log(output);
                     if (this.id == data.id) {
                         api.fetchApi(`${SettingUtils.API_PREFIX}/scheduler_values`, {
                             method: "POST",
@@ -83,59 +65,30 @@ app.registerExtension({
             }
 
             nodeType.prototype.onConfigure = function () {
-                this.serializeCount++;
                 const inputName = findWidget(this, "scheduler_name");
                 const desiredWidgets = widgets[inputName.value] ? Object.keys(widgets[inputName.value]) : [];
-                const removedWidgets = cleanUpInputs(this, desiredWidgets);
-                rearrangeWidgets(this, findWidgetIndex(this.widgets, inputName) + 1, 10 - removedWidgets);
-            }
+                showSchedulerInputs(this, inputName, desiredWidgets)
+            };            
 
             function findWidget(node, name) {
                 const widget = node.widgets.find(widget => widget.name === name);
                 return widget;
             }
 
-            function findWidgetIndex(widgets, searchWidget) {
-                return widgets.findIndex(widget =>
-                    widget.name === searchWidget.name &&
-                    widget.value === searchWidget.value &&
-                    widget.type === searchWidget.type
-                );
-            }
-
-            function getWidgetOutputs(node, totalWidgetsToGet) {
+            function getWidgetOutputs(node, WidgetsToGet) {
                 const widgets = node.widgets;
-                let startIndex = widgets.length - (totalWidgetsToGet + 3);
-            
-                if (startIndex < 0) {
-                    console.warning("Not enough widgets to move.");
-                    return Object.fromEntries(
-                        widgets.map(widget => [
-                            widget.name, 
-                            { value: widget.value }
-                        ])
-                    );
-                }
-            
-                let outputWidgets = widgets.slice(startIndex, startIndex + totalWidgetsToGet);
-            
+                
+                // Filter out only the widgets that are in the WidgetsToGet array
+                const outputWidgets = widgets.filter(widget => WidgetsToGet.includes(widget.name));
+                
+                // Create an object with the widget names as keys and their values wrapped in an object
                 return Object.fromEntries(
                     outputWidgets.map(widget => [
                         widget.name, 
                         { value: widget.value }
                     ])
                 );
-            }                       
-
-            function removeWidget(node, widgetName) {
-                const w = node.widgets?.findIndex((w) => w.name === widgetName);
-                if (w>=0) {
-                    node.widgets.splice(w, 1);
-                    node.size = node.computeSize();
-                    return true;
-                }
-                return false
-            }
+            }                                  
 
             function createWidgetsToRemove(widgets) {
                 // Use a set to avoid duplicates
@@ -149,20 +102,7 @@ app.registerExtension({
             
                 // Convert the set back to an array
                 return Array.from(widgetNames);
-            }
-
-            function cleanUpInputs(node, desiredWidgets) {
-                const widgetsToRemove = createWidgetsToRemove(widgets);
-                let widgetsRemoved = 0;
-
-                widgetsToRemove.forEach(widget => {
-                    if (!desiredWidgets.includes(widget)) {
-                        if (removeWidget(node, widget))
-                            widgetsRemoved++;
-                    }
-                });
-                return widgetsRemoved;
-            }           
+            }         
 
             function rearrangeWidgets(node, moveWidgetsBehind, totalWidgetsToMove) {
                 const widgets = node.widgets;
@@ -175,10 +115,8 @@ app.registerExtension({
                     return widgets;
                 }
 
-                // Remove the last three widgets from the array
                 let widgetsToMove = widgets.splice(startIndex, totalWidgetsToMove);
-            
-                // Insert them after the widget at index 8
+
                 let newWidgets = [
                     ...widgets.slice(0, moveWidgetsBehind),
                     ...widgetsToMove,
@@ -188,57 +126,134 @@ app.registerExtension({
                 node.widgets = newWidgets;
                 return newWidgets;
             }
-
-            function setUpCustomInputs(node, inputName) {
+            
+            function showSchedulerInputs(node, schedulerName, desiredWidgets = undefined) {
                 const originalWidth = node.size[0];
                 const originalHeight = node.size[1];
-                
-                // Determine which widgets should be present based on inputName
-                const desiredWidgets = widgets[inputName] ? Object.keys(widgets[inputName]) : [];
-                const existingWidgets = new Set(node.widgets.map(w => w.name));
+                const originalWidgets = node.widgets;
+                const originalWidgetTypes = new Map();
+                const resizeNode = !desiredWidgets;
             
-                // Clean up unwanted widgets: remove widgets not in the desired list
-                let widgetsRemoved = cleanUpInputs(node, desiredWidgets);
-            
-                let widgetsAdded = 0;
-            
-                // Check and add new widgets only if they do not exist
-                if (widgets[inputName] !== undefined) {
-                    Object.keys(widgets[inputName]).forEach(prop => {
-                        // Check if this widget is already added
-                        if (!existingWidgets.has(prop)) {
-                            const [type, defaultValue, min, max, step, round] = widgets[inputName][prop];
-                            if (type === "FLOAT") {
-                                let addedWidget = ComfyWidgets[type](node, prop, [type, { default: defaultValue, min: min, max: max, step: step, round: round }], app).widget;
-                                console.log(addedWidget)
-                                widgetsAdded++;
-                            }
-                        }
-                    });
+                for (const widget of originalWidgets) {
+                    originalWidgetTypes.set(widget.name, widget.type);
                 }
             
-                // Rearrange widgets under 'scheduler_name'
-                if (widgetsAdded != 0)
-                    rearrangeWidgets(node, findWidgetIndex(node.widgets, findWidget(node, "scheduler_name")) + 1, widgetsAdded);
-
-                let totalWidgets = widgetsAdded - widgetsRemoved;
-                console.log(totalWidgets)
+                // Determine which widgets should be present based on schedulerName
+                if (!desiredWidgets) {
+                    desiredWidgets = widgets[schedulerName] ? new Set(Object.keys(widgets[schedulerName])) : new Set();
+                } else {
+                    desiredWidgets = new Set(desiredWidgets);
+                }
+            
+                const widgetsToRemove = createWidgetsToRemove(widgets);
+            
+                for (const widget of widgetsToRemove) {
+                    if (!desiredWidgets.has(widget)) {
+                        hideWidget(node, findWidget(node, widget));
+                    }
+                }
+            
+                for (const widgetName of desiredWidgets) {
+                    const widget = findWidget(node, widgetName);
+                    showWidget(widget);
+                    if (widget.type === undefined) {
+                        widget.type = originalWidgetTypes.get(widget.name);
+                    }
+                }
+            
+                let addedWidgets = 0;
+                let removedWidgets = 0;
+            
+                for (const widget of node.widgets) {
+                    if (originalWidgetTypes.get(widget.name) === "converted-widget") {
+                        if (widget.type !== "converted-widget")
+                            addedWidgets++;
+                    } else {
+                        if (widget.type === "converted-widget")
+                            removedWidgets++;
+                    }
+                }
             
                 // Adjust the size based on widgets added/removed
-                node.size[0] = originalWidth;
-                node.size[1] = originalHeight + totalWidgets * (70 / 3);
-            }
+                if (resizeNode) {
+                    node.size[0] = originalWidth;
+                    node.size[1] = originalHeight + (addedWidgets - removedWidgets) * (70 / 3);
+                }
+            }            
             
             function createEverything(node) {
-                Object.keys(widgets).forEach(widget =>
-                    Object.keys(widgets[widget]).forEach(prop => {
-                        // Check if this widget is already added
-                        const [type, defaultValue, min, max, step, round] = widgets[widget][prop];
+                const allSettings = new Set();
+            
+                for (const [widgetKey, widgetProps] of Object.entries(widgets)) {
+                    for (const [prop, [type, defaultValue, min, max, step, round]] of Object.entries(widgetProps)) {
                         if (type === "FLOAT") {
                             ComfyWidgets[type](node, prop, [type, { default: defaultValue, min: min, max: max, step: step, round: round }], app).widget;
                         }
-                    })
-                );
+                        allSettings.add(prop);
+                    }
+                }
+
+                const originalWidth = node.size[0];
+                const originalHeight = node.size[1];
+            
+                rearrangeWidgets(node, 8, 10);
+            
+                let nodesHidden = 0;
+                for (const widget of node.widgets) {
+                    if (allSettings.has(widget.name)) {
+                        hideWidget(node, widget);
+                        nodesHidden++;
+                    }
+                }
+            
+                console.log(nodesHidden)
+                node.size[0] = originalWidth;
+                node.size[1] = originalHeight + (-nodesHidden * (70 / 3));
+            }            
+
+            function hideWidget(node, widget, suffix = "") {
+                if (widget.type?.startsWith(CONVERTED_TYPE)) return;
+                widget.origType = widget.type;
+                widget.origComputeSize = widget.computeSize;
+                widget.origSerializeValue = widget.serializeValue;
+                widget.computeSize = () => [0, -4]; // -4 is due to the gap litegraph adds between widgets automatically
+                widget.type = CONVERTED_TYPE + suffix;
+                widget.serializeValue = () => {
+                    // Prevent serializing the widget if we have no input linked
+                    if (!node.inputs) {
+                        return undefined;
+                    }
+                    let node_input = node.inputs.find((i) => i.widget?.name === widget.name);
+            
+                    if (!node_input || !node_input.link) {
+                        return undefined;
+                    }
+                    return widget.origSerializeValue ? widget.origSerializeValue() : widget.value;
+                };
+            
+                // Hide any linked widgets, e.g. seed+seedControl
+                if (widget.linkedWidgets) {
+                    for (const w of widget.linkedWidgets) {
+                        hideWidget(node, w, ":" + widget.name);
+                    }
+                }
+            }
+            
+            function showWidget(widget) {
+                widget.type = widget.origType;
+                widget.computeSize = widget.origComputeSize;
+                widget.serializeValue = widget.origSerializeValue;
+            
+                delete widget.origType;
+                delete widget.origComputeSize;
+                delete widget.origSerializeValue;
+            
+                // Hide any linked widgets, e.g. seed+seedControl
+                if (widget.linkedWidgets) {
+                    for (const w of widget.linkedWidgets) {
+                        showWidget(w);
+                    }
+                }
             }
         }
     },

@@ -1,9 +1,16 @@
 import torch
 
-def append_zero(x):
-    return torch.cat([x, x.new_zeros([1])])
+settings = {
+    "name": "sigmoid",
+    "settings": {
+        "sigma_max_sig": ["FLOAT", 25.0, 0.0, 5000.0, 0.01, False],
+        "sigma_min_sig": ["FLOAT", 0.0, 0.0, 5000.0, 0.01, False],
+        "steepness": ["FLOAT", 3.5, 0.0, 10.0, 0.01, False],
+        "midpoint_ratio": ["FLOAT", 0.8, 0.0, 1.0, 0.01, False],
+    }
+}
 
-def get_sigmas_sigmoid(self, n, sigma_max, sigma_min, steepness=10, midpoint_ratio=0.5, device='cpu'):
+def get_sigmas(n, sigma_max, sigma_min, steepness=10, midpoint_ratio=0.5, device='cpu'):
     """
     Generates 'n' sigmas on an S-curve from sigma_max to sigma_min, with a controllable midpoint.
     
@@ -31,6 +38,6 @@ def get_sigmas_sigmoid(self, n, sigma_max, sigma_min, steepness=10, midpoint_rat
     sigmoids = 1 / (1 + torch.exp(-steepness * (x / steepness)))
     
     # Map the sigmoid output to the range [sigma_max, sigma_min]
-    sigmas = append_zero(sigma_max - (sigma_max - sigma_min) * sigmoids)
+    sigmas = sigma_max - (sigma_max - sigma_min) * sigmoids
     
-    return (sigmas, )
+    return sigmas

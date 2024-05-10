@@ -7,3 +7,4 @@ src/img/
 src/testing.py
 state.json
 testing/success_log.txt
+web/settings/scheduler_settings.js
