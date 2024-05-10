@@ -40,8 +40,6 @@ class SimpleSamplerCustom:
                     "cfg": ("FLOAT", {"default": 8.0, "min": 0.0, "max": 100.0, "step":0.1, "round": 0.01}),
                     "sampler_name": (comfy.samplers.KSampler.SAMPLERS, ),
                     "scheduler_name": (cls.scheduler_list, ),
-                    "width": ("INT", {"default": 0, "min": 0, "step":64}),
-                    "height": ("INT", {"default": 0, "min": 0, "step":64}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step":0.01, "round": 0.01}),
                 },
                 "optional": {
@@ -49,6 +47,8 @@ class SimpleSamplerCustom:
                     "negative": ("*"),
                     "sigmas (optional)": ("SIGMAS", ),
                     "latent (optional)": ("LATENT", ),
+                    "width": ("INT", {"default": 0, "min": 0, "step":64}),
+                    "height": ("INT", {"default": 0, "min": 0, "step":64}),
                 },
                 "hidden": {
                     "unique_id": "UNIQUE_ID",
@@ -62,7 +62,7 @@ class SimpleSamplerCustom:
 
     CATEGORY = "sampling/custom_sampling"
 
-    def sample(self, model, model_type, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, scheduler_name, width, height, denoise, **kwargs):
+    def sample(self, model, model_type, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, scheduler_name, denoise, **kwargs):
         custom_sampler = SamplerCustom()
         vae_decode = VAEDecode()
         text_encode = CLIPTextEncode()
@@ -75,7 +75,10 @@ class SimpleSamplerCustom:
         if 'latent (optional)' in kwargs and kwargs['latent (optional)'] is not None:
             latent_image = kwargs['latent (optional)']
         else:
-            latent_image = EmptyLatentImage().generate(width, height)[0]
+            if 'width' in kwargs and 'height' in kwargs:
+                latent_image = EmptyLatentImage().generate(kwargs['width'], kwargs['height'])[0]
+            else:
+                raise ValueError(f"If no latent is provided width and height is needed.")
 
         # Get sampler and sigmas
         sampler = self.get_sampler(sampler_name)[0]

@@ -7,26 +7,38 @@ import { ComfyWidgets } from "../../../scripts/widgets.js";
 app.registerExtension({
     name: "sn0w.SimpleSamplerCustom",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
+        const allSettings = new Set();
+
         if (nodeData.name === "Simple Sampler Custom") {
             // Set positive and negative connection colors
             const onConnectInput = nodeType.prototype.onConnectInput;
             nodeType.prototype.onConnectInput = function (targetSlot, type, output, originNode, originSlot) {
                 const slot = type[0]
                 const inputType = type[1]
-                console.log(this)
                 console.log(JSON.parse(JSON.stringify(targetSlot.inputs[slot])))
 
-                if (slot == 3 || slot == 4) {
+                if (slot === 3 || slot === 4) {
                     if (inputType == "STRING" || inputType == "CONDITIONING") {
                         targetSlot.inputs[slot].color_on = app.canvas.default_connection_color_byType[inputType];
                     } else {
                         console.error(`The input type has to be STRING or CONDITIONING, it cannot be ${inputType}.`)
                         targetSlot.inputs[slot].color_on = app.canvas.default_connection_color_byType["VAE"];
                     }
+                } else if (slot === 6) {
+                    hideAllLatentWidgets(targetSlot);
                 }
 
                 onConnectInput?.apply(targetSlot, type, output, originNode, originSlot);
-                console.log(targetSlot.inputs[slot])
+            }
+
+            // Handle when connection is disconnected
+            const onConnectionsChange = nodeType.prototype.onConnectionsChange;
+            nodeType.prototype.onConnectionsChange = function (side, slot, connect, link_info, output) {
+                if (slot == 6) {
+                    if (this.inputs[slot].link === null)
+                        showAllLatentWidgets(this);
+                }
+                onConnectionsChange?.apply(side, slot, connect, link_info, output);
             }
 
             nodeType.prototype.onNodeCreated = function () {
@@ -91,6 +103,10 @@ app.registerExtension({
                 const inputName = findWidget(this, "scheduler_name");
                 const desiredWidgets = widgets[inputName.value] ? Object.keys(widgets[inputName.value]) : [];
                 showSchedulerInputs(this, inputName, desiredWidgets);
+
+                if (this.inputs[6].link !== null) {
+                    hideAllLatentWidgets(this);
+                }
             };            
 
             function findWidget(node, name) {
@@ -114,9 +130,13 @@ app.registerExtension({
             }   
             
             function checkImageOutput(node) {
-                if (node.outputs[0].links.length === 0)
+                try {
+                    if (node.outputs[0].links.length === 0)
+                        return false;
+                    return true;
+                } catch {
                     return false;
-                return true;
+                }
             }
 
             function createWidgetsToRemove(widgets) {
@@ -208,25 +228,12 @@ app.registerExtension({
                     node.size[0] = originalWidth;
                     node.size[1] = originalHeight + (addedWidgets - removedWidgets) * (70 / 3);
                 }
-            }            
+            }    
             
-            function createEverything(node) {
-                const allSettings = new Set();
-            
-                for (const [widgetKey, widgetProps] of Object.entries(widgets)) {
-                    for (const [prop, [type, defaultValue, min, max, step, round]] of Object.entries(widgetProps)) {
-                        if (type === "FLOAT") {
-                            ComfyWidgets[type](node, prop, [type, { default: defaultValue, min: min, max: max, step: step, round: round }], app).widget;
-                        }
-                        allSettings.add(prop);
-                    }
-                }
-
+            function hideAllSchedulerWidgets(node) {
                 const originalWidth = node.size[0];
                 const originalHeight = node.size[1];
-            
-                rearrangeWidgets(node, 8, 10);
-            
+
                 let nodesHidden = 0;
                 for (const widget of node.widgets) {
                     if (allSettings.has(widget.name)) {
@@ -237,6 +244,55 @@ app.registerExtension({
 
                 node.size[0] = originalWidth;
                 node.size[1] = originalHeight + (-nodesHidden * (70 / 3));
+            }
+
+            function hideAllLatentWidgets(node) {
+                let heightWidget = findWidget(node, "height");
+                let widthWidget = findWidget(node, "width");
+
+                SettingUtils.hideWidget(node, heightWidget);
+                SettingUtils.hideWidget(node, widthWidget);
+
+                // Remove inputs if they are there
+                if (node.inputs.some(obj => obj.name === "width")) {
+                    node.inputs = node.inputs.filter(obj => obj.name !== "width");
+                }
+                if (node.inputs.some(obj => obj.name === "height")) {
+                    node.inputs = node.inputs.filter(obj => obj.name !== "height");
+                }
+
+                console.log(node)
+            }
+
+            function showAllLatentWidgets(node) {
+                let heightWidget = findWidget(node, "height");
+                let widthWidget = findWidget(node, "width");
+                
+                // Check if the height or width is an input instead of a widget
+                if (!node.inputs.some(obj => obj.name === "width")) {
+                    SettingUtils.showWidget(widthWidget);
+                    if (widthWidget.type === undefined)
+                        widthWidget.type = "number";
+                }
+                if (!node.inputs.some(obj => obj.name === "height")) {
+                    SettingUtils.showWidget(heightWidget);
+                    if (heightWidget.type === undefined)
+                        heightWidget.type = "number";
+                }
+            }
+            
+            function createEverything(node) {
+                for (const [widgetKey, widgetProps] of Object.entries(widgets)) {
+                    for (const [prop, [type, defaultValue, min, max, step, round]] of Object.entries(widgetProps)) {
+                        if (type === "FLOAT") {
+                            ComfyWidgets[type](node, prop, [type, { default: defaultValue, min: min, max: max, step: step, round: round }], app).widget;
+                        }
+                        allSettings.add(prop);
+                    }
+                }
+            
+                rearrangeWidgets(node, 8, 10);
+                hideAllSchedulerWidgets(node);
             }            
         }
     },
