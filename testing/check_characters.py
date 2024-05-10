@@ -11,6 +11,7 @@ LOG_FILE_PATH = os.path.abspath('testing/success_log.txt')
 BASE_URL = "https://gelbooru.com/index.php?page=dapi&s=tag&q=index&name="
 REQUEST_DELAY = 0.5  # Delay between requests in seconds
 MIN_USES = 100
+GOOD_CHARACTERS = 0
 
 RED_TEXT = "\033[0;31m"
 GREEN_TEXT = "\033[0;32m"
@@ -87,6 +88,7 @@ with open(LOG_FILE_PATH, 'a') as log_file:
                         else:
                             print(f"{GREEN_TEXT}{tag} is good: {tag_count}{RESET_TEXT}")
                             log_file.write(f"{tag}[:] {tag_count}\n")
+                            GOOD_CHARACTERS + 1
                     except AttributeError:
                         print(f"Could not find count for {tag}")
                 else:
@@ -95,6 +97,8 @@ with open(LOG_FILE_PATH, 'a') as log_file:
                 print(f"Failed to retrieve data for {tag}: {response.status_code}")
         else:
             print(f"Character not formatted correctly: {character}")
+
+print(f"{(len(low_use_characters) / GOOD_CHARACTERS * 100)}% of characters are good.")
 
 # Prompt user and handle character transfer
 if low_use_characters:
