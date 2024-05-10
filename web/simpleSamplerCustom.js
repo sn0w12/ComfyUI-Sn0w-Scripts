@@ -26,20 +26,18 @@ app.registerExtension({
                     }
                 } else if (slot === 5) {
                     const initialCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
+                    const originalSize = [targetSlot.size[0], targetSlot.size[1]];
 
                     hideAllSchedulerWidgets(targetSlot);
                     SettingUtils.hideWidget(targetSlot, findWidget(targetSlot, "scheduler_name"));
 
-                    const finalCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
-                    targetSlot.size[0] = targetSlot.size[0];
-                    targetSlot.size[1] = targetSlot.size[1] + (initialCount - finalCount) * (70 / 3);
+                    resizeNode(targetSlot, initialCount, originalSize);
                 } else if (slot === 6) {
                     const initialCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
+                    const originalSize = [targetSlot.size[0], targetSlot.size[1]];
 
                     hideAllLatentWidgets(targetSlot);
-                    const finalCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
-                    targetSlot.size[0] = targetSlot.size[0];
-                    targetSlot.size[1] = targetSlot.size[1] + (initialCount - finalCount) * (70 / 3);
+                    resizeNode(targetSlot, initialCount, originalSize);
                 }
 
                 onConnectInput?.apply(targetSlot, type, output, originNode, originSlot);
@@ -51,7 +49,7 @@ app.registerExtension({
                 if (slot === 5) {
                     if (this.inputs[slot].link === null) {
                         const initialCount = countWidgetsOfType(this.widgets, "converted-widget");
-                        const originalSize = [this.size[0], this.size[1]]
+                        const originalSize = [this.size[0], this.size[1]];
 
                         const schedulerWidget = findWidget(this, "scheduler_name");
                         showSchedulerInputs(this, schedulerWidget.value);
@@ -59,20 +57,16 @@ app.registerExtension({
                         if (schedulerWidget.type === undefined)
                             schedulerWidget.type = "combo";
 
-                        const finalCount = countWidgetsOfType(this.widgets, "converted-widget");
-                        this.size[0] = originalSize[0];
-                        this.size[1] = originalSize[1] + (initialCount - finalCount) * (70 / 3);
+                        resizeNode(this, initialCount, originalSize);
                     }
                 } else if (slot === 6) {
                     const initialCount = countWidgetsOfType(this.widgets, "converted-widget");
-                    const originalSize = [this.size[0], this.size[1]]
+                    const originalSize = [this.size[0], this.size[1]];
 
                     if (this.inputs[slot].link === null)
                         showAllLatentWidgets(this);
 
-                    const finalCount = countWidgetsOfType(this.widgets, "converted-widget");
-                    this.size[0] = originalSize[0];
-                    this.size[1] = originalSize[1] + (initialCount - finalCount) * (70 / 3);
+                    resizeNode(this, initialCount, originalSize);
                 }
                 onConnectionsChange?.apply(side, slot, connect, link_info, output);
             }
@@ -159,6 +153,12 @@ app.registerExtension({
                 return widgets.filter(widget => widget.type === type).length;
             }
 
+            function resizeNode(node, initialCount, originalSize) {
+                const finalCount = countWidgetsOfType(node.widgets, "converted-widget");
+                node.size[0] = originalSize[0];
+                node.size[1] = originalSize[1] + (initialCount - finalCount) * (70 / 3);
+            }
+
             function getWidgetOutputs(node, WidgetsToGet) {
                 const widgets = node.widgets;
                 
@@ -222,13 +222,12 @@ app.registerExtension({
             }
             
             function showSchedulerInputs(node, schedulerName, desiredWidgets = undefined) {
-                const originalWidth = node.size[0];
-                const originalHeight = node.size[1];
-                const originalWidgets = node.widgets;
+                const shouldResizeNode = !desiredWidgets;
+                const initialCount = countWidgetsOfType(node.widgets, "converted-widget");
+                const originalSize = [node.size[0], node.size[1]];
                 const originalWidgetTypes = new Map();
-                const resizeNode = !desiredWidgets;
             
-                for (const widget of originalWidgets) {
+                for (const widget of node.widgets) {
                     originalWidgetTypes.set(widget.name, widget.type);
                 }
             
@@ -269,9 +268,8 @@ app.registerExtension({
                 }
             
                 // Adjust the size based on widgets added/removed
-                if (resizeNode) {
-                    node.size[0] = originalWidth;
-                    node.size[1] = originalHeight + (addedWidgets - removedWidgets) * (70 / 3);
+                if (shouldResizeNode) {
+                    resizeNode(node, initialCount, originalSize);
                 }
             }    
             
@@ -331,14 +329,13 @@ app.registerExtension({
                     }
                 }
 
-                const originalWidth = node.size[0];
-                const originalHeight = node.size[1];
+                const originalSize = [node.size[0], node.size[1]];
             
                 rearrangeWidgets(node, 8, 10);
                 const nodesHidden = hideAllSchedulerWidgets(node);
 
-                node.size[0] = originalWidth;
-                node.size[1] = originalHeight + (-nodesHidden * (70 / 3));
+                node.size[0] = originalSize[0];
+                node.size[1] = originalSize[1] + (-nodesHidden * (70 / 3));
             }            
         }
     },
