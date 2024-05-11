@@ -39,12 +39,12 @@ class SimpleSamplerCustom:
                     "steps": ("INT", {"default": 10, "min": 10, "max": 10000}),
                     "cfg": ("FLOAT", {"default": 8.0, "min": 0.0, "max": 100.0, "step":0.1, "round": 0.01}),
                     "sampler_name": (comfy.samplers.KSampler.SAMPLERS, ),
-                    "scheduler_name": (cls.scheduler_list, ),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step":0.01, "round": 0.01}),
                 },
                 "optional": {
                     "positive": ("*"),
                     "negative": ("*"),
+                    "scheduler_name": (cls.scheduler_list, ),
                     "sigmas (optional)": ("SIGMAS", ),
                     "latent (optional)": ("LATENT", ),
                     "width": ("INT", {"default": 0, "min": 0, "step":64}),
@@ -62,7 +62,7 @@ class SimpleSamplerCustom:
 
     CATEGORY = "sampling/custom_sampling"
 
-    def sample(self, model, model_type, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, scheduler_name, denoise, **kwargs):
+    def sample(self, model, model_type, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, denoise, **kwargs):
         custom_sampler = SamplerCustom()
         vae_decode = VAEDecode()
         text_encode = CLIPTextEncode()
@@ -85,7 +85,7 @@ class SimpleSamplerCustom:
         if 'sigmas (optional)' in kwargs and kwargs['sigmas (optional)'] is not None:
             sigmas = kwargs['sigmas (optional)']
         else:
-            sigmas = self.get_custom_sigmas(model, model_type, scheduler_name, steps, denoise, kwargs["unique_id"])
+            sigmas = self.get_custom_sigmas(model, model_type, kwargs["scheduler_name"], steps, denoise, kwargs["unique_id"])
 
         # Generate and decode image
         samples = custom_sampler.sample(model, add_noise, noise_seed, cfg, positive_prompt, negative_prompt, sampler, sigmas, latent_image)

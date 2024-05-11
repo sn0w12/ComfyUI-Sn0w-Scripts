@@ -167,13 +167,19 @@ async def handle_logging_level(request):
     return web.json_response({"status": "ok"})
 
 @routes.post(f'{API_PREFIX}/scheduler_values')
-async def handle_textbox_string(request):
+async def handle_scheduler_values(request):
     data = await request.json()
     MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
     return web.json_response({"status": "ok"})
 
 @routes.post(f'{API_PREFIX}/should_decode_image')
-async def handle_textbox_string(request):
+async def handle_should_decode_image(request):
+    data = await request.json()
+    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
+    return web.json_response({"status": "ok"})
+
+@routes.post(f'{API_PREFIX}/get_sigmas')
+async def handle_get_sigmas(request):
     data = await request.json()
     MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
     return web.json_response({"status": "ok"})

@@ -17,6 +17,9 @@ app.registerExtension({
                 const inputType = type[1]
                 console.log(JSON.parse(JSON.stringify(targetSlot.inputs[slot])))
 
+                const initialCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
+                const originalSize = [targetSlot.size[0], targetSlot.size[1]];
+
                 if (slot === 3 || slot === 4) {
                     if (inputType == "STRING" || inputType == "CONDITIONING") {
                         targetSlot.inputs[slot].color_on = app.canvas.default_connection_color_byType[inputType];
@@ -25,17 +28,11 @@ app.registerExtension({
                         targetSlot.inputs[slot].color_on = app.canvas.default_connection_color_byType["VAE"];
                     }
                 } else if (slot === 5) {
-                    const initialCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
-                    const originalSize = [targetSlot.size[0], targetSlot.size[1]];
-
                     hideAllSchedulerWidgets(targetSlot);
                     SettingUtils.hideWidget(targetSlot, findWidget(targetSlot, "scheduler_name"));
 
                     resizeNode(targetSlot, initialCount, originalSize);
                 } else if (slot === 6) {
-                    const initialCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
-                    const originalSize = [targetSlot.size[0], targetSlot.size[1]];
-
                     hideAllLatentWidgets(targetSlot);
                     resizeNode(targetSlot, initialCount, originalSize);
                 }
