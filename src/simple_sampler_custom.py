@@ -4,6 +4,7 @@ from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
 from server import PromptServer
 from ..sn0w import Logger, MessageHolder
 from .custom_schedulers.custom_schedulers import CustomSchedulers
+from .show_sigmas import ShowSigmasNode
 import comfy.samplers
 
 class SimpleSamplerCustom:
@@ -17,7 +18,7 @@ class SimpleSamplerCustom:
     @classmethod
     def build_scheduler_list(cls):
         custom_scheduler_names = list(cls.custom_schedulers.get_scheduler_settings().keys())
-        print(custom_scheduler_names)
+        cls.logger.log(custom_scheduler_names, "DEBUG")
         cls.scheduler_list = comfy.samplers.KSampler.SCHEDULERS + ["align_your_steps", "polyexponential", "vp"] + custom_scheduler_names
         cls.scheduler_settings = {name: settings for name, settings in cls.custom_schedulers.get_scheduler_settings().items()}
 
@@ -55,8 +56,8 @@ class SimpleSamplerCustom:
                 },
             }
     
-    RETURN_TYPES = ("IMAGE", "LATENT", "CONDITIONING", "CONDITIONING")
-    RETURN_NAMES = ("IMAGE", "LATENT", "POSITIVE", "NEGATIVE")
+    RETURN_TYPES = ("IMAGE", "LATENT", "CONDITIONING", "CONDITIONING", "IMAGE")
+    RETURN_NAMES = ("IMAGE", "LATENT", "POSITIVE", "NEGATIVE", "SIGMAS GRAPH")
 
     FUNCTION = "sample"
 
@@ -94,7 +95,17 @@ class SimpleSamplerCustom:
         else:
             image = (None, )
 
-        return (image[0], samples[1], positive_prompt, negative_prompt)
+        sigmas_list = ShowSigmasNode.sigmas_to_list(self, sigmas)
+
+        PromptServer.instance.send_sync("sampler_get_sigmas", {
+            "id": kwargs["unique_id"],
+            "sigmas": sigmas_list,
+        })
+        outputs = MessageHolder.waitForMessage(kwargs["unique_id"])
+        
+        final_tensor = ShowSigmasNode.image_to_tensor(self, outputs)
+
+        return (image[0], samples[1], positive_prompt, negative_prompt, final_tensor,)
     
     def get_sampler(self, sampler_name):
         sampler = comfy.samplers.sampler_object(sampler_name)
@@ -174,5 +185,4 @@ class SimpleSamplerCustom:
             "id": unique_id,
         })
         outputs = MessageHolder.waitForMessage(unique_id)
-        print(outputs)
         return outputs

@@ -22,9 +22,9 @@ class ShowSigmasNode:
     FUNCTION = "run"
 
     CATEGORY = "utils"
-    
-    def run(self, sigmas, unique_id):
-        # Convert tensor to a numpy array if it's not already
+
+    def sigmas_to_list(self, sigmas):
+         # Convert tensor to a numpy array if it's not already
         if isinstance(sigmas, np.ndarray):
             temporary_sigmas = sigmas
         else:
@@ -42,13 +42,10 @@ class ShowSigmasNode:
             sigmas_list = [[float(value)] for value in temporary_sigmas]
         else:
             sigmas_list = temporary_sigmas.tolist()
-
-        PromptServer.instance.send_sync("sn0w_get_sigmas", {
-            "id": unique_id,
-            "sigmas": sigmas_list,
-        })
-        outputs = MessageHolder.waitForMessage(unique_id)
         
+        return sigmas_list
+    
+    def image_to_tensor(self, outputs):
         output_data = outputs['output']
         if ',' in output_data:
             image_data = output_data.split(',', 1)[1]
@@ -78,8 +75,17 @@ class ShowSigmasNode:
         
         print("Tensor shape for SaveImage node:", image_tensor.shape)
 
-        # Print final tensor shape
-        final_tensor = image_tensor
-        print("Final tensor shape to pass to SaveImage:", final_tensor.shape)
+        return image_tensor
+    
+    def run(self, sigmas, unique_id):
+        sigmas_list = self.sigmas_to_list(sigmas)
+
+        PromptServer.instance.send_sync("sn0w_get_sigmas", {
+            "id": unique_id,
+            "sigmas": sigmas_list,
+        })
+        outputs = MessageHolder.waitForMessage(unique_id)
+        
+        final_tensor = self.image_to_tensor(outputs)
 
         return (sigmas, final_tensor,)

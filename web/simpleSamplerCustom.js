@@ -15,7 +15,6 @@ app.registerExtension({
             nodeType.prototype.onConnectInput = function (targetSlot, type, output, originNode, originSlot) {
                 const slot = type[0]
                 const inputType = type[1]
-                console.log(JSON.parse(JSON.stringify(targetSlot.inputs[slot])))
 
                 const initialCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
                 const originalSize = [targetSlot.size[0], targetSlot.size[1]];
@@ -88,7 +87,6 @@ app.registerExtension({
                 api.addEventListener('get_scheduler_values', (event) => {
                     const data = event.detail
                     const output = getWidgetOutputs(this, data.widgets_needed);
-                    console.log(output);
                     if (this.id == data.id) {
                         api.fetchApi(`${SettingUtils.API_PREFIX}/scheduler_values`, {
                             method: "POST",
@@ -108,7 +106,6 @@ app.registerExtension({
                 api.addEventListener('should_decode_image', (event) => {
                     const data = event.detail
                     const output = checkImageOutput(this);
-                    console.log(output);
                     if (this.id == data.id) {
                         api.fetchApi(`${SettingUtils.API_PREFIX}/should_decode_image`, {
                             method: "POST",
@@ -124,6 +121,29 @@ app.registerExtension({
                         })
                     }
                 })
+
+                api.addEventListener('sampler_get_sigmas', (event) => {
+                    const data = event.detail;
+                    if (this.id == data.id) {
+                        const imageBase64 = SettingUtils.drawSigmas(data.sigmas);
+
+                        // Send the generated image data back to the server
+                        api.fetchApi(`${SettingUtils.API_PREFIX}/get_sigmas`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(
+                                {
+                                    node_id: data.id,
+                                    outputs: {
+                                        output: imageBase64
+                                    }
+                                }
+                            ),
+                        })
+                    }
+                });
             }
 
             nodeType.prototype.onConfigure = function () {
@@ -196,25 +216,42 @@ app.registerExtension({
             }         
 
             function rearrangeWidgets(node, moveWidgetsBehind, totalWidgetsToMove) {
-                const widgets = node.widgets;
-                // Calculate the starting index for removing the last three widgets
+                let widgets = node.widgets;
+            
+                // Calculate the starting index for removing the last N widgets
                 let startIndex = widgets.length - totalWidgetsToMove;
-
-                // Check if there are at least three widgets to move
+            
+                // Check if there are enough widgets to move
                 if (startIndex < 0) {
                     console.warning("Not enough widgets to move.");
                     return widgets;
                 }
-
+            
+                // Extract the last N widgets to be moved
                 let widgetsToMove = widgets.splice(startIndex, totalWidgetsToMove);
-
+                
+                // Find the scheduler widget and ensure it is not duplicated
+                const schedulerWidget = findWidget(node, "scheduler_name");
+                
+                // If the schedulerWidget is found, remove existing occurrences from the current widgets array
+                if (schedulerWidget) {
+                    widgets = widgets.filter(widget => widget !== schedulerWidget);
+                }
+            
+                // Ensure the insertion index is within the bounds of the current array
+                moveWidgetsBehind = Math.max(0, Math.min(moveWidgetsBehind, widgets.length));
+            
+                // Prepare the new widgets array by inserting schedulerWidget followed by widgetsToMove
                 let newWidgets = [
                     ...widgets.slice(0, moveWidgetsBehind),
+                    schedulerWidget,
                     ...widgetsToMove,
                     ...widgets.slice(moveWidgetsBehind)
                 ];
             
+                // Update the node's widgets with the newly ordered widgets
                 node.widgets = newWidgets;
+                
                 return newWidgets;
             }
             
@@ -295,8 +332,6 @@ app.registerExtension({
                 if (node.inputs.some(obj => obj.name === "height")) {
                     node.inputs = node.inputs.filter(obj => obj.name !== "height");
                 }
-
-                console.log(node)
             }
 
             function showAllLatentWidgets(node) {
@@ -328,7 +363,7 @@ app.registerExtension({
 
                 const originalSize = [node.size[0], node.size[1]];
             
-                rearrangeWidgets(node, 8, 10);
+                rearrangeWidgets(node, 7, allSettings.size);
                 const nodesHidden = hideAllSchedulerWidgets(node);
 
                 node.size[0] = originalSize[0];

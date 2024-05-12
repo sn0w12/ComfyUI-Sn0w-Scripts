@@ -1,3 +1,5 @@
+import { api } from '../../scripts/api.js';
+
 export class SettingUtils {
     static API_PREFIX = '/sn0w';
 
@@ -176,4 +178,75 @@ export class SettingUtils {
             }
         }
     }
+
+    static drawSigmas(sigmas) {
+        // Define the size of the canvas
+        const width = 800;
+        const height = 400;
+    
+        // Create a canvas element
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+    
+        // Background
+        ctx.fillStyle = '#333';  // Dark background
+        ctx.fillRect(0, 0, width, height);
+    
+        // Normalize sigma values to fit within the canvas height
+        const maxSigma = Math.max(...sigmas.map(s => s[0]));
+        const minSigma = Math.min(...sigmas.map(s => s[0]));
+        const range = maxSigma - minSigma;
+    
+        // Function to scale a sigma value to the canvas coordinates
+        const scaleY = sigma => (height - 20) - (((sigma - minSigma) / range) * (height - 40));
+        const scaleX = index => (index / (sigmas.length - 1)) * width;
+    
+        // Draw horizontal grid lines and labels
+        const gridColor = '#555';
+        const textColor = '#ccc';
+        const numGridLines = 10;
+        const gridSpacing = (height - 40) / numGridLines;
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+        ctx.font = '10px Arial';
+        ctx.fillStyle = textColor;
+    
+        for (let i = 0; i <= numGridLines; i++) {
+            let y = 20 + i * gridSpacing;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+    
+            // Add text labels for grid lines
+            let gridValue = maxSigma - ((i / numGridLines) * range);
+            ctx.fillText(gridValue.toFixed(2), 5, y - 2);
+        }
+    
+        // Draw the graph line
+        ctx.strokeStyle = 'white'; // Line color
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(scaleX(0), scaleY(sigmas[0][0]));
+    
+        sigmas.forEach((sigma, index) => {
+            ctx.lineTo(scaleX(index), scaleY(sigma[0]));
+        });
+    
+        ctx.stroke();
+    
+        // Draw a dot at each sigma point
+        ctx.fillStyle = 'red'; // Dot color
+        const dotRadius = 4;
+        sigmas.forEach((sigma, index) => {
+            ctx.beginPath();
+            ctx.arc(scaleX(index), scaleY(sigma[0]), dotRadius, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+    
+        // Return the canvas content as a Base64 encoded image
+        return canvas.toDataURL('image/png');
+    }      
 }
