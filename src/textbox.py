@@ -1,14 +1,9 @@
-from server import PromptServer
-from ..sn0w import MessageHolder
-
 class TextboxNode:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
-            },
-            "hidden": {
-                "unique_id": "UNIQUE_ID",
+                "text": ("STRING", {"default": "", "multiline": True})
             },
         }
 
@@ -17,10 +12,6 @@ class TextboxNode:
 
     CATEGORY = "utils"
     
-    def run(self, unique_id):
-        PromptServer.instance.send_sync("textbox", {
-            "id": unique_id,
-        })
-        outputs = MessageHolder.waitForMessage(unique_id)
-        return (outputs['output'],)
+    def run(self, text):
+        return (text,)
     

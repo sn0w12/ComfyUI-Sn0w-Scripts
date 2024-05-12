@@ -14,9 +14,7 @@ app.registerExtension({
             };
 
             nodeType.prototype.populate = function() {
-                // Adding a multiline text widget and storing a reference to the input element
-                let textWidget = ComfyWidgets["STRING"](this, "text", ["STRING", { default: "hello", multiline: true }], app).widget;
-                this.inputEl = textWidget.inputEl || textWidget.querySelector('input, textarea');
+                this.inputEl = this.widgets[0];
 
                 // Implement copy functionality with proper callback
                 this.addWidget("button", "Copy", "Copy", () => {
@@ -40,23 +38,22 @@ app.registerExtension({
 
                 api.addEventListener('textbox', (event) => {
                     const data = event.detail
+                    console.log("ID:", data.id);
                     const outputText = this.getTextboxText();
-                    if (this.id == data.id) {
-                        api.fetchApi(`${SettingUtils.API_PREFIX}/textbox_string`, {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify(
-                                {
-                                    node_id: data.id,
-                                    outputs: {
-                                        output: outputText
-                                    }
+                    api.fetchApi(`${SettingUtils.API_PREFIX}/textbox_string`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(
+                            {
+                                node_id: data.id,
+                                outputs: {
+                                    output: outputText
                                 }
-                            ),
-                        })
-                    }
+                            }
+                        ),
+                    })
                 })
             }
         }
