@@ -157,8 +157,13 @@ class SimpleSamplerCustom:
             # Fetch settings from the node API
             values = self.get_scheduler_values(unique_id, scheduler_settings)
 
+            # Check for missing settings keys in values
+            if not all(key in values for key in scheduler_settings):
+                missing_keys = [key for key in scheduler_settings if key not in values]
+                self.logger.log(f"Missing keys in 'values': {missing_keys}", "WARNING")
+
             # Map the settings to their actual values using the names from the scheduler settings
-            mapped_settings = [values[setting_name]["value"] for setting_name in scheduler_settings]
+            mapped_settings = [values.get(setting_name, {}).get("value", None) for setting_name in scheduler_settings]
 
             # Log the fetched settings
             self.logger.log(f"Fetched settings for {scheduler_name}: {mapped_settings}", "DEBUG")
