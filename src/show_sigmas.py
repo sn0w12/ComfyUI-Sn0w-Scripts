@@ -56,11 +56,8 @@ class ShowSigmasNode:
         image = Image.open(BytesIO(image_bytes))
         image_np = np.array(image)
 
-        print("Initial image array values (sample):", image_np[0, 0, :])
-
         # Normalize the image values to [0, 1]
         image_np = image_np / 255.0
-        print("Normalized image values (sample):", image_np[0, 0, :])
 
         # Ensure the image is in RGB format if it's RGBA
         if image_np.ndim == 3 and image_np.shape[2] == 4:
@@ -72,8 +69,6 @@ class ShowSigmasNode:
         # Ensure the tensor is in the shape (1, H, W, C)
         if image_tensor.ndim == 3:
             image_tensor = image_tensor.unsqueeze(0)
-        
-        print("Tensor shape for SaveImage node:", image_tensor.shape)
 
         return image_tensor
     
