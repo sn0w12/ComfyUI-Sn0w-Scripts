@@ -126,6 +126,9 @@ class SimpleSamplerCustom:
         return SplitSigmasDenoise.get_sigmas(self, sigmas, denoise)
 
     def get_custom_sigmas(self, model, model_type, scheduler_name, steps, denoise, unique_id):
+        if denoise > 0:
+            steps = int(steps / denoise)
+
         if scheduler_name == "align_your_steps":
             sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, denoise)[0]
         elif scheduler_name == "polyexponential":
