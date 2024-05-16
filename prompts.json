@@ -7,11 +7,11 @@
             },
             {
                 "name": "Positive Pony",
-                "prompt": "(score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, BREAK:1.1)"
+                "prompt": "(score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK:1.1)"
             },
             {
                 "name": "Positive Pony Explicit",
-                "prompt": "(score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, BREAK, rating_explicit:1.1)"
+                "prompt": "(score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK, rating_explicit, uncensored:1.1)"
             }
         ],
         "negative": [
