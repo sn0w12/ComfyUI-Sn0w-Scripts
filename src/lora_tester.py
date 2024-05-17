@@ -70,14 +70,14 @@ class LoraTestNode:
                 if full_lora_path:
                     modified_model, modified_clip = lora_loader.load_lora(model, clip, full_lora_path, lora_strength, lora_strength)
 
-                positive_prompt = text_encode.encode(modified_clip, width, height, 0, 0, width, height, positive, positive)[0]
-                negative_prompt = text_encode.encode(modified_clip, width, height, 0, 0, width, height, negative, negative)[0]
+                positive_prompt = text_encode.encode(modified_clip, positive)[0]
+                negative_prompt = text_encode.encode(modified_clip, negative)[0]
 
                 # Sampling
                 samples = k_sampler_node.sample(modified_model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
             else:
-                positive_prompt = text_encode.encode(clip, width, height, 0, 0, width, height, positive, positive)[0]
-                negative_prompt = text_encode.encode(clip, width, height, 0, 0, width, height, negative, negative)[0]
+                positive_prompt = text_encode.encode(clip, positive)[0]
+                negative_prompt = text_encode.encode(clip, negative)[0]
 
                 # Sampling
                 samples = k_sampler_node.sample(model, seed, steps, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, latent_image, denoise)[0]
