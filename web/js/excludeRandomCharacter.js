@@ -2,19 +2,25 @@ import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
 
 const Id = "sn0w.ExcludedRandomCharacters";
-const jsonUrl = '/extensions/ComfyUI-Sn0w-Scripts/settings/characters.json';
+const jsonUrls = ['/extensions/ComfyUI-Sn0w-Scripts/settings/characters.json', '/extensions/ComfyUI-Sn0w-Scripts/settings/custom_characters.json'];
 
-// Function to fetch, sort, and load options from the JSON file
-const loadOptionsFromJson = async (url) => {
+// Function to fetch, sort, and load options from multiple JSON files
+const loadOptionsFromJson = async (urls) => {
     try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+        const allData = [];
+        
+        // Fetch data from each URL and combine it into one array
+        for (const url of urls) {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Network response was not ok for URL: ' + url);
+            }
+            const data = await response.json();
+            allData.push(...data);
         }
-        const data = await response.json();
 
-        // Sort the data alphabetically by the name property
-        const sortedData = data.sort((a, b) => a.name.localeCompare(b.name));
+        // Sort the combined data alphabetically by the name property
+        const sortedData = allData.sort((a, b) => a.name.localeCompare(b.name));
 
         // Map the sorted data to the required format
         return sortedData.map(item => ({
@@ -39,7 +45,7 @@ const registerSetting = (settingDefinition) => {
 };
 
 // Load options and register the setting
-loadOptionsFromJson(jsonUrl).then(options => {
+loadOptionsFromJson(jsonUrls).then(options => {
     const SettingDefinition = {
         id: Id,
         name: "[Sn0w] Exclude/Include Random Characters",
