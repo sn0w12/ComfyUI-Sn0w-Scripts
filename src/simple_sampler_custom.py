@@ -126,7 +126,7 @@ class SimpleSamplerCustom:
         return SplitSigmasDenoise.get_sigmas(self, sigmas, denoise)
 
     def get_custom_sigmas(self, model, model_type, scheduler_name, steps, denoise, unique_id):
-        if denoise > 0:
+        if denoise > 0 and scheduler_name not in comfy.samplers.KSampler.SCHEDULERS:
             steps = int(steps / denoise)
 
         if scheduler_name == "align_your_steps":
@@ -151,7 +151,6 @@ class SimpleSamplerCustom:
 
             sigmas = self.get_denoised_sigmas(VPScheduler.get_sigmas(self, steps, beta_d, beta_min, eps_s)[0], denoise)[1]
         elif scheduler_name in comfy.samplers.KSampler.SCHEDULERS:
-            steps = steps / 2
             sigmas = BasicScheduler.get_sigmas(self, model, scheduler_name, steps, denoise)[0]
         else:
             scheduler_settings = self.scheduler_settings.get(scheduler_name)
