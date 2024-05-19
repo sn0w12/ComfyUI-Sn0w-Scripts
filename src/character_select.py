@@ -86,11 +86,10 @@ class CharacterSelectNode:
     CATEGORY = "sn0w"
         
     def find_character(self, character, character_strength, character_prompt, model_type, random_character):
-        if character == "None":
-            return ("", "", model_type,)
-
         if random_character:
             char_item = self.select_random_character()
+        elif character == "None":
+            return ("", "", model_type,)
         else:
             char_item = self.final_character_dict.get(character)
 
