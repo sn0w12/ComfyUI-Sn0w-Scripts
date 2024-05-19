@@ -1,6 +1,6 @@
 import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
-import { api } from '../../scripts/api.js';
+import { api } from '../../../scripts/api.js';
 import { ComfyWidgets } from "../../../scripts/widgets.js";
 
 app.registerExtension({

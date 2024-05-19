@@ -23,11 +23,11 @@ class CharacterSelectNode:
 
     @classmethod
     def load_characters(cls, dir_path):
-        json_path = os.path.join(dir_path, 'characters.json')
+        json_path = os.path.join(dir_path, 'web/settings/characters.json')
         with open(json_path, 'r') as file:
             character_data = json.load(file)
 
-        custom_json_path = os.path.join(dir_path, 'custom_characters.json')
+        custom_json_path = os.path.join(dir_path, 'web/settings/custom_characters.json')
         if os.path.exists(custom_json_path):
             with open(custom_json_path, 'r') as file:
                 custom_character_data = json.load(file)
@@ -106,24 +106,17 @@ class CharacterSelectNode:
 
         return ("", "", "",)
     
+    def sanitize_name(self, name):
+        # Sanitize the name to match the format used in the exclusion list
+        return name.lower().replace(" ", "_").replace("(", "_").replace(")", "_").replace("-", "_").replace(",", "_").replace("!", "_").replace(".", "_")
+    
     def select_random_character(self):
-        # Fetching the exclusion or inclusion settings
-        excluded_characters = ConfigReader.get_setting("sn0w.ExcludedRandomCharacters", "")
-        
-        # Splitting the string by commas to create a list of names
-        if excluded_characters.startswith("only:"):
-            mode = "inclusive"
-            character_names = excluded_characters[5:].split(",")
-        else:
-            mode = "exclusive"
-            character_names = excluded_characters.split(",")
+        # Fetching the exclusion settings
+        excluded_characters = ConfigReader.get_setting("sn0w.ExcludedRandomCharacters", [])
 
-        # Filtering the dictionary based on the mode
-        if mode == "inclusive":
-            filtered_characters = {name: char for name, char in self.final_character_dict.items() if name in character_names}
-        else:
-            filtered_characters = {name: char for name, char in self.final_character_dict.items() if name not in character_names}
-        
+        # Filter the characters by excluding the ones in the exclusion list
+        filtered_characters = {name: char for name, char in self.final_character_dict.items() if self.sanitize_name(name) in excluded_characters}
+
         # Choosing a random character from the filtered list
         if filtered_characters:
             random_character_name = random.choice(list(filtered_characters.keys()))

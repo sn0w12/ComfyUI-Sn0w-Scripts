@@ -1,5 +1,3 @@
-import { api } from '../../scripts/api.js';
-
 export class SettingUtils {
     static API_PREFIX = '/sn0w';
 
@@ -58,7 +56,7 @@ export class SettingUtils {
         const checkboxContainer = document.createElement("div");
         checkboxContainer.id = uniqueId;
         checkboxContainer.style.padding = "5px";
-        checkboxContainer.style.display = "block";  // Ensure it is initially visible
+        checkboxContainer.style.display = "block"; // Ensure it is initially visible
     
         // Hide button
         const hideButton = document.createElement("button");
@@ -69,13 +67,49 @@ export class SettingUtils {
             hideButton.textContent = checkboxContainer.style.display === "none" ? "Show" : "Hide";
             hideButton.style.marginBottom = checkboxContainer.style.display === "none" ? "0px" : "5px";
         };
-        hideButton.style.width = "100%"
+        hideButton.style.width = "100%";
     
         // Append the hide button before the checkboxes
         tdInput.appendChild(hideButton);
     
         // Initialize values array based on the default value
         let values = Array.isArray(value) ? value : [value];
+    
+        // Define the threshold for showing the "Check All" checkbox
+        const threshold = 10;
+    
+        // Check if the number of options exceeds the threshold
+        if (attrs.options.length > threshold) {
+            // Create "Check All" checkbox
+            const checkAllContainer = document.createElement("div");
+            const checkAllCheckbox = document.createElement("input");
+            const checkAllLabel = document.createElement("label");
+            const checkAllId = `${uniqueId}-check-all`;
+    
+            checkAllCheckbox.type = "checkbox";
+            checkAllCheckbox.id = checkAllId;
+            checkAllCheckbox.onchange = () => {
+                const allCheckboxes = checkboxContainer.querySelectorAll('input[type="checkbox"]');
+                allCheckboxes.forEach(checkbox => {
+                    checkbox.checked = checkAllCheckbox.checked;
+                    const optionValue = checkbox.id.split('-').pop();
+                    if (checkAllCheckbox.checked && !values.includes(optionValue)) {
+                        values.push(optionValue);
+                    } else if (!checkAllCheckbox.checked && values.includes(optionValue)) {
+                        values = values.filter(v => v !== optionValue);
+                    }
+                });
+                setter(values); // Update the setting with the current array of selected values
+            };
+    
+            checkAllLabel.setAttribute("for", checkAllId);
+            checkAllLabel.textContent = "Check All";
+            checkAllLabel.style.marginRight = "10px";
+    
+            checkAllContainer.appendChild(checkAllCheckbox);
+            checkAllContainer.appendChild(checkAllLabel);
+            checkboxContainer.appendChild(checkAllContainer);
+        }
     
         // Create checkboxes based on the options provided in attrs
         attrs.options.forEach(option => {
@@ -93,6 +127,12 @@ export class SettingUtils {
                     values = values.filter(v => v !== option.value);
                 }
                 setter(values); // Update the setting with the current array of selected values
+    
+                // Update the "Check All" checkbox if it exists
+                const checkAllCheckbox = document.getElementById(`${uniqueId}-check-all`);
+                if (checkAllCheckbox) {
+                    checkAllCheckbox.checked = values.length === attrs.options.length;
+                }
             };
     
             checkboxLabel.setAttribute("for", checkboxId);
@@ -120,7 +160,7 @@ export class SettingUtils {
         }
     
         return tr;
-    }
+    }    
 
     static debounce(func, delay) {
         let debounceTimer;
@@ -131,7 +171,6 @@ export class SettingUtils {
             debounceTimer = setTimeout(() => func.apply(context, args), delay);
         };
     }
-
     
     static hideWidget(node, widget, suffix = "") {
         const CONVERTED_TYPE = "converted-widget";

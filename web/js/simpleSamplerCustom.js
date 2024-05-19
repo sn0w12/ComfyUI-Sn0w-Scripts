@@ -1,7 +1,7 @@
 import { SettingUtils } from './sn0w.js';
-import { widgets } from './settings/scheduler_settings.js';
+import { widgets } from '../settings/scheduler_settings.js';
 import { app } from "../../../scripts/app.js";
-import { api } from '../../scripts/api.js';
+import { api } from '../../../scripts/api.js';
 import { ComfyWidgets } from "../../../scripts/widgets.js";
 
 app.registerExtension({
