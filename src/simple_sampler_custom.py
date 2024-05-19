@@ -37,7 +37,7 @@ class SimpleSamplerCustom:
                     "vae": ("VAE", ),
                     "add_noise": ("BOOLEAN", {"default": True}),
                     "noise_seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
-                    "steps": ("INT", {"default": 10, "min": 10, "max": 10000}),
+                    "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
                     "cfg": ("FLOAT", {"default": 8.0, "min": 0.0, "max": 100.0, "step":0.1, "round": 0.01}),
                     "sampler_name": (comfy.samplers.KSampler.SAMPLERS, ),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step":0.01, "round": 0.01}),
@@ -151,6 +151,7 @@ class SimpleSamplerCustom:
 
             sigmas = self.get_denoised_sigmas(VPScheduler.get_sigmas(self, steps, beta_d, beta_min, eps_s)[0], denoise)[1]
         elif scheduler_name in comfy.samplers.KSampler.SCHEDULERS:
+            steps = steps / 2
             sigmas = BasicScheduler.get_sigmas(self, model, scheduler_name, steps, denoise)[0]
         else:
             scheduler_settings = self.scheduler_settings.get(scheduler_name)
