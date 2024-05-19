@@ -28,10 +28,9 @@ class LoadLoraFolderNode:
     CATEGORY = "sn0w/lora"
 
     def clean_string(self, input_string):
-        cleaned_string = input_string.replace(r'\(', '(').replace(r'\)', ')')
+        cleaned_string = input_string.replace(r'\(', '').replace(r'\)', '')
         cleaned_string = re.sub(r'[:]+(\d+(\.\d+)?)?', '', cleaned_string)
         cleaned_string = re.sub(r',\s*$', '', cleaned_string.strip())
-        cleaned_string = cleaned_string.replace('(', '').replace(')', '')
         return cleaned_string.lower()
 
     def normalize_folder_name(self, folder_name):
@@ -109,7 +108,7 @@ class LoadLoraFolderNode:
                             if prompt_part not in lora_candidates:
                                 lora_candidates[prompt_part] = []
                             lora_candidates[prompt_part].append({'full_path': full_path, 'distance': distance})
-                            self.logger.log("Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part, "INFORMATIONAL")
+                            self.logger.log("Final: Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part, "DEBUG")
                             break
 
         # Load the best candidate Lora for each prompt part
