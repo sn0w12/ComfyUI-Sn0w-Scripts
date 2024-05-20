@@ -31,6 +31,7 @@ class LoadLoraFolderNode:
         cleaned_string = input_string.replace(r'\(', '').replace(r'\)', '')
         cleaned_string = re.sub(r'[:]+(\d+(\.\d+)?)?', '', cleaned_string)
         cleaned_string = re.sub(r',\s*$', '', cleaned_string.strip())
+        cleaned_string = input_string.replace('(', '').replace(')', '').replace('\\', '')
         return cleaned_string.lower()
 
     def normalize_folder_name(self, folder_name):
