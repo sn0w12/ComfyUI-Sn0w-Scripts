@@ -15,7 +15,7 @@ from .src.load_lora_from_folder import LoadLoraFolderNode
 from .src.textbox import TextboxNode
 from .src.simple_sampler_custom import SimpleSamplerCustom
 from .src.show_sigmas import ShowSigmasNode
-from .src.combine_schedulers import CombineSchedulersNode
+from .src.get_face_tags import GetFaceTags
 
 NODE_CLASS_MAPPINGS = {
     "Find SDXL Resolution": FindResolutionNode,
@@ -34,7 +34,7 @@ NODE_CLASS_MAPPINGS = {
     "Copy/Paste Textbox": TextboxNode,
     "Simple Sampler Custom": SimpleSamplerCustom,
     "Show Sigmas": ShowSigmasNode,
-    "Combine Sigmas": CombineSchedulersNode,
+    "Get Face Tags": GetFaceTags,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -53,7 +53,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Load Lora Folder": "Load Lora Folder",
     "Copy/Paste Textbox": "Textbox",
     "Simple Sampler Custom": "Simple Sampler Custom",
-     "Combine Sigmas": "Combine Sigmas",
+    "Get Face Tags": "Get Face Tags",
 }
 
 WEB_DIRECTORY = "./web"
