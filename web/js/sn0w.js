@@ -105,6 +105,10 @@ export class SettingUtils {
             checkAllLabel.setAttribute("for", checkAllId);
             checkAllLabel.textContent = "Check All";
             checkAllLabel.style.marginRight = "10px";
+
+            checkAllContainer.style.borderBottom = "1px solid var(--border-color)";
+            checkAllContainer.style.paddingBottom = "4px";
+            checkAllContainer.style.marginBottom = "5px";
     
             checkAllContainer.appendChild(checkAllCheckbox);
             checkAllContainer.appendChild(checkAllLabel);
