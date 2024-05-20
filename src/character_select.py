@@ -10,6 +10,7 @@ class CharacterSelectNode:
     character_dict = {}
     final_character_dict = {}
     cached_sorting_setting = ConfigReader.get_setting("sn0w.SortBySeries", False)
+    last_character = ""
 
     logger = Logger()
 
@@ -93,6 +94,8 @@ class CharacterSelectNode:
         else:
             char_item = self.final_character_dict.get(character)
 
+        self.last_character = char_item
+
         if char_item:
             associated_string = char_item['associated_string']
             prompt = char_item['prompt'] if character_prompt else ""
@@ -118,8 +121,16 @@ class CharacterSelectNode:
 
         # Choosing a random character from the filtered list
         if filtered_characters:
-            random_character_name = random.choice(list(filtered_characters.keys()))
-            char_item = filtered_characters[random_character_name]
+            if len(filtered_characters) == 1:
+                random_character_name = random.choice(list(filtered_characters.keys()))
+                char_item = filtered_characters[random_character_name]
+            else:
+                while True:
+                    random_character_name = random.choice(list(filtered_characters.keys()))
+                    char_item = filtered_characters[random_character_name]
+                    if char_item != self.last_character:
+                        break
+
             # Logging the chosen character's name
             self.logger.log("Random Character: " + str(char_item["name"]), "INFORMATIONAL")
             return char_item
