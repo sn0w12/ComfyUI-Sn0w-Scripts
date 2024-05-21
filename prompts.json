@@ -30,7 +30,7 @@
             
             {
                 "name": "Negative Pony",
-                "prompt": "score_6, score_5, score_4, score_3, score_2, score_1, score_0, censored, monochrome, 3d, signature, watermark, username, embedding:zPDXLxxx"
+                "prompt": "score_6, score_5, score_4, score_3, score_2, score_1, score_0, censored, monochrome, 3d, signature, watermark, username, speech bubble, embedding:zPDXLxxx"
             }
         ]
     }
