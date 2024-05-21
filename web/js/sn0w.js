@@ -80,28 +80,40 @@ export class SettingUtils {
     
         // Check if the number of options exceeds the threshold
         if (attrs.options.length > threshold) {
+            // Create search textbox
+            const searchContainer = document.createElement("div");
+            const searchInput = document.createElement("input");
+            searchInput.type = "text";
+            searchInput.placeholder = "Search...";
+            searchInput.style.width = "100%";
+
+            searchContainer.appendChild(searchInput);
+            checkboxContainer.appendChild(searchContainer);
+
             // Create "Check All" checkbox
             const checkAllContainer = document.createElement("div");
             const checkAllCheckbox = document.createElement("input");
             const checkAllLabel = document.createElement("label");
             const checkAllId = `${uniqueId}-check-all`;
-    
+
             checkAllCheckbox.type = "checkbox";
             checkAllCheckbox.id = checkAllId;
             checkAllCheckbox.onchange = () => {
                 const allCheckboxes = checkboxContainer.querySelectorAll('input[type="checkbox"]');
                 allCheckboxes.forEach(checkbox => {
-                    checkbox.checked = checkAllCheckbox.checked;
-                    const optionValue = checkbox.id.split('-').pop();
-                    if (checkAllCheckbox.checked && !values.includes(optionValue)) {
-                        values.push(optionValue);
-                    } else if (!checkAllCheckbox.checked && values.includes(optionValue)) {
-                        values = values.filter(v => v !== optionValue);
+                    if (checkbox !== checkAllCheckbox) {
+                        checkbox.checked = checkAllCheckbox.checked;
+                        const optionValue = checkbox.id.split('-').pop();
+                        if (checkAllCheckbox.checked && !values.includes(optionValue)) {
+                            values.push(optionValue);
+                        } else if (!checkAllCheckbox.checked && values.includes(optionValue)) {
+                            values = values.filter(v => v !== optionValue);
+                        }
                     }
                 });
                 setter(values); // Update the setting with the current array of selected values
             };
-    
+
             checkAllLabel.setAttribute("for", checkAllId);
             checkAllLabel.textContent = "Check All";
             checkAllLabel.style.marginRight = "10px";
@@ -109,18 +121,32 @@ export class SettingUtils {
             checkAllContainer.style.borderBottom = "1px solid var(--border-color)";
             checkAllContainer.style.paddingBottom = "4px";
             checkAllContainer.style.marginBottom = "5px";
-    
+
             checkAllContainer.appendChild(checkAllCheckbox);
             checkAllContainer.appendChild(checkAllLabel);
             checkboxContainer.appendChild(checkAllContainer);
+
+            // Filter checkboxes based on search input
+            searchInput.addEventListener("input", () => {
+                const searchText = searchInput.value.toLowerCase();
+                attrs.options.forEach(option => {
+                    const checkbox = document.getElementById(`${uniqueId}-${option.value}`);
+                    const label = checkbox.nextSibling;
+                    if (option.label.toLowerCase().includes(searchText)) {
+                        checkbox.parentElement.style.display = "";
+                    } else {
+                        checkbox.parentElement.style.display = "none";
+                    }
+                });
+            });
         }
-    
+
         // Create checkboxes based on the options provided in attrs
         attrs.options.forEach(option => {
             const checkbox = document.createElement("input");
             const checkboxLabel = document.createElement("label");
             const checkboxId = `${uniqueId}-${option.value}`;
-    
+
             checkbox.type = "checkbox";
             checkbox.id = checkboxId;
             checkbox.checked = values.includes(option.value);
@@ -131,18 +157,18 @@ export class SettingUtils {
                     values = values.filter(v => v !== option.value);
                 }
                 setter(values); // Update the setting with the current array of selected values
-    
+
                 // Update the "Check All" checkbox if it exists
                 const checkAllCheckbox = document.getElementById(`${uniqueId}-check-all`);
                 if (checkAllCheckbox) {
                     checkAllCheckbox.checked = values.length === attrs.options.length;
                 }
             };
-    
+
             checkboxLabel.setAttribute("for", checkboxId);
             checkboxLabel.textContent = option.label;
             checkboxLabel.style.marginRight = "10px";
-    
+
             const wrapper = document.createElement("div");
             wrapper.appendChild(checkbox);
             wrapper.appendChild(checkboxLabel);
