@@ -6,31 +6,36 @@ const jsonUrls = ['/extensions/ComfyUI-Sn0w-Scripts/settings/characters.json', '
 
 // Function to fetch, sort, and load options from multiple JSON files
 const loadOptionsFromJson = async (urls) => {
-    try {
-        const allData = [];
-        
-        // Fetch data from each URL and combine it into one array
-        for (const url of urls) {
+    const allData = [];
+
+    // Fetch data from each URL and combine it into one array
+    for (const url of urls) {
+        try {
             const response = await fetch(url);
             if (!response.ok) {
-                throw new Error('Network response was not ok for URL: ' + url);
+                console.warn('Network response was not ok for URL: ' + url);
+                continue;
             }
             const data = await response.json();
             allData.push(...data);
+        } catch (error) {
+            console.warn('Failed to fetch or parse JSON from URL: ' + url, error);
         }
+    }
 
-        // Sort the combined data alphabetically by the name property
-        const sortedData = allData.sort((a, b) => a.name.localeCompare(b.name));
-
-        // Map the sorted data to the required format
-        return sortedData.map(item => ({
-            label: item.name,
-            value: item.name.replace(/[^a-z0-9]/gi, '_').toLowerCase() // Sanitize the value
-        }));
-    } catch (error) {
-        console.error('Failed to load options:', error);
+    if (allData.length === 0) {
+        console.error('No data fetched from any URLs');
         return [];
     }
+
+    // Sort the combined data alphabetically by the name property
+    const sortedData = allData.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Map the sorted data to the required format
+    return sortedData.map(item => ({
+        label: item.name,
+        value: item.name.replace(/[^a-z0-9]/gi, '_').toLowerCase() // Sanitize the value
+    }));
 };
 
 // Function to register the setting
