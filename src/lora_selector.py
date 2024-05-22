@@ -1,3 +1,4 @@
+import os
 import folder_paths
 
 class LoraSelectorNode:
@@ -22,10 +23,10 @@ class LoraSelectorNode:
     def process_lora_strength(self, lora, lora_strength, highest_lora, total_loras, add_default_generation):
         # Get the list of lora filenames
         lora_filenames = folder_paths.get_filename_list("loras")
-        lora_filenames = [filename.split('\\')[-1] for filename in lora_filenames]  # Extracting just the filename
+        lora_filenames = [os.path.basename(filename) for filename in lora_filenames]  # Extracting just the filename
 
         # Extract the lora string from the file path
-        lora_string = lora.split('\\')[-1].replace('.safetensors', '')
+        lora_string = os.path.splitext(os.path.basename(lora))[0]
 
         # Check if the lora_string contains a hyphen and split accordingly
         if '-' in lora_string:

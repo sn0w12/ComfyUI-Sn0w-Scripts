@@ -1,3 +1,4 @@
+import os
 import folder_paths
 
 class LoraStackerNode:
@@ -28,7 +29,7 @@ class LoraStackerNode:
         def format_lora(lora, strength):
             if lora.lower() == "none":  # Skip "None" loras
                 return None
-            lora_string = lora.split('\\')[-1].replace('.safetensors', '')
+            lora_string = os.path.splitext(os.path.basename(lora))[0]
             return f"<lora:{lora_string}:{strength:.1f}>"
 
         # Process each lora and its strength, filtering out "None"
