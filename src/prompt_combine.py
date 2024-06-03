@@ -26,6 +26,7 @@ class CombineStringNode:
 
     def simplify_tags(self, tags_string, separator):
         remove_eyes = ['covering eyes', 'over eyes', 'covered eyes', 'covering face', 'covering own eyes', 'facing away', 'blindfold', 'head out of frame', 'face in pillow']
+        remove_face = ['facing away']
         keep_face = ['looking at viewer']
         # dictionary defines categories with specific rules for removing or keeping tags.
         # remove contains phrases that, if found in a prompt, suggest the tag should be removed.
@@ -42,11 +43,11 @@ class CombineStringNode:
                 'keep': keep_face
             },
             'mouth': {
-                'remove': ['facing away'],
+                'remove': remove_face,
                 'keep': keep_face
             },
             'teeth': {
-                'remove': ['facing away'],
+                'remove': remove_face,
                 'keep': keep_face
             },
         }
@@ -113,7 +114,6 @@ class CombineStringNode:
                     index = int(tag[start_index:end_index].strip())
                     tag = tag.replace(f"\0{index}\0", parenthesized_parts[index], 1)
                 except ValueError:
-                    # Handle or log the error appropriately
                     self.logger.log(f"Error converting tag index in tag: {tag}", "ERROR")
                     break
             else:
@@ -126,17 +126,16 @@ class CombineStringNode:
         return simplified_tags_string, removed_tags_string
     
     def format_text(self, tags, separator):
-        numeric_tag_pattern = re.compile(r'\b\d+\+?(girls?|boys?)\b')
         animagine_formatting = ConfigReader.get_setting('sn0w.PromptFormat', False)
+        if animagine_formatting == False:
+            return tags
 
+        numeric_tag_pattern = re.compile(r'\b\d+\+?(girls?|boys?)\b')
         tags = [tag.strip() for tag in tags.split(separator)]
 
-        if animagine_formatting:
-            numeric_tags = [tag for tag in tags if numeric_tag_pattern.match(tag)]
-            non_numeric_tags = [tag for tag in tags if not numeric_tag_pattern.match(tag)]
-            prioritized_tags = numeric_tags + non_numeric_tags
-        else:
-            prioritized_tags = tags
+        numeric_tags = [tag for tag in tags if numeric_tag_pattern.match(tag)]
+        non_numeric_tags = [tag for tag in tags if not numeric_tag_pattern.match(tag)]
+        prioritized_tags = numeric_tags + non_numeric_tags
 
         return separator.join(prioritized_tags).strip(separator)
 
@@ -151,8 +150,12 @@ class CombineStringNode:
         for string in strings:
             if string != "None" and isinstance(string, str):
                 string = string.strip()
+
+                # Check if the string ends with the given separator and remove it if it does
                 if string.endswith(separator.strip()):
                     string = string[:-len(separator.strip())]
+
+                # Add all the words to the set and build the final string
                 if string and string not in combined:
                     final_string = ""
                     words = string.split(separator)
@@ -160,8 +163,11 @@ class CombineStringNode:
                         if word not in all_words:
                             all_words.add(word)
                             final_string += (word + separator)
+                    
+                    # Remove the trailing separator from the final string if it's not empty
                     if final_string:
                         final_string = final_string[:-len(separator)]
+
                     combined.append(final_string)
 
         if simplify:
@@ -169,7 +175,6 @@ class CombineStringNode:
         else:
             final_tags = separator.join(combined)
 
-        if ConfigReader.get_setting('sn0w.PromptFormat', False):
-            final_tags = self.format_text(final_tags, separator)
+        final_tags = self.format_text(final_tags, separator)
 
         return (final_tags, removed_tags,)

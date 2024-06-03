@@ -9,10 +9,12 @@ app.registerExtension({
             nodeType.prototype.onNodeCreated = function () {
                 api.addEventListener('sn0w_get_sigmas', (event) => {
                     const data = event.detail;
-                    console.log(`Recieved ${data}`);
                     if (this.id == data.id) {
                         console.log(`Recieved ${data.sigmas}`);
                         const imageBase64 = SettingUtils.drawSigmas(data.sigmas);
+
+                        console.log(this);
+                        console.log(this.graph)
 
                         // Send the generated image data back to the server
                         api.fetchApi(`${SettingUtils.API_PREFIX}/get_sigmas`, {

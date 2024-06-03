@@ -84,11 +84,11 @@ app.registerExtension({
                     };
                 }
 
-                api.addEventListener('get_scheduler_values', (event) => {
+                api.addEventListener('get_widget_values', (event) => {
                     const data = event.detail
                     const output = getWidgetOutputs(this, data.widgets_needed);
                     if (this.id == data.id) {
-                        api.fetchApi(`${SettingUtils.API_PREFIX}/scheduler_values`, {
+                        api.fetchApi(`${SettingUtils.API_PREFIX}/widget_values`, {
                             method: "POST",
                             headers: {
                               "Content-Type": "application/json",
