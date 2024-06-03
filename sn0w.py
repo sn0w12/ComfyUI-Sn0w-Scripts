@@ -136,6 +136,10 @@ class Utility:
     def generate_uuid():
         return str(uuid.uuid4())
     
+    @staticmethod
+    def get_model_type(model_patcher):
+        return model_patcher.model.__class__.__name__
+    
 class AnyType(str):
     def __ne__(self, __value: object) -> bool:
         return False
@@ -171,8 +175,8 @@ async def handle_update_sorting(request):
     Logger.reload_config()
     return web.json_response({"status": "ok"})
 
-@routes.post(f'{API_PREFIX}/scheduler_values')
-async def handle_scheduler_values(request):
+@routes.post(f'{API_PREFIX}/widget_values')
+async def handle_widget_values(request):
     data = await request.json()
     MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
     return web.json_response({"status": "ok"})

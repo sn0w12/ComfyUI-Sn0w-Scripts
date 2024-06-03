@@ -16,7 +16,6 @@ class LoadLoraFolderNode:
                 "clip": ("CLIP", ),
                 "prompt": ("STRING", {"default": ""}),
                 "folders": ("STRING", {"default": "character:1,concept"}),
-                "model_type": (["SD1", "SDXL", "SVD"], ),
                 "lora_strength": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01}),
                 "separator": ("STRING", {"default": ", "}),
             },
@@ -58,7 +57,7 @@ class LoadLoraFolderNode:
 
         return master_folder, include_folders, exclude_folders
 
-    def find_and_apply_lora(self, model, clip, prompt, folders, model_type, lora_strength, separator):
+    def find_and_apply_lora(self, model, clip, prompt, folders, lora_strength, separator):
         # Set default prompt if None provided
         if prompt is None:
             prompt = ''
@@ -66,10 +65,11 @@ class LoadLoraFolderNode:
         
         # Clean and split the prompt into parts
         prompt_parts = [self.clean_string(part) for part in prompt.split(separator)]
+        model_type = Utility.get_model_type(model)
 
         # Retrieve and filter Lora file paths
         full_lora_paths = folder_paths.get_filename_list("loras")
-        if model_type == "SD1":
+        if model_type == "BaseModel":
             filtered_lora_paths = folder_paths.get_filename_list("loras_15")
         elif model_type == "SDXL":
             filtered_lora_paths = folder_paths.get_filename_list("loras_xl")

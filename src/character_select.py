@@ -69,7 +69,6 @@ class CharacterSelectNode:
         return {
             "required": {
                 "character": (character_names, ),
-                "model_type": (["SD1", "SDXL", "SVD"], ),
                 "character_strength": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.05, "round": 0.01}),
                 "character_prompt": ("BOOLEAN", {"default": False}),
                 "random_character": ("BOOLEAN", {"default": False}),
@@ -82,15 +81,15 @@ class CharacterSelectNode:
             return float("NaN")
 
     RETURN_TYPES = ("STRING", "STRING", any)
-    RETURN_NAMES = ("CHARACTER NAME", "CHARACTER PROMPT", "MODEL_TYPE")
+    RETURN_NAMES = ("CHARACTER NAME", "CHARACTER PROMPT")
     FUNCTION = "find_character"
     CATEGORY = "sn0w"
         
-    def find_character(self, character, character_strength, character_prompt, model_type, random_character):
+    def find_character(self, character, character_strength, character_prompt, random_character):
         if random_character:
             char_item = self.select_random_character()
         elif character == "None":
-            return ("", "", model_type,)
+            return ("", "",)
         else:
             char_item = self.final_character_dict.get(character)
 
@@ -102,9 +101,9 @@ class CharacterSelectNode:
             strength_part = f":{character_strength}" if character_strength != 1 else ""
 
             if associated_string:
-                return (f"({associated_string}{strength_part}), ", prompt, model_type,)
+                return (f"({associated_string}{strength_part}), ", prompt,)
             else:
-                return ("", prompt, model_type,)
+                return ("", prompt,)
 
         return ("", "", "",)
     

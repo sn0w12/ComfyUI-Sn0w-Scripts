@@ -2,7 +2,7 @@ from nodes import VAEDecode, EmptyLatentImage, CLIPTextEncode
 from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler, PolyexponentialScheduler, VPScheduler, SplitSigmasDenoise
 from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
 from server import PromptServer
-from ..sn0w import Logger, MessageHolder
+from ..sn0w import Logger, MessageHolder, Utility
 from .custom_schedulers.custom_schedulers import CustomSchedulers
 from .show_sigmas import ShowSigmasNode
 import comfy.samplers
@@ -32,7 +32,6 @@ class SimpleSamplerCustom:
         return {
                 "required": {
                     "model": ("MODEL",),
-                    "model_type": (["SD1", "SDXL", "SVD"], ),
                     "clip": ("CLIP", ),
                     "vae": ("VAE", ),
                     "add_noise": ("BOOLEAN", {"default": True}),
@@ -63,7 +62,7 @@ class SimpleSamplerCustom:
 
     CATEGORY = "sampling/custom_sampling"
 
-    def sample(self, model, model_type, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, denoise, **kwargs):
+    def sample(self, model, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, denoise, **kwargs):
         custom_sampler = SamplerCustom()
         vae_decode = VAEDecode()
         text_encode = CLIPTextEncode()
@@ -71,6 +70,8 @@ class SimpleSamplerCustom:
         # Encode inputs
         positive_prompt = self.get_prompt("positive", text_encode, clip, kwargs)
         negative_prompt = self.get_prompt("negative", text_encode, clip, kwargs)
+
+        model_type = Utility.get_model_type(model)
 
         # Create latent
         if 'latent (optional)' in kwargs and kwargs['latent (optional)'] is not None:
@@ -112,7 +113,7 @@ class SimpleSamplerCustom:
         return (sampler, )
     
     def get_scheduler_values(self, unique_id, widgets_needed):
-        PromptServer.instance.send_sync("get_scheduler_values", {
+        PromptServer.instance.send_sync("get_widget_values", {
             "id": unique_id,
             "widgets_needed": widgets_needed,
         })
@@ -130,6 +131,8 @@ class SimpleSamplerCustom:
             steps = int(steps / denoise)
 
         if scheduler_name == "align_your_steps":
+            if (model_type == "BaseModel"):
+                model_type = "SD1"
             sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, denoise)[0]
         elif scheduler_name == "polyexponential":
             values = self.get_scheduler_values(unique_id, ["sigma_max_poly", "sigma_min_poly", "rho"])
