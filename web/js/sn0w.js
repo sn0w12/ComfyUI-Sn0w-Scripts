@@ -42,6 +42,10 @@ export class SettingUtils {
     }
 
     static createCheckboxSetting(name, setter, value, attrs) {
+        // Define the threshold for showing the "Check All" checkbox
+        const threshold = 10;
+        const hideThreshold = 5;
+
         const tr = document.createElement("tr");
         const tdLabel = document.createElement("td");
         const tdInput = document.createElement("td");
@@ -59,24 +63,24 @@ export class SettingUtils {
         checkboxContainer.style.display = "block"; // Ensure it is initially visible
     
         // Hide button
-        const hideButton = document.createElement("button");
-        hideButton.textContent = "Show";
-        checkboxContainer.style.display = "none";
-        hideButton.onclick = () => {
-            checkboxContainer.style.display = checkboxContainer.style.display === "none" ? "block" : "none";
-            hideButton.textContent = checkboxContainer.style.display === "none" ? "Show" : "Hide";
-            hideButton.style.marginBottom = checkboxContainer.style.display === "none" ? "0px" : "5px";
-        };
-        hideButton.style.width = "100%";
+        if (attrs.options.length > hideThreshold) {
+            const hideButton = document.createElement("button");
+            hideButton.textContent = "Show";
+            checkboxContainer.style.display = "none";
+            hideButton.onclick = () => {
+                checkboxContainer.style.display = checkboxContainer.style.display === "none" ? "block" : "none";
+                hideButton.textContent = checkboxContainer.style.display === "none" ? "Show" : "Hide";
+                hideButton.style.marginBottom = checkboxContainer.style.display === "none" ? "0px" : "5px";
+            };
+            hideButton.style.width = "100%";
+            
+            // Append the hide button before the checkboxes
+            tdInput.appendChild(hideButton);
+        }
     
-        // Append the hide button before the checkboxes
-        tdInput.appendChild(hideButton);
     
         // Initialize values array based on the default value
         let values = Array.isArray(value) ? value : [value];
-    
-        // Define the threshold for showing the "Check All" checkbox
-        const threshold = 10;
     
         // Check if the number of options exceeds the threshold
         if (attrs.options.length > threshold) {
