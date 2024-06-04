@@ -46,6 +46,7 @@ class ConfigReader:
             path = ConfigReader.DEFAULT_PATH
         else:
             ConfigReader.print_sn0w(f"Local configuration file not found at either {ConfigReader.PORTABLE_PATH} or {ConfigReader.DEFAULT_PATH}.", "\033[0;33m")
+            return default
 
         try:
             with open(path, 'r') as file:
