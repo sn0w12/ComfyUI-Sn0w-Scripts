@@ -29,6 +29,9 @@ async function addStarsToFavouritedLoras() {
     const menuEntries = document.querySelectorAll('.litemenu-entry');
     const highlightLora = await SettingUtils.getSetting("sn0w.HighlightLoras");
 
+    const root = document.documentElement;
+    const comfyMenuBgColor = SettingUtils.hexToRgb(getComputedStyle(root).getPropertyValue('--comfy-menu-bg').trim());
+
     menuEntries.forEach(entry => {
         const value = entry.getAttribute('data-value');
         let filename = value;
@@ -41,15 +44,21 @@ async function addStarsToFavouritedLoras() {
             // Create star element
             const star = document.createElement('span');
             star.innerHTML = '★';
-            star.style.cssFloat = 'right';
+            star.style.marginLeft = 'auto'; // Push the star to the right
+            star.style.alignSelf = 'center'; // Center the star vertically
+
+            // Ensure the entry uses flexbox for alignment
+            entry.style.display = 'flex';
+            entry.style.alignItems = 'center';
 
             // Check if star is already added to avoid duplication
             if (!entry.querySelector('span')) {
                 entry.appendChild(star);
             }
 
-            // If user has selected to highlight loras and the lora isn't selected
-            if (highlightLora && entry.getAttribute('style') === null) {
+            // If user has selected to highlight loras and the lora doesn't already have a specified background color
+            const currentBgColor = window.getComputedStyle(entry).backgroundColor;
+            if (highlightLora && currentBgColor === comfyMenuBgColor) {
                 entry.setAttribute( 'style', 'background-color: green !important' );
             }
         }
