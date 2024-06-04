@@ -169,6 +169,29 @@ class Utility:
     def get_model_type(model_patcher):
         return model_patcher.model.__class__.__name__
     
+    @classmethod
+    def put_favourite_on_top(cls, setting, arr):
+        # Convert to a list if its a dictionary
+        if type(arr) == dict:
+            arr = list(arr.keys())
+
+        favourites = ConfigReader.get_setting(setting, [])
+        # Create an empty list to store the prioritized list
+        prioritized = []
+
+        # Iterate through filtered loras
+        for item in arr:
+            # Check for partial match (case-insensitive) with any favorite lora
+            if any(favourite.lower() in item.lower() for favourite in favourites):
+                # Add the matching lora to the prioritized list
+                prioritized.append(item)
+                # Remove the matching lora from filtered_sorted_loras to avoid duplicates
+                arr.remove(item)
+
+        # Append the remaining filtered loras to the prioritized list
+        prioritized.extend(arr)
+        return prioritized
+    
 class AnyType(str):
     def __ne__(self, __value: object) -> bool:
         return False

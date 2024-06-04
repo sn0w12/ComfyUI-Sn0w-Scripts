@@ -1,6 +1,9 @@
+import { api } from '../../../scripts/api.js';
+
 export class SettingUtils {
     static API_PREFIX = '/sn0w';
-
+    
+    // SETTINGS
     static async getSetting(url) {
         try {
             const settingUrl = `/settings/${url}`
@@ -15,19 +18,25 @@ export class SettingUtils {
         }
     }
 
-    static hexToRgb(hex) {
-        // Remove the hash at the start if it's there
-        hex = hex.replace(/^#/, '');
-    
-        // Parse the r, g, b values
-        let bigint = parseInt(hex, 16);
-        let r = (bigint >> 16) & 255;
-        let g = (bigint >> 8) & 255;
-        let b = bigint & 255;
-    
-        return `rgb(${r}, ${g}, ${b})`;
+    // Callback function to add or remove the filename from the settings list
+    static async toggleFavourite(existingList, filename, setting) {
+        try {
+            // Check if the filename is already in the list
+            const index = existingList.indexOf(filename);
+            if (index === -1) {
+                // Add the new filename to the list
+                existingList.push(filename);
+            } else {
+                // Remove the filename from the list
+                existingList.splice(index, 1);
+            }
+
+            // Store the updated list back in the settings
+            await api.storeSetting(setting, existingList)
+        } catch (error) {
+            console.error('Error updating settings:', error);
+        }
     }
-    
 
     static createMultilineSetting(name, setter, value, attrs) {
         const tr = document.createElement("tr");
@@ -223,17 +232,8 @@ export class SettingUtils {
     
         return tr;
     }    
-
-    static debounce(func, delay) {
-        let debounceTimer;
-        return function() {
-            const context = this;
-            const args = arguments;
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => func.apply(context, args), delay);
-        };
-    }
     
+    // WIDGETS
     static hideWidget(node, widget, suffix = "") {
         const CONVERTED_TYPE = "converted-widget";
         if (widget.type?.startsWith(CONVERTED_TYPE)) return;
@@ -278,6 +278,57 @@ export class SettingUtils {
                 showWidget(w);
             }
         }
+    }
+
+    static async addStarsToFavourited(existingList) {
+        const menuEntries = document.querySelectorAll('.litemenu-entry');
+        const highlightLora = await SettingUtils.getSetting("sn0w.HighlightFavourite");
+    
+        const root = document.documentElement;
+        const comfyMenuBgColor = SettingUtils.hexToRgb(getComputedStyle(root).getPropertyValue('--comfy-menu-bg').trim());
+    
+        menuEntries.forEach(entry => {
+            const value = entry.getAttribute('data-value');
+            let filename = value;
+            if (value !== null && value.includes('\\')) {
+                const pathArray = value.split('\\');
+                filename = pathArray[pathArray.length - 1];
+            }
+            
+            if (existingList.includes(filename)) {
+                // Create star element
+                const star = document.createElement('span');
+                star.innerHTML = '★';
+                star.style.marginLeft = 'auto'; // Push the star to the right
+                star.style.alignSelf = 'center'; // Center the star vertically
+    
+                // Ensure the entry uses flexbox for alignment
+                entry.style.display = 'flex';
+                entry.style.alignItems = 'center';
+    
+                // Check if star is already added to avoid duplication
+                if (!entry.querySelector('span')) {
+                    entry.appendChild(star);
+                }
+    
+                // If user has selected to highlight loras and the lora doesn't already have a specified background color
+                const currentBgColor = window.getComputedStyle(entry).backgroundColor;
+                if (highlightLora && currentBgColor === comfyMenuBgColor) {
+                    entry.setAttribute( 'style', 'background-color: green !important' );
+                }
+            }
+        });
+    }
+
+    // MISC
+    static debounce(func, delay) {
+        let debounceTimer;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(context, args), delay);
+        };
     }
 
     static drawSigmas(sigmas) {
@@ -349,5 +400,18 @@ export class SettingUtils {
     
         // Return the canvas content as a Base64 encoded image
         return canvas.toDataURL('image/png');
-    }      
+    }    
+    
+    static hexToRgb(hex) {
+        // Remove the hash at the start if it's there
+        hex = hex.replace(/^#/, '');
+    
+        // Parse the r, g, b values
+        let bigint = parseInt(hex, 16);
+        let r = (bigint >> 16) & 255;
+        let g = (bigint >> 8) & 255;
+        let b = bigint & 255;
+    
+        return `rgb(${r}, ${g}, ${b})`;
+    }
 }

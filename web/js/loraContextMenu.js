@@ -1,77 +1,17 @@
 import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
-import { api } from '../../../scripts/api.js';
 
-let customLoraLoaders = ["Load Lora XL", "Load Lora 1.5"];
-let existingList = [];
-
-// Callback function to add or remove the filename from the settings list
-async function toggleFavouriteLora(filename) {
-    try {
-        // Check if the filename is already in the list
-        const index = existingList.indexOf(filename);
-        if (index === -1) {
-            // Add the new filename to the list
-            existingList.push(filename);
-        } else {
-            // Remove the filename from the list
-            existingList.splice(index, 1);
-        }
-
-        // Store the updated list back in the settings
-        await api.storeSetting('sn0w.FavouriteLoras', existingList);
-    } catch (error) {
-        console.error('Error updating settings:', error);
-    }
-}
-
-async function addStarsToFavouritedLoras() {
-    const menuEntries = document.querySelectorAll('.litemenu-entry');
-    const highlightLora = await SettingUtils.getSetting("sn0w.HighlightLoras");
-
-    const root = document.documentElement;
-    const comfyMenuBgColor = SettingUtils.hexToRgb(getComputedStyle(root).getPropertyValue('--comfy-menu-bg').trim());
-
-    menuEntries.forEach(entry => {
-        const value = entry.getAttribute('data-value');
-        let filename = value;
-        if (value !== null && value.includes('\\')) {
-            const pathArray = value.split('\\');
-            filename = pathArray[pathArray.length - 1];
-        }
-        
-        if (existingList.includes(filename)) {
-            // Create star element
-            const star = document.createElement('span');
-            star.innerHTML = '★';
-            star.style.marginLeft = 'auto'; // Push the star to the right
-            star.style.alignSelf = 'center'; // Center the star vertically
-
-            // Ensure the entry uses flexbox for alignment
-            entry.style.display = 'flex';
-            entry.style.alignItems = 'center';
-
-            // Check if star is already added to avoid duplication
-            if (!entry.querySelector('span')) {
-                entry.appendChild(star);
-            }
-
-            // If user has selected to highlight loras and the lora doesn't already have a specified background color
-            const currentBgColor = window.getComputedStyle(entry).backgroundColor;
-            if (highlightLora && currentBgColor === comfyMenuBgColor) {
-                entry.setAttribute( 'style', 'background-color: green !important' );
-            }
-        }
-    });
-}
-
-const id = "sn0w.HighlightLoras";
+const id = "sn0w.HighlightFavourite";
 const settingDefinition = {
     id,
-    name: "[Sn0w] Highlight Favourite Loras",
+    name: "[Sn0w] Highlight Favourite Items",
     defaultValue: false,
     type: "boolean",
 };
+const favouriteLoraId = "sn0w.FavouriteLoras"
+
+let customLoraLoaders = ["Load Lora XL", "Load Lora 1.5"];
+let existingList = [];
 
 app.registerExtension({
     name: "sn0w.LoraContextMenu",
@@ -81,7 +21,7 @@ app.registerExtension({
     async setup() {
         const customLoraLoadersXL = await SettingUtils.getSetting("sn0w.CustomLoraLoadersXL");
         const customLoraLoaders15 = await SettingUtils.getSetting("sn0w.CustomLoraLoaders15");
-        existingList = await SettingUtils.getSetting("sn0w.FavouriteLoras");
+        existingList = await SettingUtils.getSetting(favouriteLoraId);
 
         if (!Array.isArray(existingList)) {
             existingList = [];
@@ -117,7 +57,7 @@ app.registerExtension({
                     content: isFavourite ? "Unfavourite Lora ☆" : "Favourite Lora ★",
                     disabled: false,
                     callback: () => {
-                        toggleFavouriteLora(filename);
+                        SettingUtils.toggleFavourite(existingList, filename, favouriteLoraId);
                         app.refreshComboInNodes();
                     }
                 };
@@ -133,7 +73,7 @@ app.registerExtension({
 
         var observer = new MutationObserver(function(mutations) {
             if (document.contains(document.getElementsByClassName("litecontextmenu")[0])) {
-                addStarsToFavouritedLoras();
+                SettingUtils.addStarsToFavourited(existingList);
             }
         });
          

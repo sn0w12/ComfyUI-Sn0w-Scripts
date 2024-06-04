@@ -2,7 +2,7 @@ import os
 import folder_paths
 from nodes import LoraLoader
 from pathlib import Path
-from ..sn0w import Logger, ConfigReader
+from ..sn0w import Logger, ConfigReader, Utility
 
 def generate_lora_node_class(lora_type, required_folders = None):
     class DynamicLoraNode:
@@ -31,28 +31,14 @@ def generate_lora_node_class(lora_type, required_folders = None):
                 ]
             else:
                 filtered_sorted_loras = sorted_loras
-
-            favourite_loras = ConfigReader.get_setting("sn0w.FavouriteLoras", [])
-            # Create an empty list to store the prioritized list
-            prioritized_loras = []
-
-            # Iterate through filtered loras
-            for lora in filtered_sorted_loras:
-                # Check for partial match (case-insensitive) with any favorite lora
-                if any(favorite_lora.lower() in lora.lower() for favorite_lora in favourite_loras):
-                    # Add the matching lora to the prioritized list
-                    prioritized_loras.append(lora)
-                    # Remove the matching lora from filtered_sorted_loras to avoid duplicates
-                    filtered_sorted_loras.remove(lora)
-
-            # Append the remaining filtered loras to the prioritized list
-            prioritized_loras.extend(filtered_sorted_loras)
+                
+            filtered_sorted_loras = Utility.put_favourite_on_top("sn0w.FavouriteLoras", filtered_sorted_loras)
 
             return {
                 "required": {
                     "model": ("MODEL",),
                     "clip": ("CLIP",),
-                    "lora": (['None'] + prioritized_loras,),
+                    "lora": (['None'] + filtered_sorted_loras,),
                     "lora_strength": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01}),
                 },
             }

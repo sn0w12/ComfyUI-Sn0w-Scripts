@@ -1,7 +1,7 @@
 import os
 import json
 import random
-from ..sn0w import ConfigReader, Logger, AnyType
+from ..sn0w import ConfigReader, Logger, AnyType, Utility
 
 any = AnyType("*")
 
@@ -57,6 +57,7 @@ class CharacterSelectNode:
             else:
                 cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict)}
 
+            cls.final_character_dict = Utility.put_favourite_on_top("sn0w.FavouriteCharacters", cls.final_character_dict)
             cls.cached_sorting_setting = current_sorting_setting
 
     @classmethod
@@ -65,7 +66,7 @@ class CharacterSelectNode:
             cls.initialize()
         else:
             cls.sort_characters()
-        character_names = ['None'] + list(cls.final_character_dict.keys())
+        character_names = ['None'] + list(cls.final_character_dict)
         return {
             "required": {
                 "character": (character_names, ),
