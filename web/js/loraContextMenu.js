@@ -41,13 +41,15 @@ async function addStarsToFavouritedLoras() {
             // Create star element
             const star = document.createElement('span');
             star.innerHTML = '★';
-            star.style.cssFloat = 'right'; // Align star to the right
+            star.style.cssFloat = 'right';
 
             // Check if star is already added to avoid duplication
             if (!entry.querySelector('span')) {
                 entry.appendChild(star);
             }
-            if (highlightLora) {
+
+            // If user has selected to highlight loras and the lora isn't selected
+            if (highlightLora && entry.getAttribute('style') === null) {
                 entry.setAttribute( 'style', 'background-color: green !important' );
             }
         }
@@ -63,9 +65,9 @@ const settingDefinition = {
 };
 
 app.registerExtension({
-    name: id,
+    name: "sn0w.LoraContextMenu",
     init() {
-        setting = app.ui.settings.addSetting(settingDefinition);
+        let setting = app.ui.settings.addSetting(settingDefinition);
     },
     async setup() {
         const customLoraLoadersXL = await SettingUtils.getSetting("sn0w.CustomLoraLoadersXL");
