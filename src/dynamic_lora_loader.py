@@ -1,8 +1,7 @@
-import os
 import folder_paths
 from nodes import LoraLoader
 from pathlib import Path
-from ..sn0w import Logger, ConfigReader, Utility
+from ..sn0w import Logger, Utility
 
 def generate_lora_node_class(lora_type, required_folders = None):
     class DynamicLoraNode:
