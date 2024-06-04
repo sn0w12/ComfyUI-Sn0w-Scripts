@@ -8,40 +8,54 @@ from server import PromptServer
 from aiohttp import web
 
 class ConfigReader:
-    portable = False
+    DEFAULT_PATH = os.path.abspath(os.path.join(os.getcwd(), 'user/default/comfy.settings.json'))
+    PORTABLE_PATH = os.path.abspath(os.path.join(os.getcwd(), 'ComfyUI/user/default/comfy.settings.json'))
+
+    portable = None
 
     @classmethod
     def print_sn0w(cls, message, color):
         print(f"{color}[sn0w] \033[0m{message}")
-
+    
     @classmethod
-    def load_settings(cls, setting_id, default, path):
-        file_path = os.path.abspath(os.path.join(os.getcwd(), path))
-        with open(file_path, 'r') as file:
-            settings = json.load(file)
-        return settings.get(setting_id, default)
+    def is_comfy_portable(cls):
+        if cls.portable != None:
+            return cls.portable
+        
+        # Check if default exists
+        if os.path.isfile(cls.DEFAULT_PATH):
+            cls.portable = False
+            return False
+        
+        # Check if portable exists
+        if os.path.isfile(cls.PORTABLE_PATH):
+            cls.portable = True
+            return True
+        
+        # If neither exist, 
+        return None
 
     @staticmethod
     def get_setting(setting_id, default=None):
-        # Get file path based on run file
-        file_path = os.path.abspath(os.path.join(os.getcwd(), 'user/default/comfy.settings.json'))
+        # Check if the user is using portable or default ComfyUI
+        is_portable = ConfigReader.is_comfy_portable()
+
+        if is_portable:
+            path = ConfigReader.PORTABLE_PATH
+        elif not is_portable:
+            path = ConfigReader.DEFAULT_PATH
+        else:
+            ConfigReader.print_sn0w(f"Local configuration file not found at either {ConfigReader.PORTABLE_PATH} or {ConfigReader.DEFAULT_PATH}.", "\033[0;33m")
+
         try:
-            if ConfigReader.portable:
-                return ConfigReader.load_settings(setting_id, default, 'ComfyUI/user/default/comfy.settings.json')
-            else:
-                return ConfigReader.load_settings(setting_id, default, 'user/default/comfy.settings.json')
+            with open(path, 'r') as file:
+                settings = json.load(file)
+            return settings.get(setting_id, default)
         except FileNotFoundError:
-            ConfigReader.print_sn0w(f"Local configuration file not found at {file_path}. Checking for portable ComfyUI", "\033[0;33m")
-            # Check if user is running portable ComfyUI
-            try: 
-                settings = ConfigReader.load_settings(setting_id, default, 'ComfyUI/user/default/comfy.settings.json')
-                ConfigReader.portable = True
-                return settings
-            except:
-                ConfigReader.print_sn0w(f"Local configuration file not found at {file_path}.", "\033[0;33m")
-                return default
+            ConfigReader.print_sn0w(f"Local configuration file not found at {path}.", "\033[0;33m")
+            return default
         except json.JSONDecodeError:
-            ConfigReader.print_sn0w(f"Error decoding JSON from {file_path}.", "\033[0;31m")
+            ConfigReader.print_sn0w(f"Error decoding JSON from {path}.", "\033[0;31m")
             return default
 
 class Logger:
