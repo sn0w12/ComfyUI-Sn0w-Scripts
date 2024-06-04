@@ -9,6 +9,7 @@ class CharacterSelectNode:
     # Initialize class variables
     character_dict = {}
     final_character_dict = {}
+    final_characters = []
     cached_sorting_setting = ConfigReader.get_setting("sn0w.SortBySeries", False)
     last_character = ""
 
@@ -60,15 +61,15 @@ class CharacterSelectNode:
             cls.cached_sorting_setting = current_sorting_setting
         
         # Put favourite characters on top
-        cls.final_character_dict = Utility.put_favourite_on_top("sn0w.FavouriteCharacters", cls.final_character_dict)
+        cls.final_characters = Utility.put_favourite_on_top("sn0w.FavouriteCharacters", cls.final_character_dict)
 
     @classmethod
     def INPUT_TYPES(cls):
-        if not cls.final_character_dict:  # Check if initialization is needed
+        if not cls.final_characters:  # Check if initialization is needed
             cls.initialize()
         else:
             cls.sort_characters()
-        character_names = ['None'] + list(cls.final_character_dict)
+        character_names = ['None'] + list(cls.final_characters)
         return {
             "required": {
                 "character": (character_names, ),
