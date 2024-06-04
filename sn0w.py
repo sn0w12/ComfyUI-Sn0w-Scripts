@@ -176,6 +176,8 @@ class Utility:
             arr = list(arr.keys())
 
         favourites = ConfigReader.get_setting(setting, [])
+        if favourites == None:
+            return arr
         # Create an empty list to store the prioritized list
         prioritized = []
 
