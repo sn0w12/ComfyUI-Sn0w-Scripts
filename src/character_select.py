@@ -57,8 +57,10 @@ class CharacterSelectNode:
             else:
                 cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict)}
 
-            cls.final_character_dict = Utility.put_favourite_on_top("sn0w.FavouriteCharacters", cls.final_character_dict)
             cls.cached_sorting_setting = current_sorting_setting
+        
+        # Put favourite characters on top
+        cls.final_character_dict = Utility.put_favourite_on_top("sn0w.FavouriteCharacters", cls.final_character_dict)
 
     @classmethod
     def INPUT_TYPES(cls):
