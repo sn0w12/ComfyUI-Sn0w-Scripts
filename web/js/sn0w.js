@@ -286,6 +286,26 @@ export class SettingUtils {
     
         const root = document.documentElement;
         const comfyMenuBgColor = SettingUtils.hexToRgb(getComputedStyle(root).getPropertyValue('--comfy-menu-bg').trim());
+
+        // Function to check and update the background color
+        const checkAndUpdateBackgroundColor = (entry, currentBgColor) => {
+            if (highlightLora && currentBgColor == comfyMenuBgColor) {
+                entry.setAttribute('style', 'background-color: green !important');
+            }
+        };
+
+        const observerConfig = { attributes: true, attributeFilter: ['style'] };
+
+        // Create the observer
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    const entry = mutation.target;
+                    const currentBgColor = window.getComputedStyle(entry).backgroundColor;
+                    checkAndUpdateBackgroundColor(entry, currentBgColor);
+                }
+            });
+        });
     
         menuEntries.forEach(entry => {
             const value = entry.getAttribute('data-value');
@@ -311,11 +331,12 @@ export class SettingUtils {
                     entry.appendChild(star);
                 }
     
-                // If user has selected to highlight loras and the lora doesn't already have a specified background color
+                // Initial background color check
                 const currentBgColor = window.getComputedStyle(entry).backgroundColor;
-                if (highlightLora && currentBgColor === comfyMenuBgColor) {
-                    entry.setAttribute( 'style', 'background-color: green !important' );
-                }
+                checkAndUpdateBackgroundColor(entry, currentBgColor);
+
+                // Attach the observer to the entry
+                observer.observe(entry, observerConfig);
             }
         });
     }
