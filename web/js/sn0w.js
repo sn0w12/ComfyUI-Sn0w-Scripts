@@ -291,6 +291,9 @@ export class SettingUtils {
         const checkAndUpdateBackgroundColor = (entry, currentBgColor) => {
             if (highlightLora && currentBgColor == comfyMenuBgColor) {
                 entry.setAttribute('style', 'background-color: green !important');
+                // Ensure the entry uses flexbox for alignment
+                entry.style.display = 'flex';
+                entry.style.alignItems = 'center';
             }
         };
 
