@@ -30,6 +30,14 @@ loras:
     loras_15: /1.5
 ```
 
+# Major Features
+
+## Lora Management
+A major focus for me was making loras more manageable by letting users create their own lora loaders with specific folder paths and automatically loading loras based on tags. This makes it a lot easier to look through your loras, although also limits what loras you can use depending on your configuration. 
+
+### Favourite Loras & Characters
+The custom lora loaders and the character selecter let you favourite loras and characters that are always at the top of the loaders. The favourite loras are across all your custom lora loaders.
+
 # Nodes
 
 ## Image Processing
