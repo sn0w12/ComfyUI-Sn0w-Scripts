@@ -172,27 +172,31 @@ class Utility:
     @classmethod
     def put_favourite_on_top(cls, setting, arr):
         # Convert to a list if its a dictionary
-        if type(arr) == dict:
+        if isinstance(arr, dict):
             arr = list(arr.keys())
 
         favourites = ConfigReader.get_setting(setting, [])
-        if favourites == None:
+        if favourites is None:
             return arr
-        
+
         # Create an empty list to store the prioritized list
         prioritized = []
 
-        # Iterate through filtered loras
-        for item in arr:
-            # Check for partial match (case-insensitive) with any favorite lora
+        # Create a copy of arr for iteration
+        arr_copy = arr[:]
+
+        # Iterate through the copied array
+        for item in arr_copy:
+            # Check for full match (case-insensitive) with any favorite
             if any(favourite.lower() in item.lower() for favourite in favourites):
-                # Add the matching lora to the prioritized list
+                # Add the matching item to the prioritized list
                 prioritized.append(item)
-                # Remove the matching lora from filtered_sorted_loras to avoid duplicates
+                # Remove the matching item from arr to avoid duplicates
                 arr.remove(item)
 
-        # Append the remaining filtered loras to the prioritized list
+        # Append the remaining items to the prioritized list
         prioritized.extend(arr)
+        
         return prioritized
     
 class AnyType(str):
