@@ -14,18 +14,22 @@ class ConfigReader:
 
     @staticmethod
     def get_setting(setting_id, default=None):
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        # Construct the relative path
-        relative_path = '../../user/default/comfy.settings.json'
-        # Combine paths and normalize it
-        file_path = os.path.abspath(os.path.join(current_dir, relative_path))
+        # Get file path based on run file
+        file_path = os.path.abspath(os.path.join(os.getcwd(), 'user/default/comfy.settings.json'))
         try:
             with open(file_path, 'r') as file:
                 settings = json.load(file)
             return settings.get(setting_id, default)
         except FileNotFoundError:
-            ConfigReader.print_sn0w(f"Local configuration file not found at {file_path}.", "\033[0;33m")
-            return default
+            # Check if user is running portable ComfyUI
+            try: 
+                file_path = os.path.abspath(os.path.join(os.getcwd(), 'ComfyUI/user/default/comfy.settings.json'))
+                with open(file_path, 'r') as file:
+                    settings = json.load(file)
+                return settings.get(setting_id, default)
+            except:
+                ConfigReader.print_sn0w(f"Local configuration file not found at {file_path}.", "\033[0;33m")
+                return default
         except json.JSONDecodeError:
             ConfigReader.print_sn0w(f"Error decoding JSON from {file_path}.", "\033[0;31m")
             return default
