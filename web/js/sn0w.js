@@ -1,6 +1,20 @@
 export class SettingUtils {
     static API_PREFIX = '/sn0w';
 
+    static async getSetting(url) {
+        try {
+            const settingUrl = `/settings/${url}`
+            const response = await fetch(settingUrl);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('There was a problem with the fetch operation:', error);
+        }
+    }
+
     static createMultilineSetting(name, setter, value, attrs) {
         const tr = document.createElement("tr");
         const tdLabel = document.createElement("td");
@@ -59,7 +73,7 @@ export class SettingUtils {
         // Checkbox container
         const checkboxContainer = document.createElement("div");
         checkboxContainer.id = uniqueId;
-        checkboxContainer.style.padding = "5px";
+        //checkboxContainer.style.padding = "5px";
         checkboxContainer.style.display = "block"; // Ensure it is initially visible
     
         // Hide button
