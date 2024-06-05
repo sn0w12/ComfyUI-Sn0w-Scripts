@@ -93,7 +93,7 @@ def parse_custom_lora_loaders(custom_lora_loaders):
             name, _, value = entry.partition(':')
             name = name.strip()
             value = value.strip()
-            required_folders_with_names.append((name, value.split(',')))  # Assuming values are comma-separated
+            required_folders_with_names.append((name, value.split(',')))
     return required_folders_with_names
 
 def generate_and_register_lora_node(lora_type, setting):
