@@ -8,6 +8,9 @@ app.registerExtension({
     name: "sn0w.CharacterContextMenu",
     async setup() {
         existingList = await SettingUtils.getSetting("sn0w.FavouriteCharacters");
+        if (!Array.isArray(existingList)) {
+            existingList = [];
+        }
 
         const original_getNodeMenuOptions = app.canvas.getNodeMenuOptions;
         app.canvas.getNodeMenuOptions = function (node) {
