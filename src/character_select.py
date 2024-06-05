@@ -84,7 +84,7 @@ class CharacterSelectNode:
         if kwargs["random_character"]:
             return float("NaN")
 
-    RETURN_TYPES = ("STRING", "STRING", any)
+    RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("CHARACTER NAME", "CHARACTER PROMPT")
     FUNCTION = "find_character"
     CATEGORY = "sn0w"
@@ -109,7 +109,7 @@ class CharacterSelectNode:
             else:
                 return ("", prompt,)
 
-        return ("", "", "",)
+        return ("", "",)
     
     def sanitize_name(self, name):
         # Sanitize the name to match the format used in the exclusion list
