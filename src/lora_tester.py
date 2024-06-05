@@ -1,21 +1,23 @@
-from nodes import KSampler, KSamplerAdvanced, VAEDecode, VAEEncode, EmptyLatentImage, LoraLoader, ImageScaleBy, CLIPTextEncode
+from nodes import KSampler, KSamplerAdvanced, VAEDecode, VAEEncode, EmptyLatentImage, LoraLoader, CLIPTextEncode
 from ..sn0w import Utility
-from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel
+from .upscale_with_model_by import UpscaleImageBy
 import comfy.samplers
 import folder_paths
 
 class LoraTestNode:
     @classmethod
     def INPUT_TYPES(s):
-        return {"required":
-                    {"model": ("MODEL",),
+        return {
+                "required":
+                {
+                    "model": ("MODEL",),
                     "clip": ("CLIP", ),
                     "vae": ("VAE", ),
                     "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                     "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
                     "cfg": ("FLOAT", {"default": 8.0, "min": 0.0, "max": 100.0, "step":0.1, "round": 0.01}),
-                    "width": ("INT", {"default": 0, "min": 0}),
-                    "height": ("INT", {"default": 0, "min": 0}),
+                    "width": ("INT", {"default": 0, "min": 1}),
+                    "height": ("INT", {"default": 0, "min": 1}),
                     "sampler_name": (comfy.samplers.KSampler.SAMPLERS, ),
                     "scheduler": (comfy.samplers.KSampler.SCHEDULERS, ),
                     "positive": ("STRING", {"default": ""}),
@@ -23,9 +25,12 @@ class LoraTestNode:
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "lora_info": ("STRING", {"default": ""}),
                     "hires": ("BOOLEAN", {"default": False},),
+                },
+                "optional": {
                     "upscale_model": ("UPSCALE_MODEL",),
-                     }
-                }
+                    "upscale_by": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.01}),
+                },
+            }
 
     RETURN_TYPES = ("IMAGE","INT",)
     RETURN_NAMES = ("IMAGES","TOTAL IMAGES",)
@@ -33,15 +38,14 @@ class LoraTestNode:
 
     CATEGORY = "sampling"
 
-    def sample(self, model, clip, vae, seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, denoise, lora_info, hires, upscale_model):
+    def sample(self, model, clip, vae, seed, steps, cfg, width, height, sampler_name, scheduler, positive, negative, denoise, lora_info, hires, **kwargs):
         k_sampler_node = KSampler()
         k_sampleradvanced_node = KSamplerAdvanced()
         vae_decode = VAEDecode()
         vae_encode = VAEEncode()
         text_encode = CLIPTextEncode()
         lora_loader = LoraLoader()
-        upscaler = ImageUpscaleWithModel()
-        scale_image = ImageScaleBy()
+        upscaler = UpscaleImageBy()
 
         latent_image = EmptyLatentImage().generate(width, height)[0]
 
@@ -86,13 +90,12 @@ class LoraTestNode:
                 # Decode the samples
                 image = vae_decode.decode(vae, samples)[0]
                 
-                upscaled_image = upscaler.upscale(upscale_model, image)[0]
-                upscaled_image = scale_image.upscale(upscaled_image, "nearest-exact", 0.5)[0]
+                upscaled_image = upscaler.upscale(image, kwargs['upscale_by'], kwargs['upscale_model'])[0]
                 upscaled_latent = vae_encode.encode(vae, upscaled_image)[0]
                 if modified:
-                    upscaled_samples = k_sampleradvanced_node.sample(modified_model, "enable", seed, 25, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 20, 1000, "disable")[0]
+                    upscaled_samples = k_sampleradvanced_node.sample(modified_model, "enable", seed, 25, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 15, 1000, "disable")[0]
                 else:
-                    upscaled_samples = k_sampleradvanced_node.sample(model, "enable", seed, 25, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 20, 1000, "disable")[0]
+                    upscaled_samples = k_sampleradvanced_node.sample(model, "enable", seed, 25, cfg, sampler_name, scheduler, positive_prompt, negative_prompt, upscaled_latent, 15, 1000, "disable")[0]
                 image = vae_decode.decode(vae, upscaled_samples)[0]
             else:
                 image = vae_decode.decode(vae, samples)[0]
