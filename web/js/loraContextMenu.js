@@ -10,7 +10,7 @@ const settingDefinition = {
 };
 const favouriteLoraId = "sn0w.FavouriteLoras"
 
-let customLoraLoaders = ["Load Lora XL", "Load Lora 1.5"];
+let loraLoaders = ["Load Lora XL", "Load Lora 1.5", "LoraLoader"];
 let existingList = [];
 
 app.registerExtension({
@@ -38,12 +38,12 @@ app.registerExtension({
         }
 
         // Combine the existing custom loaders with the fetched ones
-        customLoraLoaders = customLoraLoaders.concat(customLoraLoadersXLArray, customLoraLoaders15Array);
+        loraLoaders = loraLoaders.concat(customLoraLoadersXLArray, customLoraLoaders15Array);
 
         const original_getNodeMenuOptions = app.canvas.getNodeMenuOptions;
         app.canvas.getNodeMenuOptions = function (node) {
             const options = original_getNodeMenuOptions.apply(this, arguments);
-            if (customLoraLoaders.includes(node.type)) {
+            if (loraLoaders.includes(node.type)) {
                 const nullIndex = options.indexOf(null);
                 
                 // Check if the filename is in the existingList
