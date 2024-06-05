@@ -43,6 +43,7 @@ Pony Styles:pony/style
 ### Favourite Loras & Characters
 
 The custom lora loaders and the character selecter let you favourite loras and characters that are always at the top of the loaders. The favourite loras are across all your custom lora loaders and the normal lora loader, however the normal one is not sorted correctly.
+
 ![Favourite Showcase](./imgs/favourite_list.png)
 
 # Nodes
