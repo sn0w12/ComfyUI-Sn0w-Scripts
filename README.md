@@ -33,14 +33,22 @@ loras:
 # Major Features
 
 ## Lora Management
-A major focus for me was making loras more manageable by letting users create their own lora loaders with specific folder paths and automatically loading loras based on tags. This makes it a lot easier to look through your loras, although also limits what loras you can use depending on your configuration. 
+
+A major focus for me was making loras more manageable by letting users create their own lora loaders with specific folder paths and automatically loading loras based on tags. This makes it a lot easier to look through your loras, although also limits what loras you can use depending on your configuration. The custom lora loaders are configured in the ComfyUI settings and should look like this:
+```
+ExampleName1:Value1
+Pony Styles:pony/style
+```
 
 ### Favourite Loras & Characters
-The custom lora loaders and the character selecter let you favourite loras and characters that are always at the top of the loaders. The favourite loras are across all your custom lora loaders.
+
+The custom lora loaders and the character selecter let you favourite loras and characters that are always at the top of the loaders. The favourite loras are across all your custom lora loaders and the normal lora loader, however the normal one is not sorted correctly.
+![Favourite Showcase](./imgs/favourite_list.png)
 
 # Nodes
 
 ## Image Processing
+
 Nodes that are specifically for generating and processing images.
 
 ### Simple Sampler Custom
@@ -69,33 +77,8 @@ Nodes that are specifically for generating and processing images.
 >    </details>
 
 ## Lora Management
+
 Nodes that handle lora selection, stacking, and loading.
-
-### Lora Selector
-> Automatically selects X amount of loras between two numbers.
-> <details>
->    <summary>ℹ️ <i>See More Information</i></summary>
->
->    - Loras have to be formatted like the default kohya_ss outputs. (lora_name-000001)
->    - Select the first lora.
->    - Select the number of the highest lora you want to test.
->    - Select the amount of loras you want to test.
->    - Outputs list of loras like this: \<lora:name:strength>
->    - Add default generation adds an extra "nothing" at the end of the list, used in Lora Tester to generate an image without the lora.
-> 
->    ![Lora Selector](./imgs/lora_selector.png)
->    </details>
-
-### Lora Stacker
-> Outputs a list of loras for Lora Tester. Does not load any loras by itself.
-> <details>
->    <summary>ℹ️ <i>See More Information</i></summary>
->
->    - Basically Lora Selector but manual.
->    - Specifically for the lora testers.
-> 
->    ![Lora Stacker](./imgs/lora_stacker.png)
->    </details>
 
 ### Load Lora XL/1.5
 > Normal load lora but from another folder.
@@ -128,6 +111,32 @@ Nodes that handle lora selection, stacking, and loading.
 >    ![Load Lora Folder](./imgs/load_lora_Folder.png)
 >    </details>
 
+### Lora Selector
+> Automatically selects X amount of loras between two numbers.
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    - Loras have to be formatted like the default kohya_ss outputs. (lora_name-000001)
+>    - Select the first lora.
+>    - Select the number of the highest lora you want to test.
+>    - Select the amount of loras you want to test.
+>    - Outputs list of loras like this: \<lora:name:strength>
+>    - Add default generation adds an extra "nothing" at the end of the list, used in Lora Tester to generate an image without the lora.
+> 
+>    ![Lora Selector](./imgs/lora_selector.png)
+>    </details>
+
+### Lora Stacker
+> Outputs a list of loras for Lora Tester. Does not load any loras by itself.
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    - Basically Lora Selector but manual.
+>    - Specifically for the lora testers.
+> 
+>    ![Lora Stacker](./imgs/lora_stacker.png)
+>    </details>
+
 ## Character and Text Processing
 Nodes for selecting and combining character and textual elements.
 
@@ -157,16 +166,6 @@ Nodes for selecting and combining character and textual elements.
 ## Utility Nodes
 Nodes that provide utility functions across the system.
 
-### Find Resolution
-> An easy way to select a width and height.
-> <details>
->    <summary>ℹ️ <i>See More Information</i></summary>
->
->    - Enable flip if you want to swap the resolutions
->
->    ![Find Resolution](./imgs/find_res.png)
->    </details>
-
 ### Get Font Size Node
 > Estimates the optimal font size for text to fit within an image based on Lora information.
 > <details>
@@ -177,6 +176,17 @@ Nodes that provide utility functions across the system.
 >    ![Get Font Size](./imgs/get_font_size.png)
 >    </details>
 
+### Copy/Paste Textbox
+> A multiline textbox with copy and paste functionality
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    ![Textbox](./imgs/textbox.png)
+>    </details>
+
+### Get Face Tags
+> Filters a string to only returns tags that have to do with the head/ face. 
+<br>
 
 # Example Workflows
 ## Lora Tester
