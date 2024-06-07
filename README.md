@@ -2,7 +2,7 @@
     sn0w-scripts
 </h1>
 
-A collection of nodes and improvements created for general ease and testing loras. These are just nodes I made and found useful, they should work with most other nodes. Most nodes that take in a prompt are made with booru tags in mind and might not work as expected with other prompts.
+A collection of nodes and improvements created for general ease and lora management. These are just nodes I made and found useful, they should work with most other nodes. Most nodes that take in a prompt are made with booru tags in mind and might not work as expected with other prompts.
 
 # Get Started
 
