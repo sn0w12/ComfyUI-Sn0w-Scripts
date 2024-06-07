@@ -46,6 +46,38 @@ The custom lora loaders and the character selecter let you favourite loras and c
 
 ![Favourite Showcase](./imgs/favourite_list.png)
 
+## Sigmoid Scheduler
+
+A custom scheduler that generally produces similar quality results as most other schedulers in my testing. However it works very poorly at low steps which may be an issue for some. 
+
+### Sigmoid vs Align your steps
+
+> <details>
+>    <summary><i>Comparisons</i></summary>
+>    Images generated at 20 steps, 8 cfg, 1152 x 896, no upscaling
+>
+>```
+>(score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK:1.1), 1girl, lips, long hair, grey eyes, black coat, medium breasts, cowboy shot, black robe, gold jewelry, looking at viewer, simple background, solo, white background, closed mouth, arms behind back, (red hair, dress, long dress, robe, white dress, gold trim:1.1)
+>```
+>    ![Sigmoid Comparison](./imgs/comparison_1.png)
+>    ```
+>(power \(chainsaw man\), chainsaw man:1.1), blonde hair, cross-shaped pupils, demon girl, demon horns, double-parted bangs, hair between eyes, long hair, red horns, symbol-shaped pupils, yellow eyes, 1girl, black necktie, black pants, collared shirt, double v, looking at viewer, necktie, orange eyes, pants, parted lips, red background, red jacket, sharp teeth, shirt partially tucked in, shirt tucked in, simple background, sleeves past wrists, smile, solo, teeth, v, white shirt, (score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK:1.1)
+>```
+>    ![Sigmoid Comparison](./imgs/comparison_2.png)
+>    ```
+>(score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK:1.1), (makima \(chainsaw man\), chainsaw man:1.1), hair between eyes, long hair, medium breasts, red hair, ringed eyes, yellow eyes, 1836547, 1girl, @ \(symbol\), black necktie, braided ponytail, business suit, collared shirt, formal, light smile, looking at viewer, necktie, office lady, sidelocks, simple background, smile, solo, suit, white shirt
+>```
+>    ![Sigmoid Comparison](./imgs/comparison_3.png)
+>    ```
+>(score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK:1.1), (makima \(chainsaw man\), chainsaw man:1.1), hair between eyes, long hair, medium breasts, red hair, ringed eyes, yellow eyes, 1girl, black jacket, black necktie, black pants, black vest, closed eyes, collared shirt, formal, necktie, pants, shirt tucked in, simple background, sitting, solo, suit jacket, vest, white background, white shirt
+>```
+>    ![Sigmoid Comparison](./imgs/comparison_4.png)
+>    </details>
+
+### Sigmoid graph
+
+![Sigmoid Graph](./imgs/sigmoid_graph.png)
+
 # Nodes
 
 ## Image Processing
