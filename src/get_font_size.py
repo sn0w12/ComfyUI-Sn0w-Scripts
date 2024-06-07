@@ -4,7 +4,7 @@ class GetFontSizeNode:
         return {
             "required": {
                 "image": ("IMAGE", ),
-                "lora_info": ("STRING", {"default": ""}),
+                "text": ("STRING", {"default": ""}),
             },
         }
 
@@ -13,9 +13,9 @@ class GetFontSizeNode:
     FUNCTION = "estimate_font_size"
     CATEGORY = "sn0w"
         
-    def estimate_font_size(self, image, lora_info):
-        loras = lora_info.split(";")
-        longest_string = max(loras, key=len)
+    def estimate_font_size(self, image, text):
+        text = text.split(";")
+        longest_string = max(text, key=len)
         text_length = len(longest_string)
 
         tolerance = 50
