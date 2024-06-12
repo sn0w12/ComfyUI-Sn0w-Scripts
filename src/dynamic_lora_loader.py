@@ -13,8 +13,8 @@ def generate_lora_node_class(lora_type, required_folders = None):
                 # Get the list of filenames based on the lora_type
                 loras = folder_paths.get_filename_list(lora_type)
             except:
-                loras = "ERROR"
-                cls.logger.log(f"Folder path: {lora_type} doesnt exist.", "ERROR")
+                cls.logger.log(f"{lora_type} doesnt exist. Please add {lora_type} to extra_model_paths.yaml", "WARNING")
+                loras = folder_paths.get_filename_list("loras")
             
             # Normalize the paths and sort them alphabetically
             sorted_loras = sorted(loras, key=lambda p: [part.lower() for part in Path(p).parts])

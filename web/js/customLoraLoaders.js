@@ -8,7 +8,7 @@ const tooltip = "Enter each name-value pair on a new line, separated by a colon 
 const xlId = "sn0w.CustomLoraLoadersXL";
 const xlSettingDefinition = {
     id: xlId,
-    name: "[Sn0w] Custom Lora Loaders XL",
+    name: "[Sn0w] Custom Lora Loaders SDXL",
     type: SettingUtils.createMultilineSetting,
     defaultValue: defaultValue,
     attrs: {
@@ -20,7 +20,19 @@ const xlSettingDefinition = {
 const nonXlId = "sn0w.CustomLoraLoaders1.5";
 const nonXlSettingDefinition = {
     id: nonXlId,
-    name: "[Sn0w] Custom Lora Loaders 1.5",
+    name: "[Sn0w] Custom Lora Loaders SD 1.5",
+    type: SettingUtils.createMultilineSetting,
+    defaultValue: defaultValue,
+    attrs: {
+        height: height,
+        tooltip: tooltip,
+    }
+};
+
+const threeId = "sn0w.CustomLoraLoaders3";
+const threeSettingDefinition = {
+    id: threeId,
+    name: "[Sn0w] Custom Lora Loaders SD3",
     type: SettingUtils.createMultilineSetting,
     defaultValue: defaultValue,
     attrs: {
@@ -41,3 +53,4 @@ const registerSetting = (settingDefinition) => {
 
 registerSetting(xlSettingDefinition);
 registerSetting(nonXlSettingDefinition);
+registerSetting(threeSettingDefinition);

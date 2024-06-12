@@ -120,3 +120,4 @@ def generate_and_register_lora_node(lora_type, setting):
 
 generate_and_register_lora_node("loras_xl", "sn0w.CustomLoraLoadersXL")
 generate_and_register_lora_node("loras_15", "sn0w.CustomLoraLoaders1.5")
+generate_and_register_lora_node("loras_3", "sn0w.CustomLoraLoaders3")

@@ -72,6 +72,7 @@ class SimpleSamplerCustom:
         negative_prompt = self.get_prompt("negative", text_encode, clip, kwargs)
 
         model_type = Utility.get_model_type(model)
+        self.logger.log(f"{model_type}", "DEBUG")
 
         # Create latent
         if 'latent (optional)' in kwargs and kwargs['latent (optional)'] is not None:
@@ -133,6 +134,9 @@ class SimpleSamplerCustom:
         if scheduler_name == "align_your_steps":
             if (model_type == "BaseModel"):
                 model_type = "SD1"
+            elif (model_type == "SD3"): # Temporary to make AYS work with sd3 models
+                model_type = "SDXL"
+
             sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, denoise)[0]
         elif scheduler_name == "polyexponential":
             values = self.get_scheduler_values(unique_id, ["sigma_max_poly", "sigma_min_poly", "rho"])

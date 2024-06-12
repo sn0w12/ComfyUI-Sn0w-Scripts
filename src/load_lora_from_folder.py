@@ -68,12 +68,20 @@ class LoadLoraFolderNode:
 
         # Retrieve and filter Lora file paths
         full_lora_paths = folder_paths.get_filename_list("loras")
-        if model_type == "BaseModel":
-            filtered_lora_paths = folder_paths.get_filename_list("loras_15")
-        elif model_type == "SDXL":
-            filtered_lora_paths = folder_paths.get_filename_list("loras_xl")
-        else:
-            filtered_lora_paths = folder_paths.get_filename_list("loras_vd")
+
+        try:
+            if model_type == "BaseModel":
+                filtered_lora_paths = folder_paths.get_filename_list("loras_15")
+            elif model_type == "SDXL":
+                filtered_lora_paths = folder_paths.get_filename_list("loras_xl")
+            elif model_type == "SD3":
+                filtered_lora_paths = folder_paths.get_filename_list("loras_3")
+            else:
+                filtered_lora_paths = folder_paths.get_filename_list("loras_vd")
+        except:
+            self.logger.log(f"Correct lora folder path for \"{model_type}\" doesnt exist. Please add the required lora path to extra_model_paths.yaml", "WARNING")
+            filtered_lora_paths = full_lora_paths
+
         master_folder, include_folders, exclude_folders = self.parse_folders(folders)
 
         # Include only paths in the master folder, if specified
