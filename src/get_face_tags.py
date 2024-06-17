@@ -3,7 +3,7 @@ import re
 
 class GetFaceTags:
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    head_tags_path = os.path.abspath(os.path.join(dir_path, '../web/settings/head_tags.txt'))
+    head_tags_path = os.path.abspath(os.path.join(dir_path, '../web/settings/tags/head_tags.txt'))
 
     # Read the head tags
     with open(head_tags_path, 'r') as file:
