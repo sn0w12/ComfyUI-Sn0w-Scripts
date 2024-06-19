@@ -20,14 +20,15 @@ A collection of nodes and improvements created for general ease and lora managem
 In the ComfyUI settings, you can modify various settings. Some changes will apply immediately, while others require a refresh to take effect.
 
 ## Important Note
-Many of the nodes require these paths to be in your extra_model_paths.yaml (with your real directories of course).
+The custom lora loaders require these paths to be in your extra_model_paths.yaml (with your real directories of course). You only need to add the ones you are actively using. 
 
 ```yaml
 loras:
     base_path: D:/Ai/Lora/loras
 
-    loras_xl: /XL
-    loras_15: /1.5
+    loras_xl: /XL # SDXL
+    loras_15: /1.5 # SD1.5
+    loras_3: /3 # SD3
 ```
 
 # Major Features
@@ -37,8 +38,13 @@ loras:
 A major focus for me was making loras more manageable by letting users create their own lora loaders with specific folder paths and automatically loading loras based on tags. This makes it a lot easier to look through your loras, although also limits what loras you can use depending on your configuration. The custom lora loaders are configured in the ComfyUI settings and should look like this:
 ```
 ExampleName1:Value1
-Pony Styles:pony/style
 ```
+
+You can also make it a lora stack by adding a number to the end:
+```
+Styles XL:style:2
+```
+![Custom Lora Loader](./imgs/custom_lora_loader.png)
 
 ### Favourite Loras & Characters
 
@@ -113,17 +119,12 @@ Nodes that are specifically for generating and processing images.
 
 Nodes that handle lora selection, stacking, and loading.
 
-### Load Lora XL/1.5
+### Load Lora Sn0w
 > Normal load lora but from another folder.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
->    - Add these to your extra_model_paths.yaml (for example):
->    - loras_xl: C:/path/XL
->    - loras_15: C:/path/1.5
->
 >    ![Load Lora](./imgs/load_lora.png)
->    ![Example](./imgs/lora_paths_example.png)
 >    </details>
 
 ### Load Lora Folder
@@ -141,7 +142,7 @@ Nodes that handle lora selection, stacking, and loading.
 >    - Note: You need the loras separated into XL and 1.5 as stated in the `Important Note`.
 >    - Note: Loras need to be named very similarly to the tag, with at most 5 characters different. Words in the lora filename can be separated by spaces or underscores.
 >
->    ![Load Lora Folder](./imgs/load_lora_Folder.png)
+>    ![Load Lora Folder](./imgs/load_lora_folder.png)
 >    </details>
 
 ### Lora Selector
@@ -217,8 +218,13 @@ Nodes that provide utility functions across the system.
 >    ![Textbox](./imgs/textbox.png)
 >    </details>
 
-### Get Face Tags
-> Filters a string to only returns tags that have to do with the head/ face. 
+### Filter Tags
+> Filters a string to only returns tags that have to do with a chosen category. 
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    ![Filter Tags](./imgs/filter_tags.png)
+>    </details>
 <br>
 
 # Example Workflows
