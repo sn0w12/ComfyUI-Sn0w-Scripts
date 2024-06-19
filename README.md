@@ -192,7 +192,6 @@ Nodes for selecting and combining character and textual elements.
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
 >    - If simplify is enabled, the simplification process identifies and removes redundant tags (e.g., when a tag is fully encompassed by another, more descriptive tag) and tags incompatible with factors such as facing away, covered eyes, etc. Any tags that are in parentheses will not be removed.
->    - Simplify will also move 1girl/ 1boy to the front of the prompt to be in line with animagine 3's tagging if the option is enabled.
 > 
 >    ![Prompt Combine](./imgs/prompt_combine.png)
 >    </details>
