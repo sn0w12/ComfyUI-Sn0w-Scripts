@@ -111,16 +111,12 @@ class CharacterSelectNode:
 
         return ("", "",)
     
-    def sanitize_name(self, name):
-        # Sanitize the name to match the format used in the exclusion list
-        return name.lower().replace(" ", "_").replace("(", "_").replace(")", "_").replace("-", "_").replace(",", "_").replace("!", "_").replace(".", "_")
-    
     def select_random_character(self):
         # Fetching the exclusion settings
         exclude_characters = ConfigReader.get_setting("sn0w.ExcludedRandomCharacters", False)
         if (exclude_characters == False):
-            random_character_name = random.choice(list(filtered_characters.keys()))
-            char_item = filtered_characters[random_character_name]
+            random_character_name = random.choice(list(self.final_character_dict.keys()))
+            char_item = self.final_character_dict[random_character_name]
             self.logger.log("Random Character: " + str(char_item["name"]), "INFORMATIONAL")
             return char_item
 
