@@ -14,7 +14,7 @@ from .src.upscale_with_model_by import UpscaleImageBy
 from .src.load_lora_from_folder import LoadLoraFolderNode
 from .src.textbox import TextboxNode
 from .src.simple_sampler_custom import SimpleSamplerCustom
-from .src.get_face_tags import GetFaceTags
+from .src.filter_tags import FilterTags
 
 NODE_CLASS_MAPPINGS = {
     "Lora Selector": LoraSelectorNode,
@@ -29,7 +29,7 @@ NODE_CLASS_MAPPINGS = {
     "Load Lora Folder": LoadLoraFolderNode,
     "Copy/Paste Textbox": TextboxNode,
     "Simple Sampler Custom": SimpleSamplerCustom,
-    "Get Face Tags": GetFaceTags,
+    "Filter Tags": FilterTags,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -45,7 +45,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Load Lora Folder": "Load Lora Folder",
     "Copy/Paste Textbox": "Textbox",
     "Simple Sampler Custom": "Simple Sampler Custom",
-    "Get Face Tags": "Get Face Tags",
+    "Filter Tags": "Filter Tags",
 }
 
 WEB_DIRECTORY = "./web"

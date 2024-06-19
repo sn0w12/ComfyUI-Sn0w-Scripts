@@ -1,13 +1,15 @@
 import os
 import re
 
-class GetFaceTags:
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    head_tags_path = os.path.abspath(os.path.join(dir_path, '../web/settings/tags/head_tags.txt'))
+class FilterTags:
+    filters = ["head_tags", "torso_tags", "appendages_tags"]
 
-    # Read the head tags
-    with open(head_tags_path, 'r') as file:
-        valid_tags = {line.strip().lower() for line in file}
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    tags_paths = {}
+
+    for filter in filters:
+        filter_path = os.path.abspath(os.path.join(dir_path, f'../web/settings/tags/{filter}.txt'))
+        tags_paths[filter] = filter_path
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -15,6 +17,7 @@ class GetFaceTags:
             "required": {
                 "input_string": ("STRING", {"default": ""}),
                 "separator": ("STRING", {"default": ", "}),
+                "tag_category": (cls.filters, ),
             },
         }
 
@@ -23,7 +26,11 @@ class GetFaceTags:
     FUNCTION = "process_tags"
     CATEGORY = "sn0w"
         
-    def process_tags(self, input_string, separator):
+    def process_tags(self, input_string, separator, tag_category):
+        print(self.tags_paths[tag_category])
+        with open(self.tags_paths[tag_category], 'r') as file:
+            valid_tags = {line.strip().lower() for line in file}
+        
         # Split the input string by the separator
         tags = input_string.split(separator)
 
@@ -43,7 +50,7 @@ class GetFaceTags:
             processed_tag = tag.replace('\\', '').strip().replace(' ', '_').lower()
 
             # Check if the tag is in the list of valid tags
-            if processed_tag in self.valid_tags:
+            if processed_tag in valid_tags:
                 # Add the original tag (trimmed) to the return string
                 if return_string:
                     return_string += separator
