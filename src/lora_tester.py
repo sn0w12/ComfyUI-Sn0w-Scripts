@@ -32,8 +32,8 @@ class LoraTestNode:
                 },
             }
 
-    RETURN_TYPES = ("IMAGE","INT",)
-    RETURN_NAMES = ("IMAGES","TOTAL IMAGES",)
+    RETURN_TYPES = ("IMAGE","INT","STRING",)
+    RETURN_NAMES = ("IMAGES","TOTAL IMAGES","LORA INFO",)
     FUNCTION = "sample"
 
     CATEGORY = "sampling"
@@ -108,4 +108,4 @@ class LoraTestNode:
         # Batch the images together
         batched_images = Utility.image_batch(**image_batch_kwargs)
 
-        return (batched_images, len(images))
+        return (batched_images, len(images), lora_info)
