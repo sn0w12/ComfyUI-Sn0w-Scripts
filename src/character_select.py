@@ -117,10 +117,20 @@ class CharacterSelectNode:
     
     def select_random_character(self):
         # Fetching the exclusion settings
-        excluded_characters = ConfigReader.get_setting("sn0w.ExcludedRandomCharacters", [])
+        exclude_characters = ConfigReader.get_setting("sn0w.ExcludedRandomCharacters", False)
+        if (exclude_characters == False):
+            random_character_name = random.choice(list(filtered_characters.keys()))
+            char_item = filtered_characters[random_character_name]
+            self.logger.log("Random Character: " + str(char_item["name"]), "INFORMATIONAL")
+            return char_item
+
+        favourite_characters = ConfigReader.get_setting("sn0w.FavouriteCharacters", [])
+        if (favourite_characters == []):
+            self.logger.log("No valid characters found based on the specified criteria.", "WARNING")
+            return ""
 
         # Filter the characters by excluding the ones in the exclusion list
-        filtered_characters = {name: char for name, char in self.final_character_dict.items() if self.sanitize_name(name) in excluded_characters}
+        filtered_characters = {name: char for name, char in self.final_character_dict.items() if name in favourite_characters}
 
         # Choosing a random character from the filtered list
         if filtered_characters:
