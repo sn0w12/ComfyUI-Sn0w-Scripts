@@ -60,7 +60,7 @@ A custom scheduler that generally produces similar quality results as most other
 
 > <details>
 >    <summary><i>Comparisons</i></summary>
->    Images generated at 20 steps, 8 cfg, 1152 x 896, no upscaling. Sigmoid settings at 20 sigma max, 0 sigma min, 3.5 steepness and 0.8 midpoint ratio.
+>    Images generated at 20 steps, 8 cfg, 1152 x 896, no upscaling.<br> Sigmoid settings at 20 sigma max, 0 sigma min, 3.5 steepness and 0.8 midpoint ratio.
 >
 >```
 >(score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK:1.1), 1girl, lips, long hair, grey eyes, black coat, medium breasts, cowboy shot, black robe, gold jewelry, looking at viewer, simple background, solo, white background, closed mouth, arms behind back, (red hair, dress, long dress, robe, white dress, gold trim:1.1)
