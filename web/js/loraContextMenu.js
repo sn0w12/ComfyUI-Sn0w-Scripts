@@ -10,7 +10,7 @@ const settingDefinition = {
 };
 const favouriteLoraId = "sn0w.FavouriteLoras"
 
-let loraLoaders = ["Load Lora XL", "Load Lora 1.5", "LoraLoader"];
+let loraLoaders = ["Load Lora Sn0w", "LoraLoader"];
 let existingList = [];
 
 app.registerExtension({
@@ -19,26 +19,27 @@ app.registerExtension({
         let setting = app.ui.settings.addSetting(settingDefinition);
     },
     async setup() {
-        const customLoraLoadersXL = await SettingUtils.getSetting("sn0w.CustomLoraLoadersXL");
-        const customLoraLoaders15 = await SettingUtils.getSetting("sn0w.CustomLoraLoaders15");
+        const customLoaderKeys = ["sn0w.CustomLoraLoadersXL", "sn0w.CustomLoraLoaders15", "sn0w.CustomLoraLoaders3"];
+        let customLoraLoadersArrays = [];
+
+        // Fetch and process each custom loader
+        for (const key of customLoaderKeys) {
+            const customLoaders = await SettingUtils.getSetting(key);
+            let customLoaderArray = [];
+            if (customLoaders) {
+                customLoaderArray = customLoaders.split('\n').map(item => item.split(':')[0]);
+            }
+            customLoraLoadersArrays.push(customLoaderArray);
+        }
+
         existingList = await SettingUtils.getSetting(favouriteLoraId);
 
         if (!Array.isArray(existingList)) {
             existingList = [];
         }
 
-        let customLoraLoadersXLArray = [];
-        if (customLoraLoadersXL) {
-            customLoraLoadersXLArray = customLoraLoadersXL.split('\n').map(item => item.split(':')[0]);
-        }
-
-        let customLoraLoaders15Array = [];
-        if (customLoraLoaders15) {
-            customLoraLoaders15Array = customLoraLoaders15.split('\n').map(item => item.split(':')[0]);
-        }
-
         // Combine the existing custom loaders with the fetched ones
-        loraLoaders = loraLoaders.concat(customLoraLoadersXLArray, customLoraLoaders15Array);
+        loraLoaders = loraLoaders.concat(...customLoraLoadersArrays);
 
         const original_getNodeMenuOptions = app.canvas.getNodeMenuOptions;
         app.canvas.getNodeMenuOptions = function (node) {
