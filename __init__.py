@@ -91,10 +91,17 @@ def parse_custom_lora_loaders(custom_lora_loaders):
     entries = custom_lora_loaders.split('\n')
     for entry in entries:
         if entry.strip():  # Make sure the entry is not just whitespace
-            name, _, value = entry.partition(':')
+            name, _, remainder = entry.partition(':')
+            if ':' in remainder:
+                value, _, combos = remainder.partition(':')
+            else:
+                value = remainder
+                combos = 1
+
             name = name.strip()
             value = value.strip()
-            required_folders_with_names.append((name, value.split(',')))
+            combos = int(combos)
+            required_folders_with_names.append((name, value.split(','), combos))
     return required_folders_with_names
 
 def generate_and_register_lora_node(lora_type, setting):
@@ -104,12 +111,12 @@ def generate_and_register_lora_node(lora_type, setting):
     if custom_lora_loaders is not None:
         required_folders_with_names = parse_custom_lora_loaders(custom_lora_loaders)
 
-        for name, folders in required_folders_with_names:
+        for name, folders, combos in required_folders_with_names:
             current_unique_id += 1  # Increment the unique ID for each new class
             unique_id_with_name = str(f"{name}_{current_unique_id}")
             
-            logger.log(f"Adding custom lora loader: {folders}, {unique_id_with_name}", "ALL")
-            DynamicLoraNode = generate_lora_node_class(lora_type, folders)
+            logger.log(f"Adding custom lora loader: {folders}, {unique_id_with_name}, {combos}", "INFORMATIONAL")
+            DynamicLoraNode = generate_lora_node_class(lora_type, folders, combos)
 
             # Update NODE_CLASS_MAPPINGS and NODE_DISPLAY_NAME_MAPPINGS for each generated class
             if name in NODE_CLASS_MAPPINGS:

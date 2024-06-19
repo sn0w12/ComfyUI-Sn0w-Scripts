@@ -3,7 +3,7 @@ from nodes import LoraLoader
 from pathlib import Path
 from ..sn0w import Logger, Utility
 
-def generate_lora_node_class(lora_type, required_folders = None):
+def generate_lora_node_class(lora_type, required_folders = None, combos = 1):
     class DynamicLoraNode:
         logger = Logger()
 
@@ -33,14 +33,24 @@ def generate_lora_node_class(lora_type, required_folders = None):
                 
             filtered_sorted_loras = Utility.put_favourite_on_top("sn0w.FavouriteLoras", filtered_sorted_loras)
 
-            return {
+            inputs = {
                 "required": {
                     "model": ("MODEL",),
                     "clip": ("CLIP",),
-                    "lora": (['None'] + filtered_sorted_loras,),
-                    "lora_strength": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01}),
                 },
             }
+            if combos == 1:
+                inputs["required"][f"lora"] = (['None'] + filtered_sorted_loras,)
+                inputs["required"][f"lora_strength"] = ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01})
+            elif combos < 1:
+                cls.logger.log("Combos cannot be less than 0", "ERROR")
+            else:
+                for idx in range(combos):
+                    suffix = chr(97 + idx)  # 'a', 'b', 'c', etc.
+                    inputs["required"][f"lora_{suffix}"] = (['None'] + filtered_sorted_loras,)
+                    inputs["required"][f"lora_strength_{suffix}"] = ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01})
+
+            return inputs
 
         RETURN_TYPES = ("MODEL", "CLIP",)
         RETURN_NAMES = ("MODEL", "CLIP",)
@@ -48,14 +58,23 @@ def generate_lora_node_class(lora_type, required_folders = None):
         CATEGORY = "sn0w/lora"
         OUTPUT_NODE = True
 
-        def find_lora(self, model, clip, lora, lora_strength):
+        def load_lora(self, model, clip, lora, lora_strength):
             if lora == "None":
                 return (model, clip,)
 
             lora_loader = LoraLoader()
             full_loras_list = folder_paths.get_filename_list("loras")
             full_lora_path = next((full_path for full_path in full_loras_list if lora in full_path), None)
-            modified_model, modified_clip = lora_loader.load_lora(model, clip, full_lora_path, lora_strength, lora_strength)
-            return (modified_model, modified_clip, )
+            return lora_loader.load_lora(model, clip, full_lora_path, lora_strength, lora_strength)
+
+        def find_lora(self, model, clip, **kwargs):
+            if combos == 1:
+                model, clip = self.load_lora(model, clip, kwargs["lora"], kwargs["lora_strength"])
+            else:
+                for idx in range(combos):
+                    suffix = chr(97 + idx)
+                    model, clip = self.load_lora(model, clip, kwargs[f"lora_{suffix}"], kwargs[f"lora_strength_{suffix}"])
+            
+            return (model, clip, )
 
     return DynamicLoraNode
