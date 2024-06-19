@@ -52,7 +52,22 @@ export class SettingUtils {
     
         textarea.id = uniqueId;
         textarea.value = value;
-        textarea.setAttribute("style", `width: 100%; height: ${attrs["height"]}px; resize: none;`);
+        const maxLines = 10;
+        const lineHeight = 15;
+        // Function to set the height based on the number of lines
+        const adjustHeight = () => {
+            const lines = textarea.value.split('\n').length;
+            if (lines > maxLines) {
+                textarea.setAttribute("style", `width: 100%; height: ${lineHeight * maxLines}px; resize: none;`);
+                return;
+            }
+            const height = lines * lineHeight;
+            textarea.setAttribute("style", `width: 100%; height: ${height}px; resize: none;`);
+        };
+
+        adjustHeight();
+        textarea.onchange = () => setter(textarea.value);
+        textarea.addEventListener('input', adjustHeight);
     
         // Apply event handler
         textarea.onchange = () => setter(textarea.value);
