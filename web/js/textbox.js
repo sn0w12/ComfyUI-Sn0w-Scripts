@@ -151,26 +151,7 @@ app.registerExtension({
 
             nodeType.prototype.onNodeCreated = function () {
                 this.populate();
-                // Bind the getTextboxText to this instance
                 this.getTextboxText = this.getTextboxText.bind(this);
-
-                api.addEventListener('textbox', (event) => {
-                    const data = event.detail;
-                    console.log("ID:", data.id);
-                    const outputText = this.getTextboxText();
-                    api.fetchApi(`${SettingUtils.API_PREFIX}/textbox_string`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            node_id: data.id,
-                            outputs: {
-                                output: outputText
-                            }
-                        }),
-                    })
-                })
             }
         }
     },
