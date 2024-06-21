@@ -52,6 +52,12 @@ The custom lora loaders and the character selecter let you favourite loras and c
 
 ![Favourite Showcase](./imgs/favourite_list.png)
 
+## Text Highlighting
+
+Text in the copy/paste textbox can be highlighted when the text is in parentheses.
+
+![Textbox](./imgs/textbox_highlighted.png)
+
 ## Sigmoid Scheduler
 
 A custom scheduler that generally produces similar quality results as most other schedulers in my testing. However it works very poorly at low steps which may be an issue for some. 
@@ -218,7 +224,7 @@ Nodes that provide utility functions across the system.
 >    </details>
 
 ### Filter Tags
-> Filters a string to only returns tags that have to do with a chosen category. 
+> Filters a string to only returns tags that have to do with a chosen category. // WIP
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
