@@ -38,11 +38,11 @@ app.registerExtension({
                     this.inputEl.inputEl.parentNode.insertBefore(this.overlayEl, this.inputEl.inputEl);
 
                     this.inputEl.inputEl.style.background = 'transparent';
-                    this.overlayEl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--comfy-input-bg').trim();
 
                     // Sync text initially and on input
                     this.inputEl.inputEl.addEventListener('input', () => {
                         syncText(this.inputEl.inputEl, this.overlayEl);
+                        setOverlayStyle(this.inputEl, this.overlayEl);
                     });
 
                     const observer = new MutationObserver(() => {
@@ -134,6 +134,7 @@ app.registerExtension({
 
             function setOverlayStyle(inputEl, overlayEl) {
                 const textareaStyle = window.getComputedStyle(inputEl.inputEl);
+                overlayEl.style.backgroundColor = 'var(--comfy-input-bg)';
                 overlayEl.style.position = 'absolute';
                 overlayEl.style.fontFamily = textareaStyle.fontFamily;
                 overlayEl.style.fontSize = textareaStyle.fontSize;
@@ -141,7 +142,7 @@ app.registerExtension({
                 overlayEl.style.lineHeight = textareaStyle.lineHeight;
                 overlayEl.style.letterSpacing = textareaStyle.letterSpacing;
                 overlayEl.style.whiteSpace = textareaStyle.whiteSpace;
-                overlayEl.style.color = textareaStyle.color;
+                overlayEl.style.color = 'rgba(0,0,0,0)';
                 overlayEl.style.padding = textareaStyle.padding;
                 overlayEl.style.boxSizing = textareaStyle.boxSizing;
                 overlayEl.style.zIndex = '1'; // Ensure it's just below the textarea
