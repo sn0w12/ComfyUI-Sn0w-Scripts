@@ -57,6 +57,16 @@ app.registerExtension({
                         characterData: true,
                     });
 
+                    const parentObserver = new MutationObserver(() => {
+                        if (!document.contains(this.inputEl.inputEl)) {
+                            this.overlayEl.remove();
+                        }
+                    });
+
+                    parentObserver.observe(this.inputEl.inputEl.parentNode, {
+                        childList: true
+                    });
+
                     this.inputEl.inputEl.addEventListener('keydown', (event) => {
                         if (event.ctrlKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
                             setTimeout(() => {
@@ -68,6 +78,7 @@ app.registerExtension({
                     setTimeout(() => {
                         syncText(this.inputEl, this.overlayEl);
                         setOverlayPosition(this.inputEl, this.overlayEl);
+                        setOverlayStyle(this.inputEl, this.overlayEl);
                     }, 10);  
                 } else {
                     console.error('Parent node of input element is not available.');
@@ -111,18 +122,19 @@ app.registerExtension({
             }
             
             function setOverlayPosition(inputEl, overlayEl) {
-                // Set the overlay's position and size to match the textarea
                 const textareaStyle = window.getComputedStyle(inputEl.inputEl);
-                overlayEl.style.position = 'absolute';
                 overlayEl.style.left = textareaStyle.left;
                 overlayEl.style.top = textareaStyle.top;
                 overlayEl.style.width = textareaStyle.width;
                 overlayEl.style.height = textareaStyle.height;
-                overlayEl.style.zIndex = '1'; // Ensure it's just below the textarea
-                overlayEl.style.pointerEvents = 'none'; // Allow clicks to pass through
                 overlayEl.style.display = textareaStyle.display;
+                overlayEl.style.transform = textareaStyle.transform;
+                overlayEl.style.transformOrigin = textareaStyle.transformOrigin;
+            }
 
-                // Copy font and other relevant styles
+            function setOverlayStyle(inputEl, overlayEl) {
+                const textareaStyle = window.getComputedStyle(inputEl.inputEl);
+                overlayEl.style.position = 'absolute';
                 overlayEl.style.fontFamily = textareaStyle.fontFamily;
                 overlayEl.style.fontSize = textareaStyle.fontSize;
                 overlayEl.style.fontWeight = textareaStyle.fontWeight;
@@ -132,8 +144,8 @@ app.registerExtension({
                 overlayEl.style.color = textareaStyle.color;
                 overlayEl.style.padding = textareaStyle.padding;
                 overlayEl.style.boxSizing = textareaStyle.boxSizing;
-                overlayEl.style.transform = textareaStyle.transform;
-                overlayEl.style.transformOrigin = textareaStyle.transformOrigin;
+                overlayEl.style.zIndex = '1'; // Ensure it's just below the textarea
+                overlayEl.style.pointerEvents = 'none'; // Allow clicks to pass through
             }
 
             nodeType.prototype.onNodeCreated = function () {
