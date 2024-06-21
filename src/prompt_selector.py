@@ -2,24 +2,30 @@ import os
 import json
 
 class PromptSelectNode:
-    # Determine the base directory path without the src subdirectory
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    if os.sep + "src" in dir_path:
-        dir_path = dir_path.replace(os.sep + "src", "")
+    positive_prompts = {}
+    negative_prompts = {}
 
-    # Define the path to the JSON file containing prompts
-    json_path = os.path.join(dir_path, 'prompts.json')
-    
-    # Load prompts from the JSON file
-    with open(json_path, 'r') as file:
-        prompts = json.load(file)
-    
-    # Separate positive and negative prompts into dictionaries
-    positive_prompts = {item['name']: item['prompt'] for item in prompts[0]['positive']}
-    negative_prompts = {item['name']: item['prompt'] for item in prompts[0]['negative']}
+    @classmethod
+    def load_prompts(cls):
+        # Determine the base directory path without the src subdirectory
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        if os.sep + "src" in dir_path:
+            dir_path = dir_path.replace(os.sep + "src", "")
+
+        # Define the path to the JSON file containing prompts
+        json_path = os.path.join(dir_path, 'prompts.json')
+
+        # Load prompts from the JSON file
+        with open(json_path, 'r') as file:
+            prompts = json.load(file)
+        
+        # Separate positive and negative prompts into dictionaries
+        cls.positive_prompts = {item['name']: item['prompt'] for item in prompts[0]['positive']}
+        cls.negative_prompts = {item['name']: item['prompt'] for item in prompts[0]['negative']}
 
     @classmethod
     def INPUT_TYPES(cls):
+        cls.load_prompts()
         # Generate input types dynamically from the loaded prompts
         positive_prompt_names = ['None'] + list(cls.positive_prompts.keys())
         negative_prompt_names = ['None'] + list(cls.negative_prompts.keys())
