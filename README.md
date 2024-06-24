@@ -26,8 +26,8 @@ The custom lora loaders require these paths to be in your extra_model_paths.yaml
 loras:
     base_path: D:/Ai/Lora/loras
 
-    loras_xl: /XL # SDXL
     loras_15: /1.5 # SD1.5
+    loras_xl: /XL # SDXL
     loras_3: /3 # SD3
 ```
 
@@ -216,11 +216,19 @@ Nodes that provide utility functions across the system.
 >    </details>
 
 ### Copy/Paste Textbox
-> A multiline textbox with copy and paste functionality
+> A multiline textbox with copy and paste functionality.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
 >    ![Textbox](./imgs/textbox.png)
+>    </details>
+
+### Upscale Image With Model By
+> Upscales an image by a certain amount with an upscale model.
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+>    ![Upscaler](./imgs/upscale.png)
 >    </details>
 
 ### Filter Tags
