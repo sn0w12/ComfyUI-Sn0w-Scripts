@@ -7,8 +7,8 @@ import xml.etree.ElementTree as ET
 from difflib import get_close_matches
 
 # Constants
-CHARACTER_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'characters.json'))
-CUSTOM_CHARACTER_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'custom_characters.json'))
+CHARACTER_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../web/settings', 'characters.json'))
+CUSTOM_CHARACTER_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../web/settings', 'custom_characters.json'))
 TAGS_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'danbooru-tags.csv'))
 LOG_FILE_PATH = os.path.abspath('testing/success_log.txt')
 BASE_URL = "https://gelbooru.com/index.php?page=dapi&s=tag&q=index&name="
@@ -101,6 +101,8 @@ low_use_characters = []  # List to store characters with too few uses
 total_valid_characters = 0  # Counter for total valid characters
 good_characters_count = 0  # Counter for good characters
 
+print(f"{GREEN_TEXT}Note:{RESET_TEXT} Warnings for tags do not mean they should be removed, it is just there to make sure there are no misspelt tags")
+
 # Record successful checks and track low use characters
 with open(LOG_FILE_PATH, 'a') as log_file:
     if current_min_uses != MIN_USES:
@@ -151,7 +153,7 @@ with open(LOG_FILE_PATH, 'a') as log_file:
 
 if total_valid_characters > 0:
     good_percentage = (good_characters_count / total_valid_characters) * 100
-    print(f"{good_percentage:.2f}% of characters are good.")
+    print(f"{good_percentage:.2f}% of characters are valid.")
 else:
     print("No valid characters found.")
 
