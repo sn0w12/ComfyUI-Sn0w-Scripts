@@ -20,7 +20,7 @@ A collection of nodes and improvements created for general ease and lora managem
 In the ComfyUI settings, you can modify various settings. Some changes will apply immediately, while others require a refresh to take effect.
 
 ## Important Note
-The custom lora loaders require these paths to be in your extra_model_paths.yaml (with your real directories of course). You only need to add the ones you are actively using. 
+The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using. 
 
 ```yaml
 loras:
