@@ -4,7 +4,7 @@ def generate_scheduler_node_class(settings, get_sigmas_function):
     class DynamicSchedulerNode:
 
         @classmethod
-        def create_setting_entry(setting_type, setting_value):
+        def create_setting_entry(cls, setting_type, setting_value):
             if setting_type == "INT":
                 return ("INT", {"default": setting_value[1], "min": setting_value[2], "max": setting_value[3]})
             elif setting_type == "FLOAT":
