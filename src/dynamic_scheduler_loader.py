@@ -1,4 +1,3 @@
-import torch
 from .custom_schedulers.custom_schedulers import CustomSchedulers
 
 def generate_scheduler_node_class(settings, get_sigmas_function):

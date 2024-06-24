@@ -14,8 +14,6 @@ app.registerExtension({
 
             nodeType.prototype.populate = function() {
                 this.inputEl = this.widgets[0];
-                console.log(nodeType.prototype)
-                console.log(this.inputEl)
 
                 this.addWidget("button", "Copy", "Copy", () => {
                     navigator.clipboard.writeText(this.getTextboxText());
