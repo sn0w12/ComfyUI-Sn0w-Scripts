@@ -1,6 +1,8 @@
+import importlib
 import json
 import os
 from .src.dynamic_lora_loader import generate_lora_node_class
+from .src.dynamic_scheduler_loader import generate_scheduler_node_class
 from .sn0w import ConfigReader, Logger
 
 from .src.lora_selector import LoraSelectorNode
@@ -129,3 +131,26 @@ def generate_and_register_lora_node(lora_type, setting):
 generate_and_register_lora_node("loras_xl", "sn0w.CustomLoraLoadersXL")
 generate_and_register_lora_node("loras_15", "sn0w.CustomLoraLoaders1.5")
 generate_and_register_lora_node("loras_3", "sn0w.CustomLoraLoaders3")
+
+def import_and_register_scheduler_nodes():
+    custom_schedulers_path = os.path.join(os.path.dirname(__file__), 'src', 'custom_schedulers')
+    for filename in os.listdir(custom_schedulers_path):
+        if filename.endswith('.py') and filename != 'custom_schedulers.py':
+            file_path = os.path.join(custom_schedulers_path, filename)
+            module_name = filename[:-3]  # Remove the .py extension
+
+            spec = importlib.util.spec_from_file_location(module_name, file_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            settings = getattr(module, 'settings', None)
+            get_sigmas_function = getattr(module, 'get_sigmas', None)
+
+            if settings and get_sigmas_function:
+                DynamicSchedulerNode = generate_scheduler_node_class(settings, get_sigmas_function)
+                class_name = settings["name"].capitalize() + "Scheduler"
+                
+                NODE_CLASS_MAPPINGS[class_name] = DynamicSchedulerNode
+                NODE_DISPLAY_NAME_MAPPINGS[class_name] = class_name
+
+import_and_register_scheduler_nodes()

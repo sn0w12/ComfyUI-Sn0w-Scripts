@@ -1,9 +1,9 @@
 import torch
 
-# Necessary map for it to work with simple sampler
+# Necessary map for it to work with simple sampler, do not include steps in the settings as it gets added automatically.
 settings = {
     "name": "sigmoid",
-    "settings": { # name: [type, default value, min val, max val, snap to, round] Note: this is only for floats, most inputs are different. 
+    "settings": { # name: [type, default value, min val, max val, snap to, round] Note: this currently only supports floats. 
         "sigma_max_sig": ["FLOAT", 25.0, 0.0, 5000.0, 0.01, False],
         "sigma_min_sig": ["FLOAT", 0.0, 0.0, 5000.0, 0.01, False],
         "steepness": ["FLOAT", 3.5, 0.0, 10.0, 0.01, False],
@@ -11,7 +11,8 @@ settings = {
     }
 }
 
-def get_sigmas(n, sigma_max, sigma_min, steepness=10, midpoint_ratio=0.5, device='cpu'):
+# A scheduler must have a function called "get_sigmas" to work properly, its first input must be the steps for it to work properly.
+def get_sigmas(n, sigma_max_sig, sigma_min_sig, steepness=10, midpoint_ratio=0.5, device='cpu'):
     """
     Generates 'n' sigmas on an S-curve from sigma_max to sigma_min, with a controllable midpoint.
     
@@ -39,6 +40,6 @@ def get_sigmas(n, sigma_max, sigma_min, steepness=10, midpoint_ratio=0.5, device
     sigmoids = 1 / (1 + torch.exp(-steepness * (x / steepness)))
     
     # Map the sigmoid output to the range [sigma_max, sigma_min]
-    sigmas = sigma_max - (sigma_max - sigma_min) * sigmoids
+    sigmas = sigma_max_sig - (sigma_max_sig - sigma_min_sig) * sigmoids
     
     return sigmas
