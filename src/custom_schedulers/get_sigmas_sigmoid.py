@@ -1,9 +1,13 @@
 import torch
 
-# Necessary map for it to work with simple sampler, do not include steps in the settings as it gets added automatically.
+# Define the settings for the sigmoid function scheduler
+# Note: Do not include 'steps' in the settings as it gets added automatically.
+# The settings dictionary should have the same names as the parameters in the get_sigmas function.
 settings = {
     "name": "sigmoid",
-    "settings": { # name: [type, default value, min val, max val, snap to, round] Note: this currently only supports floats. 
+    "settings": {
+        # Format: "parameter_name": [type, default_value, min_value, max_value, step_value, round_flag]
+        # Types supported: FLOAT, INT, STRING, BOOLEAN
         "sigma_max_sig": ["FLOAT", 25.0, 0.0, 5000.0, 0.01, False],
         "sigma_min_sig": ["FLOAT", 0.0, 0.0, 5000.0, 0.01, False],
         "steepness": ["FLOAT", 3.5, 0.0, 10.0, 0.01, False],
@@ -11,7 +15,8 @@ settings = {
     }
 }
 
-# A scheduler must have a function called "get_sigmas" to work properly, its first input must be the steps for it to work properly.
+# A scheduler must have a function called "get_sigmas" to work properly.
+# The first input must be the steps for it to work properly as the steps setting is automatically added.
 def get_sigmas(n, sigma_max_sig, sigma_min_sig, steepness=10, midpoint_ratio=0.5, device='cpu'):
     """
     Generates 'n' sigmas on an S-curve from sigma_max to sigma_min, with a controllable midpoint.
