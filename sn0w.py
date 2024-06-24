@@ -32,7 +32,7 @@ class ConfigReader:
             cls.portable = True
             return True
         
-        # If neither exist, 
+        # If neither exist
         return None
 
     @staticmethod
