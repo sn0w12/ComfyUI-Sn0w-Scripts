@@ -58,11 +58,15 @@ Text in the copy/paste textbox can be highlighted when the text is in parenthese
 
 ![Textbox](./imgs/textbox_highlighted.png)
 
-## Sigmoid Scheduler
+## Custom Schedulers
 
-A custom scheduler that generally produces similar quality results as most other schedulers in my testing. However it works very poorly at low steps which may be an issue for some. 
+You can write your own custom scheduler in `src/custom_schedulers` and they will be added as a custom node, just make sure to follow the example in `get_sigmas_sigmoid.py`
 
-### Sigmoid vs Align your steps
+### Sigmoid Scheduler
+
+A custom scheduler that generally produces similar quality results as most other schedulers in my testing. However it works very poorly at low steps which may be an issue for some. Mostly written as an example for custom schedulers.
+
+#### Sigmoid vs Align your steps
 
 > <details>
 >    <summary><i>Comparisons</i></summary>
@@ -86,7 +90,7 @@ A custom scheduler that generally produces similar quality results as most other
 >    ![Sigmoid Comparison](./imgs/comparison_4.png)
 >    </details>
 
-### Sigmoid graph
+#### Sigmoid graph
 
 ![Sigmoid Graph](./imgs/sigmoid_graph.png)
 
