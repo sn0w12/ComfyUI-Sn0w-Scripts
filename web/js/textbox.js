@@ -1,6 +1,4 @@
-import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
-import { api } from '../../../scripts/api.js';
 
 app.registerExtension({
     name: "sn0w.Textbox",
