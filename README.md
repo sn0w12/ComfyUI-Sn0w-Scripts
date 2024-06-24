@@ -20,7 +20,7 @@ A collection of nodes and improvements created for general ease and lora managem
 In the ComfyUI settings, you can modify various settings. Some changes will apply immediately, while others require a refresh to take effect.
 
 ## Important Note
-The custom lora loaders require these paths to be in your extra_model_paths.yaml (with your real directories of course). You only need to add the ones you are actively using. 
+The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using. 
 
 ```yaml
 loras:
@@ -35,12 +35,12 @@ loras:
 
 ## Lora Management
 
-A major focus for me was making loras more manageable by letting users create their own lora loaders with specific folder paths and automatically loading loras based on tags. This makes it a lot easier to look through your loras, although also limits what loras you can use depending on your configuration. The custom lora loaders are configured in the ComfyUI settings and should look like this:
+A major focus for me was making loras more manageable by letting users create their own lora loaders with specific folder paths and automatically loading loras based on tags. This makes browsing through your Loras much easier, though it may limit which Loras you can use depending on your configuration. You can configure custom Lora loaders in the ComfyUI settings with the following format:
 ```
 ExampleName1:Value1
 ```
 
-You can also make it a lora stack by adding a number to the end:
+To create a Lora stack, add a number to the end:
 ```
 Styles XL:style:2
 ```
@@ -48,21 +48,25 @@ Styles XL:style:2
 
 ### Favourite Loras & Characters
 
-The custom lora loaders and the character selecter let you favourite loras and characters that are always at the top of the loaders. The favourite loras are across all your custom lora loaders and the normal lora loader, however the normal one is not sorted correctly.
+The custom Lora loaders and the character selector feature allow you to mark Loras and characters as favorites, placing them at the top of the loaders for easy access. Favorite Loras are accessible across all your custom Lora loaders and the standard Lora loader, although the standard loader does not sort them correctly.
 
 ![Favourite Showcase](./imgs/favourite_list.png)
 
 ## Text Highlighting
 
-Text in the copy/paste textbox can be highlighted when the text is in parentheses.
+Text in the copy/paste textbox will be highlighted when the text is in parentheses.
 
 ![Textbox](./imgs/textbox_highlighted.png)
 
-## Sigmoid Scheduler
+## Custom Schedulers
 
-A custom scheduler that generally produces similar quality results as most other schedulers in my testing. However it works very poorly at low steps which may be an issue for some. 
+You can write your own custom scheduler in `src/custom_schedulers` and they will be added as a custom node, just make sure to follow the example in `get_sigmas_sigmoid.py`
 
-### Sigmoid vs Align your steps
+### Sigmoid Scheduler
+
+A custom scheduler that generally produces similar quality results as most other schedulers in my testing. However it works very poorly at low steps which may be an issue for some. Mostly written as an example for custom schedulers.
+
+#### Sigmoid vs Align your steps
 
 > <details>
 >    <summary><i>Comparisons</i></summary>
@@ -86,7 +90,7 @@ A custom scheduler that generally produces similar quality results as most other
 >    ![Sigmoid Comparison](./imgs/comparison_4.png)
 >    </details>
 
-### Sigmoid graph
+#### Sigmoid graph
 
 ![Sigmoid Graph](./imgs/sigmoid_graph.png)
 
@@ -245,3 +249,8 @@ Nodes that provide utility functions across the system.
 Note: Uses [ImagesGrid](https://github.com/LEv145/images-grid-comfy-plugin) for making the actual grid from the image output.
 
 ![Lora Tester](./imgs/lora_tester_workflow.png)
+
+## T2I
+My general text to image workflow
+
+![T2I](./imgs/normal_workflow.png)

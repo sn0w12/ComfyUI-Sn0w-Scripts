@@ -14,7 +14,7 @@ class ConfigReader:
     portable = None
 
     @classmethod
-    def print_sn0w(cls, message, color):
+    def print_sn0w(cls, message, color = "\033[0;35m"):
         print(f"{color}[sn0w] \033[0m{message}")
     
     @classmethod
@@ -25,11 +25,13 @@ class ConfigReader:
         # Check if default exists
         if os.path.isfile(cls.DEFAULT_PATH):
             cls.portable = False
+            ConfigReader.print_sn0w(f"Not running portable comfy.")
             return False
         
         # Check if portable exists
         if os.path.isfile(cls.PORTABLE_PATH):
             cls.portable = True
+            ConfigReader.print_sn0w(f"Running portable comfy.")
             return True
         
         # If neither exist
@@ -37,27 +39,31 @@ class ConfigReader:
 
     @staticmethod
     def get_setting(setting_id, default=None):
-        # Check if the user is using portable or default ComfyUI
-        is_portable = ConfigReader.is_comfy_portable()
-
-        if is_portable:
-            path = ConfigReader.PORTABLE_PATH
-        elif not is_portable:
-            path = ConfigReader.DEFAULT_PATH
-        else:
+        # Determine the correct path based on the portable attribute
+        if ConfigReader.portable is None:
             ConfigReader.print_sn0w(f"Local configuration file not found at either {ConfigReader.PORTABLE_PATH} or {ConfigReader.DEFAULT_PATH}.", "\033[0;33m")
             return default
 
+        path = ConfigReader.PORTABLE_PATH if ConfigReader.portable else ConfigReader.DEFAULT_PATH
+
+        # Try to read the settings from the determined path
         try:
             with open(path, 'r') as file:
                 settings = json.load(file)
             return settings.get(setting_id, default)
         except FileNotFoundError:
             ConfigReader.print_sn0w(f"Local configuration file not found at {path}.", "\033[0;33m")
-            return default
         except json.JSONDecodeError:
             ConfigReader.print_sn0w(f"Error decoding JSON from {path}.", "\033[0;31m")
-            return default
+        
+        return default
+        
+    @classmethod
+    def _initialize_portable(cls):
+        cls.is_comfy_portable()
+
+# Initialize portable check when the class is defined
+ConfigReader._initialize_portable()
 
 class Logger:
     PURPLE_TEXT = "\033[0;35m"
@@ -179,24 +185,18 @@ class Utility:
         if favourites is None:
             return arr
 
-        # Create an empty list to store the prioritized list
         prioritized = []
-
-        # Create a copy of arr for iteration
         arr_copy = arr[:]
 
         # Iterate through the copied array
         for item in arr_copy:
             # Check for full match (case-insensitive) with any favorite
             if any(favourite.lower() in item.lower() for favourite in favourites):
-                # Add the matching item to the prioritized list
                 prioritized.append(item)
-                # Remove the matching item from arr to avoid duplicates
                 arr.remove(item)
 
         # Append the remaining items to the prioritized list
         prioritized.extend(arr)
-        
         return prioritized
     
 class AnyType(str):

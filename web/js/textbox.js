@@ -1,6 +1,4 @@
-import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
-import { api } from '../../../scripts/api.js';
 
 app.registerExtension({
     name: "sn0w.Textbox",
@@ -14,8 +12,6 @@ app.registerExtension({
 
             nodeType.prototype.populate = function() {
                 this.inputEl = this.widgets[0];
-                console.log(nodeType.prototype)
-                console.log(this.inputEl)
 
                 this.addWidget("button", "Copy", "Copy", () => {
                     navigator.clipboard.writeText(this.getTextboxText());
