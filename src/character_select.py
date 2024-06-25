@@ -3,7 +3,18 @@ import json
 import random
 from ..sn0w import ConfigReader, Logger, AnyType, Utility
 
+from server import PromptServer
+from aiohttp import web
+
 any = AnyType("*")
+
+routes = PromptServer.instance.routes
+API_PREFIX = '/sn0w'
+
+@routes.post(f'{API_PREFIX}/update_characters')
+async def handle_update_characters(request):
+    CharacterSelectNode.initialize()
+    return web.json_response({"status": "ok"})
 
 class CharacterSelectNode:
     # Initialize class variables
