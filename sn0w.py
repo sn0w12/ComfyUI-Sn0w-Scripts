@@ -175,6 +175,19 @@ class Utility:
     def get_model_type(model_patcher):
         return model_patcher.model.__class__.__name__
     
+    @staticmethod
+    def get_model_type_simple(model_patcher):
+        model_type = Utility.get_model_type(model_patcher)
+
+        if model_type == "BaseModel":
+            return "SD15"
+        elif model_type == "SDXL":
+            return "SDXL"
+        elif model_type == "SD3":
+            return "SD3"
+        
+        return None
+    
     @classmethod
     def put_favourite_on_top(cls, setting, arr):
         # Convert to a list if its a dictionary
