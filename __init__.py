@@ -1,8 +1,9 @@
 import importlib
-import json
 import os
+import folder_paths
 from .src.dynamic_lora_loader import generate_lora_node_class
 from .src.dynamic_scheduler_loader import generate_scheduler_node_class
+from .src.check_folder_paths import check_lora_folders
 from .sn0w import ConfigReader, Logger
 
 from .src.lora_selector import LoraSelectorNode
@@ -51,6 +52,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 }
 
 WEB_DIRECTORY = "./web"
+
+check_lora_folders()
 
 current_unique_id = 0  # Global variable to track the unique ID
 logger = Logger()
