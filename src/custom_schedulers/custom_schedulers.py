@@ -62,6 +62,14 @@ class CustomSchedulers:
                     return (sigmas, )
         raise ValueError(f"No scheduler found with the name {name}")
     
+    def generate_js_object(self, name, settings):
+        """Generate JavaScript object string from settings."""
+        js_obj = f"    \"{name}\": {{\n"
+        for setting, details in settings.items():
+            js_obj += f"        \"{setting}\": {json.dumps(details)},\n"
+        js_obj += "    },\n"
+        return js_obj
+
     def export_scheduler_settings_to_js(self):
         # Go settings directory
         base_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -70,34 +78,34 @@ class CustomSchedulers:
         filepath = os.path.join(target_dir, 'scheduler_settings.js')
         
         # Initialize the JavaScript content with default settings
-        js_content = "const widgets = {\n"
-        js_content += """    "polyexponential": {
-        "sigma_max_poly": ["FLOAT", 14.614642, 0.0, 5000.0, 0.01, false],
-        "sigma_min_poly": ["FLOAT", 0.0291675, 0.0, 5000.0, 0.01, false],
-        "rho": ["FLOAT", 1.0, 0.0, 100.0, 0.01, false]
-    },
-    "vp": {
-        "beta_d": ["FLOAT", 14.0, 0.0, 5000.0, 0.01, false],
-        "beta_min": ["FLOAT", 0.05, 0.0, 5000.0, 0.01, false],
-        "eps_s": ["FLOAT", 0.075, 0.0, 1.0, 0.0001, false]
-    },"""
+        default_settings = {
+            "polyexponential": {
+                "sigma_max_poly": ["FLOAT", 14.614642, 0.0, 5000.0, 0.01, False],
+                "sigma_min_poly": ["FLOAT", 0.0291675, 0.0, 5000.0, 0.01, False],
+                "rho": ["FLOAT", 1.0, 0.0, 100.0, 0.01, False]
+            },
+            "vp": {
+                "beta_d": ["FLOAT", 14.0, 0.0, 5000.0, 0.01, False],
+                "beta_min": ["FLOAT", 0.05, 0.0, 5000.0, 0.01, False],
+                "eps_s": ["FLOAT", 0.075, 0.0, 1.0, 0.0001, False]
+            }
+        }
         
+        js_content = "const widgets = {\n"
+        for name, settings in default_settings.items():
+            js_content += self.generate_js_object(name, settings)
+            
         # Convert the Python dictionary to a JavaScript object
         for name, settings in self.scheduler_defaults.items():
-            if name in ["polyexponential", "vp"]:  # Merge with defaults
+            if name not in default_settings:
+                js_content += self.generate_js_object(name, settings)
+            else:
+                # Merge with defaults
                 js_content += f"    \"{name}\": {{\n"
                 for setting, details in settings.items():
                     js_content += f"        \"{setting}\": {json.dumps(details)},\n"
                 js_content += "    },\n"
-            else:
-                # Add new entries if not already covered by defaults
-                js_content += f"\n    \"{name}\": {{\n"
-                for setting, details in settings.items():
-                    if isinstance(details, list) and len(details) == 6 and details[0] == "FLOAT":
-                        js_content += f"        \"{setting}\": {json.dumps(details)},\n"
-                    else:
-                        print(f"Skipping setting {setting} due to unexpected format: {details}")
-                js_content += "    },\n"
+        
         js_content += "};\n\nexport { widgets };\n"
         
         # Write the JavaScript content to the file
