@@ -52,38 +52,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
 WEB_DIRECTORY = "./web"
 
-settings_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web/settings/sn0w_settings.json'))
-print(settings_path)
-try:
-    with open(settings_path, 'r') as file:
-        sn0w_settings = json.load(file)
-        print(sn0w_settings.get("enable_shitty_nodes"))
-except FileNotFoundError:
-    sn0w_settings = {}
-
-if sn0w_settings.get("enable_shitty_nodes") == True:
-    from .src.find_resolution import FindResolutionNode
-    from .src.perlin_noise import FilmGrain
-    from .src.show_sigmas import ShowSigmasNode
-    from .src.get_gelbooru_tags import GetGelbooruTagsNode
-
-    NODE_CLASS_MAPPINGS_ADD = {
-        "Find SDXL Resolution": FindResolutionNode,
-        "Colored Film Grain": FilmGrain,
-        "Show Sigmas": ShowSigmasNode,
-        "Get Gelbooru Tags": GetGelbooruTagsNode,
-    }
-
-    NODE_DISPLAY_NAME_MAPPINGS_ADD = {
-        "Find SDXL Resolution": "Find SDXL Resolution",
-        "Colored Film Grain": "Colored Film Grain",
-        "Show Sigmas": "Show Sigmas",
-        "Get Gelbooru Tags": "Get Gelbooru Tags",
-    }
-
-    NODE_CLASS_MAPPINGS.update(NODE_CLASS_MAPPINGS_ADD)
-    NODE_DISPLAY_NAME_MAPPINGS.update(NODE_DISPLAY_NAME_MAPPINGS_ADD)
-
 current_unique_id = 0  # Global variable to track the unique ID
 logger = Logger()
 
