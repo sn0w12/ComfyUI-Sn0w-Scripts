@@ -14,10 +14,10 @@ function updateSorting() {
     }, 50);
 }
 
-const id = "sn0w.SortBySeries";
+const id = "sn0w.DisableDefaultCharacters";
 const settingDefinition = {
     id,
-    name: "[Sn0w] Sort Characters By Series",
+    name: "[Sn0w] Disable Default Characters",
     defaultValue: false,
     type: "boolean",
     onChange: () => updateSorting(),

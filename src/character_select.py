@@ -3,7 +3,18 @@ import json
 import random
 from ..sn0w import ConfigReader, Logger, AnyType, Utility
 
+from server import PromptServer
+from aiohttp import web
+
 any = AnyType("*")
+
+routes = PromptServer.instance.routes
+API_PREFIX = '/sn0w'
+
+@routes.post(f'{API_PREFIX}/update_characters')
+async def handle_update_characters(request):
+    CharacterSelectNode.initialize()
+    return web.json_response({"status": "ok"})
 
 class CharacterSelectNode:
     # Initialize class variables
@@ -11,6 +22,7 @@ class CharacterSelectNode:
     final_character_dict = {}
     final_characters = []
     cached_sorting_setting = ConfigReader.get_setting("sn0w.SortBySeries", False)
+    cached_default_character_setting = ConfigReader.get_setting("sn0w.DisableDefaultCharacters", False)
     last_character = ""
 
     logger = Logger()
@@ -25,9 +37,11 @@ class CharacterSelectNode:
 
     @classmethod
     def load_characters(cls, dir_path):
-        json_path = os.path.join(dir_path, 'web/settings/characters.json')
-        with open(json_path, 'r') as file:
-            character_data = json.load(file)
+        character_data = []
+        if (not cls.cached_default_character_setting):
+            json_path = os.path.join(dir_path, 'web/settings/characters.json')
+            with open(json_path, 'r') as file:
+                character_data = json.load(file)
 
         custom_json_path = os.path.join(dir_path, 'web/settings/custom_characters.json')
         if os.path.exists(custom_json_path):
@@ -66,6 +80,9 @@ class CharacterSelectNode:
     @classmethod
     def INPUT_TYPES(cls):
         if not cls.final_characters:  # Check if initialization is needed
+            cls.initialize()
+        elif cls.cached_default_character_setting != ConfigReader.get_setting("sn0w.DisableDefaultCharacters", False):
+            cls.cached_default_character_setting = not cls.cached_default_character_setting
             cls.initialize()
         else:
             cls.sort_characters()
