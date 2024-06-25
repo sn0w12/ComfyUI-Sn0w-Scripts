@@ -47,7 +47,7 @@ export class SettingUtils {
         const textarea = document.createElement("textarea");
     
         // Generate a unique ID for associating the label with the textarea
-        const uniqueId = `custom-setting-${Date.now()}`;
+        const uniqueId = `${name.replaceAll(" ", "").replace("[", "").replace("]", "-")}`;
         label.setAttribute("for", uniqueId);
         label.textContent = name;
     
@@ -105,7 +105,7 @@ export class SettingUtils {
         const label = document.createElement("label");
     
         // Generate a unique ID for the setting container
-        const uniqueId = `custom-setting-${Date.now()}`;
+        const uniqueId = `${name.replaceAll(" ", "").replace("[", "").replace("]", "-")}`;
         label.setAttribute("for", uniqueId);
         label.textContent = name;
     
