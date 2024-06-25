@@ -1,15 +1,14 @@
 import os
 import json
 import random
-from ..sn0w import ConfigReader, Logger, AnyType, Utility
+from ..sn0w import ConfigReader, Logger, AnyType, Utility, MessageHolder
 
-from server import PromptServer
 from aiohttp import web
 
 any = AnyType("*")
 
-routes = PromptServer.instance.routes
-API_PREFIX = '/sn0w'
+routes = MessageHolder.routes
+API_PREFIX = MessageHolder.API_PREFIX
 
 @routes.post(f'{API_PREFIX}/update_characters')
 async def handle_update_characters(request):

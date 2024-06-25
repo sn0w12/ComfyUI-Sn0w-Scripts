@@ -218,6 +218,8 @@ class AnyType(str):
         
 class MessageHolder:
     messages = {}
+    routes = PromptServer.instance.routes
+    API_PREFIX = '/sn0w'
 
     @classmethod
     def addMessage(self, id, message):
@@ -233,8 +235,8 @@ class MessageHolder:
         message = self.messages.pop(str(id),None)
         return message
     
-routes = PromptServer.instance.routes
-API_PREFIX = '/sn0w'
+routes = MessageHolder.routes
+API_PREFIX = MessageHolder.API_PREFIX
 
 @routes.post(f'{API_PREFIX}/textbox_string')
 async def handle_textbox_string(request):
