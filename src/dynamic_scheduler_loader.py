@@ -1,20 +1,9 @@
 from .custom_schedulers.custom_schedulers import CustomSchedulers
+from ..sn0w import Utility
 
 def generate_scheduler_node_class(settings, get_sigmas_function):
     class DynamicSchedulerNode:
-
-        @classmethod
-        def create_setting_entry(cls, setting_type, setting_value):
-            if setting_type == "INT":
-                return ("INT", {"default": setting_value[1], "min": setting_value[2], "max": setting_value[3]})
-            elif setting_type == "FLOAT":
-                return ("FLOAT", {"default": setting_value[1], "min": setting_value[2], "max": setting_value[3], "step": setting_value[4]})
-            elif setting_type == "STRING":
-                return ("STRING", {"default": setting_value[1]})
-            elif setting_type == "BOOLEAN":
-                return ("BOOLEAN", {"default": setting_value[1]})
-            else:
-                raise ValueError(f"Unsupported setting type: {setting_type}")
+        utility = Utility()
 
         @classmethod
         def INPUT_TYPES(cls):
@@ -22,7 +11,7 @@ def generate_scheduler_node_class(settings, get_sigmas_function):
                 "required": {
                     "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
                     **{
-                        key: cls.create_setting_entry(value[0], value)
+                        key: cls.utility.create_setting_entry(value[0], value)
                         for key, value in settings['settings'].items()
                     }
                 }
