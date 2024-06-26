@@ -297,23 +297,4 @@ async def handle_textbox_string(request):
 async def handle_update_sorting(request):
     Logger.reload_config()
     return web.json_response({"status": "ok"})
-
-@routes.post(f'{API_PREFIX}/widget_values')
-async def handle_widget_values(request):
-    data = await request.json()
-    print(data)
-    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
-    return web.json_response({"status": "ok"}, {"data": data})
-
-@routes.post(f'{API_PREFIX}/should_decode_image')
-async def handle_should_decode_image(request):
-    data = await request.json()
-    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
-    return web.json_response({"status": "ok"})
-
-@routes.post(f'{API_PREFIX}/get_sigmas')
-async def handle_get_sigmas(request):
-    data = await request.json()
-    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
-    return web.json_response({"status": "ok"})
     
