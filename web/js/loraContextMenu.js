@@ -45,6 +45,7 @@ app.registerExtension({
         app.canvas.getNodeMenuOptions = function (node) {
             const options = original_getNodeMenuOptions.apply(this, arguments);
             if (loraLoaders.includes(node.type)) {
+                const settingUtils = new SettingUtils()
                 const nullIndex = options.indexOf(null);
                 
                 // Check if the filename is in the existingList
@@ -59,7 +60,7 @@ app.registerExtension({
                     disabled: false,
                     callback: () => {
                         SettingUtils.toggleFavourite(existingList, filename, favouriteLoraId);
-                        app.refreshComboInNodes();
+                        settingUtils.refreshComboInSingleNode(app, node.title);
                     }
                 };
 

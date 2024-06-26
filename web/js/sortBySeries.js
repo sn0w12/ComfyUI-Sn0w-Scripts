@@ -2,7 +2,9 @@ import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
 
-function updateSorting() {
+const settingUtils = new SettingUtils()
+
+function updateSorting(graphCanvas) {
     api.fetchApi(`${SettingUtils.API_PREFIX}/update_characters`, {
         method: "POST",
         headers: {
@@ -10,7 +12,7 @@ function updateSorting() {
         }
     })
     setTimeout(() => {
-        app.refreshComboInNodes();
+        settingUtils.refreshComboInSingleNode(graphCanvas, "Character Selector");
     }, 50);
 }
 
@@ -20,7 +22,7 @@ const settingDefinition = {
     name: "[Sn0w] Sort Characters By Series",
     defaultValue: false,
     type: "boolean",
-    onChange: () => updateSorting(),
+    onChange: () => updateSorting(app),
 };
 
 let setting;

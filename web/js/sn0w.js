@@ -296,6 +296,83 @@ export class SettingUtils {
         }
     }
 
+    async #invokeExtensionsAsync(method, graphCanvas, ...args) {
+		return await Promise.all(
+			graphCanvas.extensions.map(async (ext) => {
+				if (method in ext) {
+					try {
+						return await ext[method](...args, graphCanvas);
+					} catch (error) {
+						console.error(
+							`Error calling extension '${ext.name}' method '${method}'`,
+							{ error },
+							{ extension: ext },
+							{ args }
+						);
+					}
+				}
+			})
+		);
+	}
+
+    async refreshComboInSingleNode(graphCanvas, nodeName) {
+        const defs = await api.getNodeDefs();
+    
+        // Find the node definition by name
+        let nodeDef = null;
+        for (const def of Object.values(defs)) {
+            if (def.name === nodeName) {
+                nodeDef = def;
+                break;
+            }
+        }
+    
+        if (!nodeDef) {
+            throw new Error(`Node definition with name ${nodeName} not found`);
+        }
+    
+        // Find the specific node in the graph by name
+        let node = null;
+        for (const graphNode of Object.values(graphCanvas.graph._nodes)) {
+            if (graphNode.type === nodeDef.name) {
+                node = graphNode;
+                break;
+            }
+        }
+    
+        if (!node) {
+            throw new Error(`Node with name ${nodeName} not found in the graph`);
+        }
+    
+        for(let nodeNum in graphCanvas.graph._nodes) {
+			const node = graphCanvas.graph._nodes[nodeNum];
+            if (node.title == nodeName) {
+                const def = defs[node.type];
+    
+                // Allow primitive nodes to handle refresh
+                node.refreshComboInNode?.(defs);
+    
+                if(!def)
+                    continue;
+    
+                for(const widgetNum in node.widgets) {
+                    const widget = node.widgets[widgetNum]
+                    if(widget.type == "combo" && def["input"]["required"][widget.name] !== undefined) {
+                        widget.options.values = def["input"]["required"][widget.name][0];
+    
+                        if(widget.name != 'image' && !widget.options.values.includes(widget.value)) {
+                            widget.value = widget.options.values[0];
+                            widget.callback(widget.value);
+                        }
+                    }
+                }
+            }
+		}
+    
+        await this.#invokeExtensionsAsync("refreshComboInSingleNodeByName", graphCanvas, defs);
+    }    
+    
+
     static async addStarsToFavourited(existingList) {
         const menuEntries = document.querySelectorAll('.litemenu-entry');
         const highlightLora = await SettingUtils.getSetting("sn0w.HighlightFavourite");
