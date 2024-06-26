@@ -64,13 +64,13 @@ class LoadLoraFolderNode:
         
         # Clean and split the prompt into parts
         prompt_parts = [self.clean_string(part) for part in prompt.split(separator)]
-        model_type = Utility.get_model_type(model)
+        model_type = Utility.get_model_type_simple(model)
 
         # Retrieve and filter Lora file paths
         full_lora_paths = folder_paths.get_filename_list("loras")
 
         try:
-            if model_type == "BaseModel":
+            if model_type == "SD15":
                 filtered_lora_paths = folder_paths.get_filename_list("loras_15")
             elif model_type == "SDXL":
                 filtered_lora_paths = folder_paths.get_filename_list("loras_xl")

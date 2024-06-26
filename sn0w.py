@@ -175,6 +175,19 @@ class Utility:
     def get_model_type(model_patcher):
         return model_patcher.model.__class__.__name__
     
+    @staticmethod
+    def get_model_type_simple(model_patcher):
+        model_type = Utility.get_model_type(model_patcher)
+
+        if model_type == "BaseModel":
+            return "SD15"
+        elif model_type == "SDXL":
+            return "SDXL"
+        elif model_type == "SD3":
+            return "SD3"
+        
+        return None
+    
     @classmethod
     def put_favourite_on_top(cls, setting, arr):
         # Convert to a list if its a dictionary
@@ -199,29 +212,80 @@ class Utility:
         prioritized.extend(arr)
         return prioritized
     
+    @classmethod
+    def create_setting_entry(cls, setting_type, setting_value):
+        if setting_type == "INT":
+            return ("INT", {"default": setting_value[1], "min": setting_value[2], "max": setting_value[3]})
+        elif setting_type == "FLOAT":
+            return ("FLOAT", {"default": setting_value[1], "min": setting_value[2], "max": setting_value[3], "step": setting_value[4]})
+        elif setting_type == "STRING":
+            return ("STRING", {"default": setting_value[1]})
+        elif setting_type == "BOOLEAN":
+            return ("BOOLEAN", {"default": setting_value[1]})
+        else:
+            raise ValueError(f"Unsupported setting type: {setting_type}")
+        
+    @classmethod
+    def get_node_output(cls, data, node_id, output_id):
+        workflow = data.get('workflow', {})
+        nodes = workflow.get('nodes', [])
+
+        for node in nodes:
+            if int(node.get("id")) == int(node_id):
+                for output in node.get('outputs', []):
+                    if int(output['slot_index']) == int(output_id):
+                        return output
+    
 class AnyType(str):
     def __ne__(self, __value: object) -> bool:
         return False
+    
+class Cancelled(Exception):
+    pass
         
 class MessageHolder:
+    stash = {}
     messages = {}
-
-    @classmethod
-    def addMessage(self, id, message):
-        self.messages[str(id)] = message
-
-    @classmethod
-    def waitForMessage(self, id, period = 0.1):
-        sid = str(id)
-
-        while not (sid in self.messages):
-            time.sleep(period)
-
-        message = self.messages.pop(str(id),None)
-        return message
+    cancelled = False
+    routes = PromptServer.instance.routes
+    API_PREFIX = '/api/sn0w'
+    logger = Logger()
     
-routes = PromptServer.instance.routes
-API_PREFIX = '/sn0w'
+    @classmethod
+    def addMessage(cls, id, message):
+        if message=='__cancel__':
+            cls.messages = {}
+            cls.cancelled = True
+        elif message=='__start__':
+            cls.messages = {}
+            cls.stash = {}
+            cls.cancelled = False
+        else:
+            cls.messages[str(id)] = message
+    
+    @classmethod
+    def waitForMessage(cls, id, period = 0.1, asList = False):
+        sid = str(id)
+        while not (sid in cls.messages) and not ("-1" in cls.messages):
+            if cls.cancelled:
+                cls.cancelled = False
+                raise Cancelled()
+            time.sleep(period)
+        if cls.cancelled:
+            cls.cancelled = False
+            raise Cancelled()
+        message = cls.messages.pop(str(id),None) or cls.messages.pop("-1")
+        try:
+            if asList:
+                return [int(x.strip()) for x in message.split(",")]
+            else:
+                return int(message.strip())
+        except ValueError:
+            cls.logger.log(f"failed to parse '${message}' as ${'comma separated list of ints' if asList else 'int'}", "ERROR")
+            return [1] if asList else 1
+    
+routes = MessageHolder.routes
+API_PREFIX = MessageHolder.API_PREFIX
 
 @routes.post(f'{API_PREFIX}/textbox_string')
 async def handle_textbox_string(request):
@@ -233,21 +297,4 @@ async def handle_textbox_string(request):
 async def handle_update_sorting(request):
     Logger.reload_config()
     return web.json_response({"status": "ok"})
-
-@routes.post(f'{API_PREFIX}/widget_values')
-async def handle_widget_values(request):
-    data = await request.json()
-    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
-    return web.json_response({"status": "ok"})
-
-@routes.post(f'{API_PREFIX}/should_decode_image')
-async def handle_should_decode_image(request):
-    data = await request.json()
-    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
-    return web.json_response({"status": "ok"})
-
-@routes.post(f'{API_PREFIX}/get_sigmas')
-async def handle_get_sigmas(request):
-    data = await request.json()
-    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
-    return web.json_response({"status": "ok"})
+    

@@ -1,8 +1,9 @@
 import importlib
-import json
 import os
+import folder_paths
 from .src.dynamic_lora_loader import generate_lora_node_class
 from .src.dynamic_scheduler_loader import generate_scheduler_node_class
+from .src.check_folder_paths import check_lora_folders
 from .sn0w import ConfigReader, Logger
 
 from .src.lora_selector import LoraSelectorNode
@@ -15,7 +16,7 @@ from .src.prompt_selector import PromptSelectNode
 from .src.upscale_with_model_by import UpscaleImageBy
 from .src.load_lora_from_folder import LoadLoraFolderNode
 from .src.textbox import TextboxNode
-from .src.simple_sampler_custom import SimpleSamplerCustom
+from .src.simple_ksampler import SimpleSamplerCustom
 from .src.filter_tags import FilterTags
 
 NODE_CLASS_MAPPINGS = {
@@ -30,7 +31,7 @@ NODE_CLASS_MAPPINGS = {
     "Upscale Image With Model By": UpscaleImageBy,
     "Load Lora Folder": LoadLoraFolderNode,
     "Copy/Paste Textbox": TextboxNode,
-    "Simple Sampler Custom": SimpleSamplerCustom,
+    "Sn0w KSampler": SimpleSamplerCustom,
     "Filter Tags": FilterTags,
 }
 
@@ -46,11 +47,13 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Upscale Image With Model By": "Upscale Image With Model By",
     "Load Lora Folder": "Load Lora Folder",
     "Copy/Paste Textbox": "Textbox",
-    "Simple Sampler Custom": "Simple Sampler Custom",
+    "Sn0w KSampler": "Sn0w KSampler",
     "Filter Tags": "Filter Tags",
 }
 
 WEB_DIRECTORY = "./web"
+
+check_lora_folders()
 
 current_unique_id = 0  # Global variable to track the unique ID
 logger = Logger()
