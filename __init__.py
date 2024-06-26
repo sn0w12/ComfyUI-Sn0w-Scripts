@@ -16,7 +16,7 @@ from .src.prompt_selector import PromptSelectNode
 from .src.upscale_with_model_by import UpscaleImageBy
 from .src.load_lora_from_folder import LoadLoraFolderNode
 from .src.textbox import TextboxNode
-from .src.simple_sampler_custom import SimpleSamplerCustom
+from .src.simple_ksampler import SimpleSamplerCustom
 from .src.filter_tags import FilterTags
 
 NODE_CLASS_MAPPINGS = {
@@ -31,7 +31,7 @@ NODE_CLASS_MAPPINGS = {
     "Upscale Image With Model By": UpscaleImageBy,
     "Load Lora Folder": LoadLoraFolderNode,
     "Copy/Paste Textbox": TextboxNode,
-    "Simple Sampler Custom": SimpleSamplerCustom,
+    "Sn0w KSampler": SimpleSamplerCustom,
     "Filter Tags": FilterTags,
 }
 
@@ -47,7 +47,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Upscale Image With Model By": "Upscale Image With Model By",
     "Load Lora Folder": "Load Lora Folder",
     "Copy/Paste Textbox": "Textbox",
-    "Simple Sampler Custom": "Simple Sampler Custom",
+    "Sn0w KSampler": "Sn0w KSampler",
     "Filter Tags": "Filter Tags",
 }
 

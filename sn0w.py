@@ -212,31 +212,77 @@ class Utility:
         prioritized.extend(arr)
         return prioritized
     
+    @classmethod
+    def create_setting_entry(cls, setting_type, setting_value):
+        if setting_type == "INT":
+            return ("INT", {"default": setting_value[1], "min": setting_value[2], "max": setting_value[3]})
+        elif setting_type == "FLOAT":
+            return ("FLOAT", {"default": setting_value[1], "min": setting_value[2], "max": setting_value[3], "step": setting_value[4]})
+        elif setting_type == "STRING":
+            return ("STRING", {"default": setting_value[1]})
+        elif setting_type == "BOOLEAN":
+            return ("BOOLEAN", {"default": setting_value[1]})
+        else:
+            raise ValueError(f"Unsupported setting type: {setting_type}")
+        
+    @classmethod
+    def get_node_output(cls, data, node_id, output_id):
+        workflow = data.get('workflow', {})
+        nodes = workflow.get('nodes', [])
+
+        for node in nodes:
+            if int(node.get("id")) == int(node_id):
+                for output in node.get('outputs', []):
+                    if int(output['slot_index']) == int(output_id):
+                        return output
+    
 class AnyType(str):
     def __ne__(self, __value: object) -> bool:
         return False
+    
+class Cancelled(Exception):
+    pass
         
 class MessageHolder:
+    stash = {}
     messages = {}
+    cancelled = False
     routes = PromptServer.instance.routes
     API_PREFIX = '/api/sn0w'
     logger = Logger()
-
+    
     @classmethod
-    def addMessage(self, id, message):
-        self.logger.log(f"Added message: {message}", "DEBUG")
-        self.messages[str(id)] = message
-
+    def addMessage(cls, id, message):
+        if message=='__cancel__':
+            cls.messages = {}
+            cls.cancelled = True
+        elif message=='__start__':
+            cls.messages = {}
+            cls.stash = {}
+            cls.cancelled = False
+        else:
+            cls.messages[str(id)] = message
+    
     @classmethod
-    def waitForMessage(self, id, period = 0.1):
+    def waitForMessage(cls, id, period = 0.1, asList = False):
         sid = str(id)
-        self.logger.log(f"Id: {sid} waiting for message", "DEBUG")
-
-        while not (sid in self.messages):
+        while not (sid in cls.messages) and not ("-1" in cls.messages):
+            if cls.cancelled:
+                cls.cancelled = False
+                raise Cancelled()
             time.sleep(period)
-
-        message = self.messages.pop(str(id),None)
-        return message
+        if cls.cancelled:
+            cls.cancelled = False
+            raise Cancelled()
+        message = cls.messages.pop(str(id),None) or cls.messages.pop("-1")
+        try:
+            if asList:
+                return [int(x.strip()) for x in message.split(",")]
+            else:
+                return int(message.strip())
+        except ValueError:
+            cls.logger.log(f"failed to parse '${message}' as ${'comma separated list of ints' if asList else 'int'}", "ERROR")
+            return [1] if asList else 1
     
 routes = MessageHolder.routes
 API_PREFIX = MessageHolder.API_PREFIX
