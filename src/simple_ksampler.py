@@ -73,10 +73,7 @@ class SimpleSamplerCustom:
 
         # Get sampler and sigmas
         sampler = self.get_sampler(sampler_name)[0]
-        if 'sigmas (optional)' in kwargs and kwargs['sigmas (optional)'] is not None:
-            sigmas = kwargs['sigmas (optional)']
-        else:
-            sigmas = self.get_custom_sigmas(model, model_type, scheduler_name, steps, denoise)
+        sigmas = self.get_custom_sigmas(model, model_type, scheduler_name, steps, denoise)
 
         samples = custom_sampler.sample(model, add_noise, noise_seed, cfg, positive_prompt, negative_prompt, sampler, sigmas, latent_image)
         if (image_output["links"] != []):
