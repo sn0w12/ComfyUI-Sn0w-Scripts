@@ -7,36 +7,36 @@ import { ComfyWidgets } from "../../../scripts/widgets.js";
 app.registerExtension({
     name: "sn0w.SimpleSamplerCustom",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        const allSettings = new Set();
-
         if (nodeData.name === "Simple Sampler Custom") {
+            const allSettings = new Set();
+            console.log(nodeType.prototype)
             // Set positive and negative connection colors
             const onConnectInput = nodeType.prototype.onConnectInput;
             nodeType.prototype.onConnectInput = function (targetSlot, type, output, originNode, originSlot) {
                 const slot = type[0]
                 const inputType = type[1]
 
-                const initialCount = countWidgetsOfType(targetSlot.widgets, "converted-widget");
-                const originalSize = [targetSlot.size[0], targetSlot.size[1]];
+                const initialCount = countWidgetsOfType(this.widgets, "converted-widget");
+                const originalSize = [this.size[0], this.size[1]];
 
                 if (slot === 3 || slot === 4) {
                     if (inputType == "STRING" || inputType == "CONDITIONING") {
-                        targetSlot.inputs[slot].color_on = app.canvas.default_connection_color_byType[inputType];
+                        this.inputs[slot].color_on = app.canvas.default_connection_color_byType[inputType];
                     } else {
                         console.error(`The input type has to be STRING or CONDITIONING, it cannot be ${inputType}.`)
-                        targetSlot.inputs[slot].color_on = app.canvas.default_connection_color_byType["VAE"];
+                        this.inputs[slot].color_on = app.canvas.default_connection_color_byType["VAE"];
                     }
                 } else if (slot === 5) {
-                    hideAllSchedulerWidgets(targetSlot);
-                    SettingUtils.hideWidget(targetSlot, findWidget(targetSlot, "scheduler_name"));
+                    hideAllSchedulerWidgets(this);
+                    SettingUtils.hideWidget(this, findWidget(this, "scheduler_name"));
 
-                    resizeNode(targetSlot, initialCount, originalSize);
+                    resizeNode(this, initialCount, originalSize);
                 } else if (slot === 6) {
-                    hideAllLatentWidgets(targetSlot);
-                    resizeNode(targetSlot, initialCount, originalSize);
+                    hideAllLatentWidgets(this);
+                    resizeNode(this, initialCount, originalSize);
                 }
 
-                onConnectInput?.apply(targetSlot, type, output, originNode, originSlot);
+                onConnectInput?.apply(this, type, output, originNode, originSlot);
             }
 
             // Handle when connection is disconnected
@@ -88,7 +88,12 @@ app.registerExtension({
                     const data = event.detail
                     const output = getWidgetOutputs(this, data.widgets_needed);
                     if (this.id == data.id) {
-                        api.fetchApi(`${SettingUtils.API_PREFIX}/widget_values`, {
+                        console.log(JSON.stringify(
+                            {
+                                node_id: data.id,
+                                outputs: output,
+                            }))
+                        const apiRequest = api.fetchApi(`${SettingUtils.API_PREFIX}/widget_values`, {
                             method: "POST",
                             headers: {
                               "Content-Type": "application/json",
@@ -100,6 +105,7 @@ app.registerExtension({
                                 }
                             ),
                         })
+                        console.log(apiRequest)
                     }
                 })
 
@@ -151,7 +157,6 @@ app.registerExtension({
                 const desiredWidgets = widgets[inputName.value] ? Object.keys(widgets[inputName.value]) : [];
                 showSchedulerInputs(this, inputName, desiredWidgets);
 
-
                 if (this.inputs[5].link !== null) {
                     hideAllSchedulerWidgets(this);
                     SettingUtils.hideWidget(this, findWidget(this, "scheduler_name"));
@@ -167,8 +172,12 @@ app.registerExtension({
             }
 
             function countWidgetsOfType(widgets, type) {
+                if (!Array.isArray(widgets)) {
+                    console.error('Invalid widgets parameter:', widgets);
+                    return 0; // or handle the error as needed
+                }
                 return widgets.filter(widget => widget.type === type).length;
-            }
+            }            
 
             function resizeNode(node, initialCount, originalSize) {
                 const finalCount = countWidgetsOfType(node.widgets, "converted-widget");

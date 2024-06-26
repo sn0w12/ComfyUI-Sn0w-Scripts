@@ -12,6 +12,7 @@ API_PREFIX = MessageHolder.API_PREFIX
 
 @routes.post(f'{API_PREFIX}/update_characters')
 async def handle_update_characters(request):
+    print("RECIEVED API REQUEST")
     CharacterSelectNode.initialize()
     return web.json_response({"status": "ok"})
 

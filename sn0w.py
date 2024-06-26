@@ -219,15 +219,18 @@ class AnyType(str):
 class MessageHolder:
     messages = {}
     routes = PromptServer.instance.routes
-    API_PREFIX = '/sn0w'
+    API_PREFIX = '/api/sn0w'
+    logger = Logger()
 
     @classmethod
     def addMessage(self, id, message):
+        self.logger.log(f"Added message: {message}", "DEBUG")
         self.messages[str(id)] = message
 
     @classmethod
     def waitForMessage(self, id, period = 0.1):
         sid = str(id)
+        self.logger.log(f"Id: {sid} waiting for message", "DEBUG")
 
         while not (sid in self.messages):
             time.sleep(period)
@@ -252,8 +255,9 @@ async def handle_update_sorting(request):
 @routes.post(f'{API_PREFIX}/widget_values')
 async def handle_widget_values(request):
     data = await request.json()
+    print(data)
     MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
-    return web.json_response({"status": "ok"})
+    return web.json_response({"status": "ok"}, {"data": data})
 
 @routes.post(f'{API_PREFIX}/should_decode_image')
 async def handle_should_decode_image(request):
@@ -266,3 +270,4 @@ async def handle_get_sigmas(request):
     data = await request.json()
     MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
     return web.json_response({"status": "ok"})
+    

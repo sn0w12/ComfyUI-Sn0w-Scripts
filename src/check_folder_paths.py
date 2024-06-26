@@ -24,7 +24,6 @@ def check_lora_folders():
         except Exception as e:
             logger.log(f"{path} doesn't exist: {e}", "WARNING")
     
-    print(existing_paths)
     # Write the result to a JSON file in /web/settings
     data = {"loaders_enabled": existing_paths}
     with open(json_path, "w") as json_file:

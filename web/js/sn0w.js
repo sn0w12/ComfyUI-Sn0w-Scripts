@@ -1,7 +1,7 @@
 import { api } from '../../../scripts/api.js';
 
 export class SettingUtils {
-    static API_PREFIX = '/sn0w';
+    static API_PREFIX = '/api/sn0w';
     
     // SETTINGS
     static async getSetting(url) {

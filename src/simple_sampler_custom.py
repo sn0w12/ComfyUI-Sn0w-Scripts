@@ -118,7 +118,9 @@ class SimpleSamplerCustom:
             "id": unique_id,
             "widgets_needed": widgets_needed,
         })
+        self.logger.log(f"WAITING FOR SIGMAS", "DEBUG")
         outputs = MessageHolder.waitForMessage(unique_id)
+        self.logger.log(f"GOT SIGMAS: {outputs}", "DEBUG")
         return outputs
     
     def get_denoised_sigmas(self, sigmas, denoise):
