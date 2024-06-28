@@ -86,7 +86,7 @@ export class SettingUtils {
         const tooltip = attrs["tooltip"];
     
         // Setting tooltip if provided
-        if (tooltip != "") {
+        if (tooltip != "" && tooltip != undefined) {
             tr.title = tooltip;  
             label.className = "comfy-tooltip-indicator";
         }
