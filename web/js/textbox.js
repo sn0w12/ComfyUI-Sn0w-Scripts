@@ -1,3 +1,4 @@
+import { SettingUtils } from './sn0w.js';
 import { app } from "../../../scripts/app.js";
 
 app.registerExtension({
@@ -66,22 +67,41 @@ app.registerExtension({
                     this.inputEl.inputEl.addEventListener('keydown', (event) => {
                         if (event.ctrlKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
                             setTimeout(() => {
-                                syncText(this.inputEl, this.overlayEl);
+                                syncText(this.inputEl.inputEl, this.overlayEl);
                             }, 10);
                         }
                     });    
 
                     setTimeout(() => {
-                        syncText(this.inputEl, this.overlayEl);
                         setOverlayPosition(this.inputEl, this.overlayEl);
                         setOverlayStyle(this.inputEl, this.overlayEl);
-                    }, 10);  
+                    }, 10);
                 } else {
                     console.error('Parent node of input element is not available.');
                 }
             };
 
-            function syncText(inputEl, overlayEl) {
+            async function setTextColors(inputEl, overlayEl) {
+                const customTextboxColors = await SettingUtils.getSetting("sn0w.TextboxColors");
+                if (customTextboxColors == null || (customTextboxColors.length === 1 && customTextboxColors[0] === "") || customTextboxColors == "") {
+                    inputEl.colors = ['rgba(0, 255, 0, 0.5)', 'rgba(0, 0, 255, 0.5)', 'rgba(255, 0, 0, 0.5)', 'rgba(255, 255, 0, 0.5)'];
+                    syncText(inputEl, overlayEl);
+                    return;
+                }
+                
+                let colors = customTextboxColors.split("\n");
+                colors = colors.map(color => {
+                    if (color.charAt(0) == "#") {
+                        return SettingUtils.hexToRgb(color);
+                    }
+                    return color;
+                });
+                inputEl.colors = colors;
+                syncText(inputEl, overlayEl);
+                return colors;
+            }
+
+            async function syncText(inputEl, overlayEl) {
                 const text = inputEl.value;
                 overlayEl.textContent = text;
             
@@ -92,7 +112,10 @@ app.registerExtension({
                 overlayEl.style.wordWrap = 'break-word';
             
                 // Colors for nested parentheses
-                const colors = ['rgba(0, 255, 0, 0.5)', 'rgba(0, 0, 255, 0.5)', 'rgba(255, 0, 0, 0.5)', 'rgba(255, 255, 0, 0.5)'];
+                let colors = inputEl.colors;
+                if (colors == undefined) {
+                    return;
+                }
             
                 let nestingLevel = 0;
                 let highlightedText = '';
@@ -147,8 +170,29 @@ app.registerExtension({
 
             nodeType.prototype.onNodeCreated = function () {
                 this.populate();
+                setTextColors(this.inputEl.inputEl, this.overlayEl);
                 this.getTextboxText = this.getTextboxText.bind(this);
             }
         }
     },
 });
+
+const id = "sn0w.TextboxColors";
+const settingDefinition = {
+    id,
+    name: "[Sn0w] Custom Textbox Colors",
+    type: SettingUtils.createMultilineSetting,
+    defaultValue: "rgba(0, 255, 0, 0.5)\nrgba(0, 0, 255, 0.5)\nrgba(255, 0, 0, 0.5)\nrgba(255, 255, 0, 0.5)",
+    attrs: { tooltip: "A list of either rgb or hex colors, one color per line." }
+}
+
+let setting;
+
+const extension = {
+    name: id,
+    init() {
+        setting = app.ui.settings.addSetting(settingDefinition);
+    },
+};
+
+app.registerExtension(extension);
