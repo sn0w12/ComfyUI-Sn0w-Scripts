@@ -8,8 +8,8 @@ settings = {
     "settings": {
         # Format: "parameter_name": [type, default_value, min_value, max_value, step_value, round_flag]
         # Types supported: FLOAT, INT, STRING, BOOLEAN
-        "sigma_max_sig": ["FLOAT", 25.0, 0.0, 5000.0, 0.01, False],
-        "sigma_min_sig": ["FLOAT", 0.0, 0.0, 5000.0, 0.01, False],
+        "sigma_max_sig": ["FLOAT", 16.0, 0.0, 5000.0, 0.01, False],
+        "sigma_min_sig": ["FLOAT", 0.03, 0.0, 5000.0, 0.01, False],
         "steepness": ["FLOAT", 3.5, 0.0, 10.0, 0.01, False],
         "midpoint_ratio": ["FLOAT", 0.8, 0.0, 1.0, 0.01, False],
     }
@@ -36,15 +36,17 @@ def get_sigmas(n, sigma_max_sig, sigma_min_sig, steepness=10, midpoint_ratio=0.5
     if not (0 <= midpoint_ratio <= 1):
         raise ValueError("midpoint_ratio must be between 0 and 1.")
     
+    # Generate a range of values between -1 and 1
+    x = torch.linspace(-1, 1, n, device=device)
+    
     # Adjust the range of x to skew the sigmoid's midpoint
-    midpoint_shift = torch.linspace(-steepness, steepness, n, device=device)
-    midpoint_location = -steepness + 2 * steepness * midpoint_ratio
-    x = midpoint_shift + (midpoint_location)
+    x = steepness * (x + (2 * midpoint_ratio - 1))
     
     # Sigmoid function values
-    sigmoids = 1 / (1 + torch.exp(-steepness * (x / steepness)))
+    sigmoids = 1 / (1 + torch.exp(-x))
+    sigmoids = (sigmoids - sigmoids.min()) / (sigmoids.max() - sigmoids.min())
     
-    # Map the sigmoid output to the range [sigma_max, sigma_min]
+    # Scale the sigmoid output to the exact range [sigma_min_sig, sigma_max_sig]
     sigmas = sigma_max_sig - (sigma_max_sig - sigma_min_sig) * sigmoids
     
     return sigmas
