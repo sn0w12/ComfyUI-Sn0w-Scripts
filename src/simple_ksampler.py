@@ -8,6 +8,8 @@ import comfy.samplers
 class SimpleSamplerCustom:
     logger = Logger()
 
+    scheduler_list = None
+
     @classmethod
     def initialize(cls):
         cls.custom_schedulers = CustomSchedulers()
@@ -27,7 +29,8 @@ class SimpleSamplerCustom:
 
     @classmethod
     def INPUT_TYPES(cls):
-        cls.initialize()
+        if cls.scheduler_list is None:
+            cls.initialize()
         return {
                 "required": {
                     "model": ("MODEL",),
