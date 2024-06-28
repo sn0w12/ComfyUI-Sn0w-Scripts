@@ -105,12 +105,6 @@ app.registerExtension({
                 const text = inputEl.value;
                 overlayEl.textContent = text;
             
-                // Apply styles directly
-                overlayEl.style.color = 'transparent';
-                overlayEl.style.overflow = 'hidden';
-                overlayEl.style.whiteSpace = 'pre-wrap';
-                overlayEl.style.wordWrap = 'break-word';
-            
                 // Colors for nested parentheses
                 let colors = inputEl.colors;
                 if (colors == undefined) {
@@ -121,19 +115,22 @@ app.registerExtension({
                 let highlightedText = '';
                 let lastIndex = 0;
             
-                const regex = /(\()|(\))/g;
+                const regex = /(?:[^\\]|^)(\()|(?:[^\\]|^)(\))/g;
                 let match;
                 while ((match = regex.exec(text)) !== null) {
-                    if (match[0] === '(') {
+                    // Calculate the correct match index considering the non-capturing group
+                    let matchIndex = match.index + match[0].length - 1;
+            
+                    if (match[1]) { // if it matches '('
                         const color = colors[nestingLevel % colors.length];
                         nestingLevel++;
-                        highlightedText += text.slice(lastIndex, match.index) + `<span style="background-color: ${color};">${match[0]}`;
-                    } else if (match[0] === ')') {
+                        highlightedText += text.slice(lastIndex, matchIndex) + `<span style="background-color: ${color};">${match[1]}`;
+                    } else if (match[2]) { // if it matches ')'
                         nestingLevel--;
                         const color = colors[nestingLevel % colors.length];
-                        highlightedText += text.slice(lastIndex, match.index) + `${match[0]}</span>`;
+                        highlightedText += text.slice(lastIndex, matchIndex) + `${match[2]}</span>`;
                     }
-                    lastIndex = regex.lastIndex;
+                    lastIndex = matchIndex + 1;
                 }
                 highlightedText += text.slice(lastIndex);
             
@@ -166,6 +163,10 @@ app.registerExtension({
                 overlayEl.style.boxSizing = textareaStyle.boxSizing;
                 overlayEl.style.zIndex = '1'; // Ensure it's just below the textarea
                 overlayEl.style.pointerEvents = 'none'; // Allow clicks to pass through
+                overlayEl.style.color = 'transparent';
+                overlayEl.style.overflow = 'hidden';
+                overlayEl.style.whiteSpace = 'pre-wrap';
+                overlayEl.style.wordWrap = 'break-word';
             }
 
             nodeType.prototype.onNodeCreated = function () {
