@@ -115,22 +115,20 @@ app.registerExtension({
                 let highlightedText = '';
                 let lastIndex = 0;
             
-                const regex = /(?:[^\\]|^)(\()|(?:[^\\]|^)(\))/g;
+                const regex = /\\.|(\()|(\))/g;
                 let match;
                 while ((match = regex.exec(text)) !== null) {
-                    // Calculate the correct match index considering the non-capturing group
-                    let matchIndex = match.index + match[0].length - 1;
-            
-                    if (match[1]) { // if it matches '('
+                    if (match[0][0] === '\\') {
+                        continue;
+                    } else if (match[1]) { // if it matches '('
                         const color = colors[nestingLevel % colors.length];
+                        highlightedText += text.slice(lastIndex, match.index) + `<span style="background-color: ${color};">${match[1]}`;
                         nestingLevel++;
-                        highlightedText += text.slice(lastIndex, matchIndex) + `<span style="background-color: ${color};">${match[1]}`;
                     } else if (match[2]) { // if it matches ')'
                         nestingLevel--;
-                        const color = colors[nestingLevel % colors.length];
-                        highlightedText += text.slice(lastIndex, matchIndex) + `${match[2]}</span>`;
+                        highlightedText += text.slice(lastIndex, match.index) + `${match[2]}</span>`;
                     }
-                    lastIndex = matchIndex + 1;
+                    lastIndex = regex.lastIndex;
                 }
                 highlightedText += text.slice(lastIndex);
             
