@@ -6,14 +6,5 @@
     "singleQuote": true,
     "trailingComma": "es5",
     "bracketSpacing": true,
-    "arrowParens": "always",
-    "overrides": [
-        {
-            "files": "*.py",
-            "options": {
-                "tabWidth": 4,
-                "singleQuote": false
-            }
-        }
-    ]
+    "arrowParens": "always"
 }
