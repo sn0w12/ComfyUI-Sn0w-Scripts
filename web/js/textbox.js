@@ -1,23 +1,25 @@
 import { SettingUtils } from './sn0w.js';
-import { app } from "../../../scripts/app.js";
+import { app } from '../../../scripts/app.js';
 
 app.registerExtension({
-    name: "sn0w.Textbox",
+    name: 'sn0w.Textbox',
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        if (nodeData.name === "Copy/Paste Textbox") {
+        if (nodeData.name === 'Copy/Paste Textbox') {
             // Get textbox text
-            nodeType.prototype.getTextboxText = function() {
+            nodeType.prototype.getTextboxText = function () {
                 const textbox = this.inputEl ? this.inputEl.value : '';
                 return textbox;
             };
 
-            nodeType.prototype.populate = function() {
+            nodeType.prototype.populate = function () {
                 this.inputEl = this.widgets[0];
 
+                // prettier-ignore
                 this.addWidget("button", "Copy", "Copy", () => {
                     navigator.clipboard.writeText(this.getTextboxText());
                 }, { serialize: false });
 
+                // prettier-ignore
                 this.addWidget("button", "Paste", "Paste", () => {
                     navigator.clipboard.readText().then(text => {
                         this.inputEl.value = text;
@@ -26,13 +28,16 @@ app.registerExtension({
                         console.error('Failed to read clipboard contents:', error);
                     });
                 }, { serialize: false });
-                
+
                 // Ensure the input element's parent exists
                 if (this.inputEl && this.inputEl.inputEl && this.inputEl.inputEl.parentNode) {
                     // Create overlay div for highlighting
                     this.overlayEl = document.createElement('div');
                     this.overlayEl.className = 'input-overlay';
-                    this.inputEl.inputEl.parentNode.insertBefore(this.overlayEl, this.inputEl.inputEl);
+                    this.inputEl.inputEl.parentNode.insertBefore(
+                        this.overlayEl,
+                        this.inputEl.inputEl
+                    );
 
                     this.inputEl.inputEl.style.background = 'transparent';
 
@@ -61,16 +66,19 @@ app.registerExtension({
                     });
 
                     parentObserver.observe(this.inputEl.inputEl.parentNode, {
-                        childList: true
+                        childList: true,
                     });
 
                     this.inputEl.inputEl.addEventListener('keydown', (event) => {
-                        if (event.ctrlKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+                        if (
+                            event.ctrlKey &&
+                            (event.key === 'ArrowUp' || event.key === 'ArrowDown')
+                        ) {
                             setTimeout(() => {
                                 syncText(this.inputEl.inputEl, this.overlayEl);
                             }, 10);
                         }
-                    });    
+                    });
 
                     setTimeout(() => {
                         setOverlayPosition(this.inputEl, this.overlayEl);
@@ -82,21 +90,31 @@ app.registerExtension({
             };
 
             async function setTextColors(inputEl, overlayEl) {
-                const customTextboxColors = await SettingUtils.getSetting("sn0w.TextboxColors");
-                if (customTextboxColors == null || (customTextboxColors.length === 1 && customTextboxColors[0] === "") || customTextboxColors == "") {
-                    inputEl.colors = ['rgba(0, 255, 0, 0.5)', 'rgba(0, 0, 255, 0.5)', 'rgba(255, 0, 0, 0.5)', 'rgba(255, 255, 0, 0.5)'];
+                const customTextboxColors = await SettingUtils.getSetting('sn0w.TextboxColors');
+                if (
+                    customTextboxColors == null ||
+                    (customTextboxColors.length === 1 && customTextboxColors[0] === '') ||
+                    customTextboxColors == ''
+                ) {
+                    inputEl.colors = [
+                        'rgba(0, 255, 0, 0.5)',
+                        'rgba(0, 0, 255, 0.5)',
+                        'rgba(255, 0, 0, 0.5)',
+                        'rgba(255, 255, 0, 0.5)',
+                    ];
                     syncText(inputEl, overlayEl);
                     return;
                 }
-                
-                let colors = customTextboxColors.split("\n");
-                colors = colors.map(color => {
-                    if (color.charAt(0) == "#") {
+
+                let colors = customTextboxColors.split('\n');
+                colors = colors.map((color) => {
+                    if (color.charAt(0) == '#') {
                         return SettingUtils.hexToRgb(color);
                     }
                     return color;
                 });
                 inputEl.colors = colors;
+                inputEl.errorColor = 'var(--error-text)';
                 syncText(inputEl, overlayEl);
                 return colors;
             }
@@ -104,37 +122,67 @@ app.registerExtension({
             async function syncText(inputEl, overlayEl) {
                 const text = inputEl.value;
                 overlayEl.textContent = text;
-            
+
                 // Colors for nested parentheses
                 let colors = inputEl.colors;
                 if (colors == undefined) {
                     return;
                 }
-            
+                let errorColor = inputEl.errorColor;
+                if (errorColor == undefined) {
+                    return;
+                }
+
                 let nestingLevel = 0;
                 let highlightedText = '';
                 let lastIndex = 0;
-            
+
                 const regex = /\\.|(\()|(\))/g;
                 let match;
+                let spanStack = [];
+
                 while ((match = regex.exec(text)) !== null) {
                     if (match[0][0] === '\\') {
                         continue;
-                    } else if (match[1]) { // if it matches '('
+                    } else if (match[1]) {
+                        // if it matches '('
                         const color = colors[nestingLevel % colors.length];
-                        highlightedText += text.slice(lastIndex, match.index) + `<span style="background-color: ${color};">${match[1]}`;
+                        highlightedText +=
+                            text.slice(lastIndex, match.index) +
+                            `<span style="background-color: ${color};">${match[1]}`;
+                        spanStack.push(highlightedText.length);
                         nestingLevel++;
-                    } else if (match[2]) { // if it matches ')'
+                    } else if (match[2]) {
+                        // if it matches ')'
                         nestingLevel--;
-                        highlightedText += text.slice(lastIndex, match.index) + `${match[2]}</span>`;
+                        highlightedText +=
+                            text.slice(lastIndex, match.index) + `${match[2]}</span>`;
+                        spanStack.pop();
                     }
                     lastIndex = regex.lastIndex;
                 }
+
                 highlightedText += text.slice(lastIndex);
-            
+
+                if (nestingLevel > 0) {
+                    console.log(nestingLevel);
+                    // Apply red highlight to the unclosed spans
+                    let insertOffset = 0;
+                    while (spanStack.length > 0) {
+                        const spanStartIndex = spanStack.pop() - 1;
+                        const spanStartTag = `<span style="background-color: ${errorColor};">`;
+                        highlightedText =
+                            highlightedText.slice(0, spanStartIndex + insertOffset) +
+                            spanStartTag +
+                            highlightedText.slice(spanStartIndex + insertOffset);
+                        insertOffset += spanStartTag.length;
+                        highlightedText += `</span>`;
+                    }
+                }
+
                 overlayEl.innerHTML = highlightedText;
             }
-            
+
             function setOverlayPosition(inputEl, overlayEl) {
                 const textareaStyle = window.getComputedStyle(inputEl.inputEl);
                 overlayEl.style.left = textareaStyle.left;
@@ -171,19 +219,20 @@ app.registerExtension({
                 this.populate();
                 setTextColors(this.inputEl.inputEl, this.overlayEl);
                 this.getTextboxText = this.getTextboxText.bind(this);
-            }
+            };
         }
     },
 });
 
-const id = "sn0w.TextboxColors";
+const id = 'sn0w.TextboxColors';
 const settingDefinition = {
     id,
-    name: "[Sn0w] Custom Textbox Colors",
+    name: '[Sn0w] Custom Textbox Colors',
     type: SettingUtils.createMultilineSetting,
-    defaultValue: "rgba(0, 255, 0, 0.5)\nrgba(0, 0, 255, 0.5)\nrgba(255, 0, 0, 0.5)\nrgba(255, 255, 0, 0.5)",
-    attrs: { tooltip: "A list of either rgb or hex colors, one color per line." }
-}
+    defaultValue:
+        'rgba(0, 255, 0, 0.5)\nrgba(0, 0, 255, 0.5)\nrgba(255, 0, 0, 0.5)\nrgba(255, 255, 0, 0.5)',
+    attrs: { tooltip: 'A list of either rgb or hex colors, one color per line.' },
+};
 
 let setting;
 
