@@ -165,7 +165,6 @@ app.registerExtension({
                 highlightedText += text.slice(lastIndex);
 
                 if (nestingLevel > 0) {
-                    console.log(nestingLevel);
                     // Apply red highlight to the unclosed spans
                     let insertOffset = 0;
                     while (spanStack.length > 0) {
