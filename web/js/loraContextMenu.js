@@ -1,25 +1,29 @@
 import { SettingUtils } from './sn0w.js';
-import { app } from "../../../scripts/app.js";
+import { app } from '../../../scripts/app.js';
 
-const id = "sn0w.HighlightFavourite";
+const id = 'sn0w.HighlightFavourite';
 const settingDefinition = {
     id,
-    name: "[Sn0w] Highlight Favourite Items",
+    name: '[Sn0w] Highlight Favourite Items',
     defaultValue: false,
-    type: "boolean",
+    type: 'boolean',
 };
-const favouriteLoraId = "sn0w.FavouriteLoras"
+const favouriteLoraId = 'sn0w.FavouriteLoras';
 
-let loraLoaders = ["Load Lora Sn0w", "LoraLoader"];
+let loraLoaders = ['Load Lora Sn0w', 'LoraLoader'];
 let existingList = [];
 
 app.registerExtension({
-    name: "sn0w.LoraContextMenu",
+    name: 'sn0w.LoraContextMenu',
     init() {
         let setting = app.ui.settings.addSetting(settingDefinition);
     },
     async setup() {
-        const customLoaderKeys = ["sn0w.CustomLoraLoadersXL", "sn0w.CustomLoraLoaders15", "sn0w.CustomLoraLoaders3"];
+        const customLoaderKeys = [
+            'sn0w.CustomLoraLoadersXL',
+            'sn0w.CustomLoraLoaders15',
+            'sn0w.CustomLoraLoaders3',
+        ];
         let customLoraLoadersArrays = [];
 
         // Fetch and process each custom loader
@@ -27,7 +31,7 @@ app.registerExtension({
             const customLoaders = await SettingUtils.getSetting(key);
             let customLoaderArray = [];
             if (customLoaders) {
-                customLoaderArray = customLoaders.split('\n').map(item => item.split(':')[0]);
+                customLoaderArray = customLoaders.split('\n').map((item) => item.split(':')[0]);
             }
             customLoraLoadersArrays.push(customLoaderArray);
         }
@@ -45,9 +49,9 @@ app.registerExtension({
         app.canvas.getNodeMenuOptions = function (node) {
             const options = original_getNodeMenuOptions.apply(this, arguments);
             if (loraLoaders.includes(node.type)) {
-                const settingUtils = new SettingUtils()
+                const settingUtils = new SettingUtils();
                 const nullIndex = options.indexOf(null);
-                
+
                 // Check if the filename is in the existingList
                 const selectedLora = node.widgets[0].value;
                 const pathArray = selectedLora.split('\\');
@@ -56,12 +60,12 @@ app.registerExtension({
 
                 // Create the new menu item
                 const newMenuItem = {
-                    content: isFavourite ? "Unfavourite Lora ☆" : "Favourite Lora ★",
+                    content: isFavourite ? 'Unfavourite Lora ☆' : 'Favourite Lora ★',
                     disabled: false,
                     callback: () => {
                         SettingUtils.toggleFavourite(existingList, filename, favouriteLoraId);
                         settingUtils.refreshComboInSingleNode(app, node.title);
-                    }
+                    },
                 };
 
                 if (nullIndex !== -1) {
@@ -73,12 +77,17 @@ app.registerExtension({
             return options;
         };
 
-        var observer = new MutationObserver(function(mutations) {
-            if (document.contains(document.getElementsByClassName("litecontextmenu")[0])) {
+        var observer = new MutationObserver(function (mutations) {
+            if (document.contains(document.getElementsByClassName('litecontextmenu')[0])) {
                 SettingUtils.addStarsToFavourited(existingList);
             }
         });
-         
-        observer.observe(document, {attributes: false, childList: true, characterData: false, subtree:true});
-    }
+
+        observer.observe(document, {
+            attributes: false,
+            childList: true,
+            characterData: false,
+            subtree: true,
+        });
+    },
 });

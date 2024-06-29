@@ -1,12 +1,12 @@
-import { app } from "../../../scripts/app.js";
+import { app } from '../../../scripts/app.js';
 
-const id = "sn0w.PromptFormat";
+const id = 'sn0w.PromptFormat';
 const settingDefinition = {
     id,
-    name: "[Sn0w] Animagine Prompt Style",
+    name: '[Sn0w] Animagine Prompt Style',
     defaultValue: false,
-    type: "boolean",
-    tooltip: "Puts 1girl/ 1boy at the front of prompts."
+    type: 'boolean',
+    tooltip: 'Puts 1girl/ 1boy at the front of prompts.',
 };
 
 let setting;
