@@ -20,7 +20,7 @@ A collection of nodes and improvements created for general ease and lora managem
 In the ComfyUI settings, you can modify various settings. Some changes will apply immediately, while others require a refresh to take effect.
 
 ## Important Note
-The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using. 
+The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using.
 
 ```yaml
 loras:
@@ -54,9 +54,13 @@ The custom Lora loaders and the character selector feature allow you to mark Lor
 
 ## Text Highlighting
 
-Text in the copy/paste textbox will be highlighted when the text is in parentheses.
+Text in the copy/paste textbox will be highlighted when the text is in parentheses. You can change the colors of the highlighting by changing the `[Sn0w] Custom Textbox Colors` setting, there should be one either rgb `rgb(0, 0, 0)` or hex `#000000` color per line.
 
 ![Textbox](./imgs/textbox_highlighted.png)
+
+If you have unclosed parentheses it will be highlighted in red.
+
+![Textbox](./imgs/textbox_highlighted_error.png)
 
 ## Custom Schedulers
 
@@ -121,7 +125,7 @@ Nodes that are specifically for generating and processing images.
 >    - I recommend making lora_info and add_default_generation inputs and using the outputs from the Lora Selector.
 >    - Takes normal KSampler input but takes positive and negative inputs as text.
 >    - Outputs a batch of images.
-> 
+>
 >    ![Lora Tester](./imgs/lora_tester.png)
 >    </details>
 
@@ -166,7 +170,7 @@ Nodes that handle lora selection, stacking, and loading.
 >    - Select the amount of loras you want to test.
 >    - Outputs list of loras like this: \<lora:name:strength>
 >    - Add default generation adds an extra "nothing" at the end of the list, used in Lora Tester to generate an image without the lora.
-> 
+>
 >    ![Lora Selector](./imgs/lora_selector.png)
 >    </details>
 
@@ -177,7 +181,7 @@ Nodes that handle lora selection, stacking, and loading.
 >
 >    - Basically Lora Selector but manual.
 >    - Specifically for the lora testers.
-> 
+>
 >    ![Lora Stacker](./imgs/lora_stacker.png)
 >    </details>
 
@@ -192,7 +196,7 @@ Nodes for selecting and combining character and textual elements.
 >    - Loads `characters.json` and outputs prompt based on it.
 >    - You can create a file named `custom_characters.json` and add characters there if you want, they will be loaded with all the other characters if you format it like the `characters.json` file.
 >    - If `custom_characters.json` has a character with the same name as `characters.json` it will add the custom prompt at the end of the normal one, this can be useful if you have loras that need activation tags.
-> 
+>
 >    ![Character Selector](./imgs/character_selector.png)
 >    </details>
 
@@ -202,7 +206,7 @@ Nodes for selecting and combining character and textual elements.
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
 >    - If simplify is enabled, the simplification process identifies and removes redundant tags (e.g., when a tag is fully encompassed by another, more descriptive tag) and tags incompatible with factors such as facing away, covered eyes, etc. Any tags that are in parentheses will not be removed.
-> 
+>
 >    ![Prompt Combine](./imgs/prompt_combine.png)
 >    </details>
 
