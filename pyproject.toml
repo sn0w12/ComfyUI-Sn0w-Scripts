@@ -23,6 +23,8 @@ disable = [
     "useless-suppression",
     "deprecated-pragma",
     "use-symbolic-message-instead",
+    "C0116",
+    "C0114",
     "C0103", # invalid-name :: constant case
     "W0603"  # global-statements
 ]
@@ -43,3 +45,7 @@ good-names = ["INPUT_TYPES"]
 
 [tool.ruff]
 line-length = 140
+extend-ignore = [
+    "E501",  # ignore line length errors
+    "C408"   # ignore tuple trailing comma issue
+]

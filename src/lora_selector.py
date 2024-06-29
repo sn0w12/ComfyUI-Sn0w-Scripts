@@ -1,21 +1,29 @@
 import os
 import folder_paths
 
+
 class LoraSelectorNode:
+    """
+    Returns a list of loras based on an initial lora and a highest lora.
+    """
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "lora": (['None'] + folder_paths.get_filename_list("loras"), ),
+                "lora": (["None"] + folder_paths.get_filename_list("loras"),),
                 "lora_strength": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01}),
                 "highest_lora": ("INT", {"default": 0, "min": 0}),
                 "total_loras": ("INT", {"default": 0, "min": 0}),
-                "add_default_generation": ("BOOLEAN", {"default": False},),
+                "add_default_generation": (
+                    "BOOLEAN",
+                    {"default": False},
+                ),
             },
         }
 
-    RETURN_TYPES = ("STRING", "INT",)
-    RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS",)
+    RETURN_TYPES = ("STRING", "INT")
+    RETURN_NAMES = ("LORA_INFO", "TOTAL_LORAS")
     FUNCTION = "process_lora_strength"
     CATEGORY = "sn0w/lora"
     OUTPUT_NODE = True
@@ -29,12 +37,12 @@ class LoraSelectorNode:
         lora_string = os.path.splitext(os.path.basename(lora))[0]
 
         # Check if the lora_string contains a hyphen and split accordingly
-        if '-' in lora_string:
-            lora_name, lora_code = lora_string.rsplit('-', 1)
-            initial_strength = int(lora_code.lstrip('0') or '0')  # Convert to int, handle leading zeros
+        if "-" in lora_string:
+            lora_name, lora_code = lora_string.rsplit("-", 1)
+            initial_strength = int(lora_code.lstrip("0") or "0")  # Convert to int, handle leading zeros
         else:
             lora_name = lora_string
-            lora_code = ''
+            lora_code = ""
             initial_strength = 0
 
         # Determine the range and increment for each lora strength
@@ -63,6 +71,6 @@ class LoraSelectorNode:
             lora_strings.append("Nothing")
 
         # Join the lora strings into a single string separated by semicolons
-        lora_output = ';'.join(lora_strings)
+        lora_output = ";".join(lora_strings)
 
         return (lora_output, total_loras)
