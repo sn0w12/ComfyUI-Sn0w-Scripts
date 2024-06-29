@@ -125,6 +125,7 @@ class Logger:
         else:
             color = self.PURPLE_TEXT  # Default color
 
+        self.reload_config()
         # Check if the message's level is in the enabled log levels
         if level.upper() in self.enabled_levels or level.upper() in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"]:
             self.print_sn0w(message, color)
@@ -330,20 +331,3 @@ class MessageHolder:
         except ValueError:
             cls.logger.log(f"failed to parse '${message}' as ${'comma separated list of ints' if asList else 'int'}", "ERROR")
             return [1] if asList else 1
-
-
-routes = MessageHolder.routes
-API_PREFIX = MessageHolder.API_PREFIX
-
-
-@routes.post(f"{API_PREFIX}/textbox_string")
-async def handle_textbox_string(request):
-    data = await request.json()
-    MessageHolder.addMessage(data.get("node_id"), data.get("outputs"))
-    return web.json_response({"status": "ok"})
-
-
-@routes.post(f"{API_PREFIX}/update_sorting")
-async def handle_update_sorting(request):
-    Logger.reload_config()
-    return web.json_response({"status": "ok"})

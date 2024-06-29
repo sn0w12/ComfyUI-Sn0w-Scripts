@@ -1,5 +1,5 @@
 import re
-from sn0w import ConfigReader, Logger
+from ..sn0w import ConfigReader, Logger
 
 
 class CombineStringNode:

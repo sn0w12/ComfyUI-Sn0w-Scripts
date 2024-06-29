@@ -2,7 +2,7 @@ import json
 import os
 import folder_paths
 
-from sn0w import Logger
+from ..sn0w import Logger
 
 
 def check_lora_folders():

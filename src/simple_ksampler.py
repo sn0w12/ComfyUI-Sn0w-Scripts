@@ -3,7 +3,7 @@ from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler, Pol
 import comfy.samplers
 
 from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
-from sn0w import Logger, Utility
+from ..sn0w import Logger, Utility
 from .custom_schedulers.custom_schedulers import CustomSchedulers
 
 
@@ -79,6 +79,7 @@ class SimpleSamplerCustom:
         # Get sampler and sigmas
         sampler = self.get_sampler(sampler_name)[0]
         sigmas = self.get_custom_sigmas(model, model_type, scheduler_name, steps, denoise)
+        self.logger.print_sigmas_differences(scheduler_name, sigmas)
 
         samples = custom_sampler.sample(model, add_noise, noise_seed, cfg, positive_prompt, negative_prompt, sampler, sigmas, latent_image)
         if image_output["links"] != []:

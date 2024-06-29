@@ -4,14 +4,14 @@ import random
 
 from aiohttp import web
 
-from sn0w import ConfigReader, Logger, Utility, MessageHolder
+from ..sn0w import ConfigReader, Logger, Utility, MessageHolder
 
 routes = MessageHolder.routes
 API_PREFIX = MessageHolder.API_PREFIX
 
 
 @routes.post(f"{API_PREFIX}/update_characters")
-async def handle_update_characters():
+async def handle_update_characters(request):
     CharacterSelectNode.initialize()
     return web.json_response({"status": "ok"})
 

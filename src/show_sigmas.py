@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from server import PromptServer
-from sn0w import MessageHolder
+from ..sn0w import MessageHolder
 
 
 class ShowSigmasNode:

@@ -3,7 +3,7 @@ from nodes import LoraLoader
 
 import folder_paths
 
-from sn0w import Logger, Utility
+from ..sn0w import Logger, Utility
 
 
 def generate_lora_node_class(lora_type, required_folders=None, combos=1):

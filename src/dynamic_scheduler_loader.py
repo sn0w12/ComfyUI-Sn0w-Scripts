@@ -1,4 +1,4 @@
-from sn0w import Utility
+from ..sn0w import Utility
 from .custom_schedulers.custom_schedulers import CustomSchedulers
 
 
