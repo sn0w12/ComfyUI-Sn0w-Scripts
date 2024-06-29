@@ -25,8 +25,9 @@ disable = [
     "use-symbolic-message-instead",
     "C0116",
     "C0114",
-    "C0103", # invalid-name :: constant case
-    "W0603"  # global-statements
+    "C0103",
+    "E0401",
+    "W0603"
 ]
 
 [tool.pylint.format]
