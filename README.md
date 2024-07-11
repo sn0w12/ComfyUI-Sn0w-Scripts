@@ -134,7 +134,7 @@ Nodes that are specifically for generating and processing images.
 Nodes that handle lora selection, stacking, and loading.
 
 ### Load Lora Sn0w
-> Normal load lora but from another folder.
+> Normal load lora but can put favourite loras at the top of the list.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
@@ -224,7 +224,7 @@ Nodes that provide utility functions across the system.
 >    </details>
 
 ### Copy/Paste Textbox
-> A multiline textbox with copy and paste functionality.
+> A multiline textbox with copy, paste and highlighting functionality.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
