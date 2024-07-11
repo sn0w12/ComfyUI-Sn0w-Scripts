@@ -255,6 +255,6 @@ Note: Uses [ImagesGrid](https://github.com/LEv145/images-grid-comfy-plugin) for 
 ![Lora Tester](./imgs/lora_tester_workflow.png)
 
 ## T2I
-My general text to image workflow
+My general text to image workflow, note that it uses several nodes from different custom nodes.
 
 ![T2I](./imgs/normal_workflow.png)
