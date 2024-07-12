@@ -120,18 +120,21 @@ class CharacterSelectNode:
             char_item = self.final_character_dict.get(character)
 
         self.last_character = char_item
+        character_name = ""
+        prompt = ""
 
         if char_item:
-            associated_string = char_item["associated_string"]
+            character_name = char_item["associated_string"]
             prompt = char_item["prompt"] if character_prompt else ""
             strength_part = f":{character_strength}" if character_strength != 1 else None
 
-            if associated_string and strength_part is not None:
-                return (f"({associated_string}{strength_part}), ", prompt)
-            if associated_string:
-                return (f"{associated_string}, ", prompt)
-            return ("", prompt)
-        return ("", "")
+            if character_name:
+                if strength_part is not None:
+                    character_name = f"({character_name}{strength_part}), "
+                else:
+                    character_name = f"{character_name}, "
+
+        return (character_name, prompt)
 
     def select_random_character(self):
         # Fetching the exclusion settings
