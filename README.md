@@ -19,6 +19,20 @@ A collection of nodes and improvements created for general ease and lora managem
 
 In the ComfyUI settings, you can modify various settings. Some changes will apply immediately, while others require a refresh to take effect.
 
+## Settings
+
+| Setting      | Definition |
+| ----------- | ----------- |
+| Animagine Prompt Style      | Places "1girl/1boy" at the beginning of your prompts in the "Prompt Combine" node.      |
+| Custom Lora Loaders SD...   | Allows creation of new LoRa loaders by specifying their name and path.        |
+| Custom Textbox Colors   | Sets the highlight color for text in textboxes.        |
+| Disable Default Characters   | Disables the loading of the default characters in the "Character Selector" node.        |
+| Highlight Favourite Items   | Highlights favorite LoRas and characters in green.        |
+| Logging Level   | Sets the severity level of logs that will be printed.        |
+| Max Difference in Lora Loading   | Specifies the maximum allowable difference between a tag and a LoRa for it to be loaded.        |
+| Random Characters from Favourites Only   | Ensures random characters are selected only from your favorited characters.        |
+| Sort Characters By Series   | Sorts characters by their series instead of alphabetically.        |
+
 ## Important Note
 The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using.
 
