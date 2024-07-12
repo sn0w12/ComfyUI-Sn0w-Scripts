@@ -124,10 +124,12 @@ class CharacterSelectNode:
         if char_item:
             associated_string = char_item["associated_string"]
             prompt = char_item["prompt"] if character_prompt else ""
-            strength_part = f":{character_strength}" if character_strength != 1 else ""
+            strength_part = f":{character_strength}" if character_strength != 1 else None
 
-            if associated_string:
+            if associated_string and strength_part is not None:
                 return (f"({associated_string}{strength_part}), ", prompt)
+            if associated_string:
+                return (f"{associated_string}, ", prompt)
             return ("", prompt)
         return ("", "")
 
