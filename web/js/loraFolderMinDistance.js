@@ -3,7 +3,7 @@ import { app } from '../../../scripts/app.js';
 const id = 'sn0w.LoraFolderMinDistance';
 const settingDefinition = {
     id,
-    name: '[Sn0w] Max difference in lora loading',
+    name: '[Sn0w] Max difference in Lora Loading',
     defaultValue: 5,
     min: 0,
     max: 20,
