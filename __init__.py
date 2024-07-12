@@ -1,6 +1,5 @@
 import importlib
 import os
-import folder_paths
 from .src.dynamic_lora_loader import generate_lora_node_class
 from .src.dynamic_scheduler_loader import generate_scheduler_node_class
 from .src.check_folder_paths import check_lora_folders
@@ -55,18 +54,23 @@ WEB_DIRECTORY = "./web"
 
 check_lora_folders()
 
-current_unique_id = 0  # Global variable to track the unique ID
+CURRENT_UNIQUE_ID = 0  # Global variable to track the unique ID
 logger = Logger()
 
+
 def parse_custom_lora_loaders(custom_lora_loaders):
+    """
+    Parse a string of custom Lora loaders into a list of tuples containing
+    the name, required folders, and the number of combinations.
+    """
     required_folders_with_names = []
     # Split the input string by new lines to get each name-value pair
-    entries = custom_lora_loaders.split('\n')
+    entries = custom_lora_loaders.split("\n")
     for entry in entries:
         if entry.strip():  # Make sure the entry is not just whitespace
-            name, _, remainder = entry.partition(':')
-            if ':' in remainder:
-                value, _, combos = remainder.partition(':')
+            name, _, remainder = entry.partition(":")
+            if ":" in remainder:
+                value, _, combos = remainder.partition(":")
             else:
                 value = remainder
                 combos = 1
@@ -74,20 +78,22 @@ def parse_custom_lora_loaders(custom_lora_loaders):
             name = name.strip()
             value = value.strip()
             combos = int(combos)
-            required_folders_with_names.append((name, value.split(','), combos))
+            required_folders_with_names.append((name, value.split(","), combos))
     return required_folders_with_names
 
+
 def generate_and_register_lora_node(lora_type, setting):
-    global current_unique_id  # Use the global variable to keep track of IDs
-    
+    """Generate and register the users custom lora loaders"""
+    global CURRENT_UNIQUE_ID  # Use the global variable to keep track of IDs
+
     custom_lora_loaders = ConfigReader.get_setting(setting, None)
     if custom_lora_loaders is not None:
         required_folders_with_names = parse_custom_lora_loaders(custom_lora_loaders)
 
         for name, folders, combos in required_folders_with_names:
-            current_unique_id += 1  # Increment the unique ID for each new class
-            unique_id_with_name = str(f"{name}_{current_unique_id}")
-            
+            CURRENT_UNIQUE_ID += 1  # Increment the unique ID for each new class
+            unique_id_with_name = str(f"{name}_{CURRENT_UNIQUE_ID}")
+
             logger.log(f"Adding custom lora loader: {folders}, {unique_id_with_name}, {combos}", "INFORMATIONAL")
             DynamicLoraNode = generate_lora_node_class(lora_type, folders, combos)
 
@@ -99,14 +105,20 @@ def generate_and_register_lora_node(lora_type, setting):
                 NODE_CLASS_MAPPINGS[name] = DynamicLoraNode
                 NODE_DISPLAY_NAME_MAPPINGS[name] = f"{name}"
 
+
 generate_and_register_lora_node("loras_xl", "sn0w.CustomLoraLoadersXL")
 generate_and_register_lora_node("loras_15", "sn0w.CustomLoraLoaders1.5")
 generate_and_register_lora_node("loras_3", "sn0w.CustomLoraLoaders3")
 
+
 def import_and_register_scheduler_nodes():
-    custom_schedulers_path = os.path.join(os.path.dirname(__file__), 'src', 'custom_schedulers')
+    """
+    Import and register custom scheduler nodes from Python files in the
+    'src/custom_schedulers' directory.
+    """
+    custom_schedulers_path = os.path.join(os.path.dirname(__file__), "src", "custom_schedulers")
     for filename in os.listdir(custom_schedulers_path):
-        if filename.endswith('.py') and filename != 'custom_schedulers.py':
+        if filename.endswith(".py") and filename != "custom_schedulers.py":
             file_path = os.path.join(custom_schedulers_path, filename)
             module_name = filename[:-3]  # Remove the .py extension
 
@@ -114,14 +126,15 @@ def import_and_register_scheduler_nodes():
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
 
-            settings = getattr(module, 'settings', None)
-            get_sigmas_function = getattr(module, 'get_sigmas', None)
+            settings = getattr(module, "settings", None)
+            get_sigmas_function = getattr(module, "get_sigmas", None)
 
             if settings and get_sigmas_function:
                 DynamicSchedulerNode = generate_scheduler_node_class(settings, get_sigmas_function)
-                class_name = settings["name"].capitalize() + "Scheduler"
-                
+                class_name = settings.get("name", "default").capitalize() + "Scheduler"
+
                 NODE_CLASS_MAPPINGS[class_name] = DynamicSchedulerNode
                 NODE_DISPLAY_NAME_MAPPINGS[class_name] = class_name
+
 
 import_and_register_scheduler_nodes()

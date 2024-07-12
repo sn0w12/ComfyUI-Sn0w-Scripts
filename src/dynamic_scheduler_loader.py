@@ -1,7 +1,10 @@
-from .custom_schedulers.custom_schedulers import CustomSchedulers
 from ..sn0w import Utility
+from .custom_schedulers.custom_schedulers import CustomSchedulers
+
 
 def generate_scheduler_node_class(settings, get_sigmas_function):
+    """Generates a custom scheduler loader node"""
+
     class DynamicSchedulerNode:
         utility = Utility()
 
@@ -10,10 +13,7 @@ def generate_scheduler_node_class(settings, get_sigmas_function):
             inputs = {
                 "required": {
                     "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
-                    **{
-                        key: cls.utility.create_setting_entry(value[0], value)
-                        for key, value in settings['settings'].items()
-                    }
+                    **{key: cls.utility.create_setting_entry(value[0], value) for key, value in settings["settings"].items()},
                 }
             }
             return inputs
@@ -25,8 +25,6 @@ def generate_scheduler_node_class(settings, get_sigmas_function):
         OUTPUT_NODE = True
 
         def get_sigmas(self, steps, **kwargs):
-            return (CustomSchedulers.append_zero(
-                get_sigmas_function(steps, **kwargs)
-            ), )
+            return (CustomSchedulers.append_zero(get_sigmas_function(steps, **kwargs)),)
 
     return DynamicSchedulerNode

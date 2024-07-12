@@ -1,16 +1,17 @@
 from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel
 from nodes import ImageScaleBy
 
+
 class UpscaleImageBy:
     @classmethod
-    def INPUT_TYPES(s):
-        return {"required":
-                    {
-                    "image": ("IMAGE", ),
-                    "upscale_by": ("FLOAT", {"default": 2.0, "min": 0.0, "max": 100.0, "step":0.1, "round": 0.01}),
-                    "upscale_model": ("UPSCALE_MODEL",),
-                     }
-                }
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "upscale_by": ("FLOAT", {"default": 2.0, "min": 0.0, "max": 100.0, "step": 0.1, "round": 0.01}),
+                "upscale_model": ("UPSCALE_MODEL",),
+            }
+        }
 
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("IMAGE",)

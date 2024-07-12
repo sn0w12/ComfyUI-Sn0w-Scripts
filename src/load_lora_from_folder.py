@@ -1,10 +1,16 @@
 import os
 import re
 import folder_paths
+
 from nodes import LoraLoader
 from ..sn0w import Logger, Utility, ConfigReader
 
+
 class LoadLoraFolderNode:
+    """
+    Automatically load loras from based on a prompt and a specified folder
+    """
+
     logger = Logger()
 
     @classmethod
@@ -12,7 +18,7 @@ class LoadLoraFolderNode:
         return {
             "required": {
                 "model": ("MODEL",),
-                "clip": ("CLIP", ),
+                "clip": ("CLIP",),
                 "prompt": ("STRING", {"default": ""}),
                 "folders": ("STRING", {"default": "character:1,concept"}),
                 "lora_strength": ("FLOAT", {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01}),
@@ -20,34 +26,40 @@ class LoadLoraFolderNode:
             },
         }
 
-    RETURN_TYPES = ("MODEL", "CLIP",)
-    RETURN_NAMES = ("MODEL", "CLIP",)
+    RETURN_TYPES = (
+        "MODEL",
+        "CLIP",
+    )
+    RETURN_NAMES = (
+        "MODEL",
+        "CLIP",
+    )
     FUNCTION = "find_and_apply_lora"
     CATEGORY = "sn0w/lora"
 
     def clean_string(self, input_string):
-        cleaned_string = input_string.replace(r'\(', '').replace(r'\)', '')
-        cleaned_string = re.sub(r'[:]+(\d+(\.\d+)?)?', '', cleaned_string)
-        cleaned_string = re.sub(r',\s*$', '', cleaned_string.strip())
-        cleaned_string = input_string.replace('(', '').replace(')', '').replace('\\', '')
+        cleaned_string = input_string.replace(r"\(", "").replace(r"\)", "")
+        cleaned_string = re.sub(r"[:]+(\d+(\.\d+)?)?", "", cleaned_string)
+        cleaned_string = re.sub(r",\s*$", "", cleaned_string.strip())
+        cleaned_string = input_string.replace("(", "").replace(")", "").replace("\\", "")
         return cleaned_string.lower()
 
     def normalize_folder_name(self, folder_name):
-        return folder_name.strip().replace('\\', '/').lower()
+        return folder_name.strip().replace("\\", "/").lower()
 
     def parse_folders(self, folder_string):
         master_folder = None
         include_folders = {}
         exclude_folders = set()
-        folder_specs = folder_string.split(',')
+        folder_specs = folder_string.split(",")
 
         for spec in folder_specs:
-            parts = spec.split(':')
+            parts = spec.split(":")
             folder_name = self.normalize_folder_name(parts[0])
 
-            if folder_name.startswith('*'):
+            if folder_name.startswith("*"):
                 master_folder = folder_name[1:]  # Remove the '*' to get the master folder name
-            elif folder_name.startswith('-'):
+            elif folder_name.startswith("-"):
                 exclude_folder = folder_name[1:]  # Remove the '-' to get the folder name to exclude
                 exclude_folders.add(exclude_folder)
             else:
@@ -59,9 +71,9 @@ class LoadLoraFolderNode:
     def find_and_apply_lora(self, model, clip, prompt, folders, lora_strength, separator):
         # Set default prompt if None provided
         if prompt is None:
-            prompt = ''
+            prompt = ""
             self.logger.log("No prompt provided", "WARNING")
-        
+
         # Clean and split the prompt into parts
         prompt_parts = [self.clean_string(part) for part in prompt.split(separator)]
         model_type = Utility.get_model_type_simple(model)
@@ -78,8 +90,11 @@ class LoadLoraFolderNode:
                 filtered_lora_paths = folder_paths.get_filename_list("loras_3")
             else:
                 filtered_lora_paths = folder_paths.get_filename_list("loras_vd")
-        except:
-            self.logger.log(f"Correct lora folder path for \"{model_type}\" doesnt exist. Please add the required lora path to extra_model_paths.yaml", "WARNING")
+        except Exception:
+            self.logger.log(
+                f'Correct lora folder path for "{model_type}" doesnt exist. Please add the required lora path to extra_model_paths.yaml',
+                "WARNING",
+            )
             filtered_lora_paths = full_lora_paths
 
         master_folder, include_folders, exclude_folders = self.parse_folders(folders)
@@ -96,7 +111,7 @@ class LoadLoraFolderNode:
         loaded_loras = set()
         lora_found = False
 
-        max_distance = int(ConfigReader.get_setting('sn0w.LoraFolderMinDistance', 5))
+        max_distance = int(ConfigReader.get_setting("sn0w.LoraFolderMinDistance", 5))
         self.logger.log("Max Distance: " + str(max_distance), "DEBUG")
 
         # Match prompt parts with Lora filenames
@@ -105,7 +120,7 @@ class LoadLoraFolderNode:
                 lora_filename = os.path.split(lora_path)[-1].lower()
                 # Clean up the filename for matching
                 processed_lora_filename = lora_filename.replace(".safetensors", "").replace("_", " ")
-                
+
                 # Check if prompt part matches the cleaned filename
                 if prompt_part in processed_lora_filename:
                     distance = Utility.levenshtein_distance(prompt_part, processed_lora_filename)
@@ -115,23 +130,27 @@ class LoadLoraFolderNode:
                         if lora_filename in full_path.lower() and distance <= max_distance:
                             if prompt_part not in lora_candidates:
                                 lora_candidates[prompt_part] = []
-                            lora_candidates[prompt_part].append({'full_path': full_path, 'distance': distance})
-                            self.logger.log("Final: Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part, "DEBUG")
+                            lora_candidates[prompt_part].append({"full_path": full_path, "distance": distance})
+                            self.logger.log(
+                                "Final: Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part, "DEBUG"
+                            )
                             break
 
         # Load the best candidate Lora for each prompt part
         for prompt_part, candidates in lora_candidates.items():
             if candidates:
                 lora_found = True
-                selected_candidate = min(candidates, key=lambda x: x['distance'])
-                folder_name = self.normalize_folder_name(os.path.dirname(selected_candidate['full_path']))
+                selected_candidate = min(candidates, key=lambda x: x["distance"])
+                folder_name = self.normalize_folder_name(os.path.dirname(selected_candidate["full_path"]))
                 # Load Lora if not already loaded and within the allowed number per folder
-                if selected_candidate['full_path'] not in loaded_loras and (folder_name not in include_folders or len(loaded_loras) < include_folders[folder_name]):
+                if selected_candidate["full_path"] not in loaded_loras and (
+                    folder_name not in include_folders or len(loaded_loras) < include_folders[folder_name]
+                ):
                     self.logger.log(f"Loading Lora: {os.path.split(selected_candidate['full_path'])[-1]}", "INFORMATIONAL")
-                    model, clip = LoraLoader().load_lora(model, clip, selected_candidate['full_path'], lora_strength, lora_strength)
-                    loaded_loras.add(selected_candidate['full_path'])
-        
+                    model, clip = LoraLoader().load_lora(model, clip, selected_candidate["full_path"], lora_strength, lora_strength)
+                    loaded_loras.add(selected_candidate["full_path"])
+
         if not lora_found:
-            self.logger.log(f"No matching Lora found for any tags.", "INFORMATIONAL")
+            self.logger.log("No matching Lora found for any tags.", "INFORMATIONAL")
 
         return (model, clip)

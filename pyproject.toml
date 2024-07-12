@@ -1,0 +1,52 @@
+[tool.prettier]
+printWidth = 140
+tabWidth = 4
+useTabs = false
+semi = true
+singleQuote = true
+trailingComma = "es5"
+bracketSpacing = true
+arrowParens = "always"
+
+[tool.pylint.master]
+ignore = ["tests"]
+ignore-patterns = ["test_.*\\.py"]
+
+[tool.pylint.messages_control]
+confidence = ["HIGH", "CONTROL_FLOW", "INFERENCE", "INFERENCE_FAILURE", "UNDEFINED"]
+disable = [
+    "raw-checker-failed",
+    "bad-inline-option",
+    "locally-disabled",
+    "file-ignored",
+    "suppressed-message",
+    "useless-suppression",
+    "deprecated-pragma",
+    "use-symbolic-message-instead",
+    "C0116",
+    "C0114",
+    "C0103",
+    "E0401",
+    "W0603"
+]
+
+[tool.pylint.format]
+max-line-length = 140
+indent-string = '    '
+
+[tool.pylint.design]
+max-args = 5
+max-locals = 15
+max-returns = 6
+max-branches = 12
+max-statements = 50
+
+[tool.pylint.basic]
+good-names = ["INPUT_TYPES"]
+
+[tool.ruff]
+line-length = 140
+extend-ignore = [
+    "E501",  # ignore line length errors
+    "C408"   # ignore tuple trailing comma issue
+]

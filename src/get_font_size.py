@@ -1,9 +1,13 @@
 class GetFontSizeNode:
+    """
+    Estimate the font size needed to fit text over an image.
+    """
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "image": ("IMAGE", ),
+                "image": ("IMAGE",),
                 "text": ("STRING", {"default": ""}),
             },
         }
@@ -12,14 +16,16 @@ class GetFontSizeNode:
     RETURN_NAMES = ("FONT_SIZE",)
     FUNCTION = "estimate_font_size"
     CATEGORY = "sn0w"
-        
+
     def estimate_font_size(self, image, text):
         text = text.split(";")
         longest_string = max(text, key=len)
         text_length = len(longest_string)
 
         tolerance = 50
-        estimated_char_width = lambda font_size: font_size * 0.5
+
+        def estimated_char_width(font_size):
+            return font_size * 0.5
 
         # Attempt to determine if the image is a batch or a single image
         try:
@@ -38,7 +44,7 @@ class GetFontSizeNode:
 
             if width_difference <= tolerance:
                 break
-            elif estimated_text_width < width - tolerance:
+            if estimated_text_width < width - tolerance:
                 font_size += step_size
             else:
                 font_size -= step_size

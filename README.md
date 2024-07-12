@@ -19,8 +19,22 @@ A collection of nodes and improvements created for general ease and lora managem
 
 In the ComfyUI settings, you can modify various settings. Some changes will apply immediately, while others require a refresh to take effect.
 
+## Settings
+
+| Setting      | Definition |
+| ----------- | ----------- |
+| Animagine Prompt Style      | Places "1girl/1boy" at the beginning of your prompts in the "Prompt Combine" node.      |
+| Custom Lora Loaders SD...   | Allows creation of new LoRa loaders by specifying their name and path.        |
+| Custom Textbox Colors   | Sets the highlight color for text in textboxes.        |
+| Disable Default Characters   | Disables the loading of the default characters in the "Character Selector" node.        |
+| Highlight Favourite Items   | Highlights favorite LoRas and characters in green.        |
+| Logging Level   | Sets the severity level of logs that will be printed.        |
+| Max Difference in Lora Loading   | Specifies the maximum allowable difference between a tag and a LoRa for it to be loaded.        |
+| Random Characters from Favourites Only   | Ensures random characters are selected only from your favorited characters.        |
+| Sort Characters By Series   | Sorts characters by their series instead of alphabetically.        |
+
 ## Important Note
-The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using. 
+The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using.
 
 ```yaml
 loras:
@@ -54,9 +68,13 @@ The custom Lora loaders and the character selector feature allow you to mark Lor
 
 ## Text Highlighting
 
-Text in the copy/paste textbox will be highlighted when the text is in parentheses.
+Text in the copy/paste textbox will be highlighted when the text is in parentheses. You can change the colors of the highlighting by changing the `[Sn0w] Custom Textbox Colors` setting, there should be one either rgb `rgb(0, 0, 0)` or hex `#000000` color per line.
 
 ![Textbox](./imgs/textbox_highlighted.png)
+
+If you have unclosed parentheses it will be highlighted in red.
+
+![Textbox](./imgs/textbox_highlighted_error.png)
 
 ## Custom Schedulers
 
@@ -121,7 +139,7 @@ Nodes that are specifically for generating and processing images.
 >    - I recommend making lora_info and add_default_generation inputs and using the outputs from the Lora Selector.
 >    - Takes normal KSampler input but takes positive and negative inputs as text.
 >    - Outputs a batch of images.
-> 
+>
 >    ![Lora Tester](./imgs/lora_tester.png)
 >    </details>
 
@@ -130,7 +148,7 @@ Nodes that are specifically for generating and processing images.
 Nodes that handle lora selection, stacking, and loading.
 
 ### Load Lora Sn0w
-> Normal load lora but from another folder.
+> Normal load lora but can put favourite loras at the top of the list.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
@@ -166,7 +184,7 @@ Nodes that handle lora selection, stacking, and loading.
 >    - Select the amount of loras you want to test.
 >    - Outputs list of loras like this: \<lora:name:strength>
 >    - Add default generation adds an extra "nothing" at the end of the list, used in Lora Tester to generate an image without the lora.
-> 
+>
 >    ![Lora Selector](./imgs/lora_selector.png)
 >    </details>
 
@@ -177,7 +195,7 @@ Nodes that handle lora selection, stacking, and loading.
 >
 >    - Basically Lora Selector but manual.
 >    - Specifically for the lora testers.
-> 
+>
 >    ![Lora Stacker](./imgs/lora_stacker.png)
 >    </details>
 
@@ -192,7 +210,7 @@ Nodes for selecting and combining character and textual elements.
 >    - Loads `characters.json` and outputs prompt based on it.
 >    - You can create a file named `custom_characters.json` and add characters there if you want, they will be loaded with all the other characters if you format it like the `characters.json` file.
 >    - If `custom_characters.json` has a character with the same name as `characters.json` it will add the custom prompt at the end of the normal one, this can be useful if you have loras that need activation tags.
-> 
+>
 >    ![Character Selector](./imgs/character_selector.png)
 >    </details>
 
@@ -202,7 +220,7 @@ Nodes for selecting and combining character and textual elements.
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
 >    - If simplify is enabled, the simplification process identifies and removes redundant tags (e.g., when a tag is fully encompassed by another, more descriptive tag) and tags incompatible with factors such as facing away, covered eyes, etc. Any tags that are in parentheses will not be removed.
-> 
+>
 >    ![Prompt Combine](./imgs/prompt_combine.png)
 >    </details>
 
@@ -220,7 +238,7 @@ Nodes that provide utility functions across the system.
 >    </details>
 
 ### Copy/Paste Textbox
-> A multiline textbox with copy and paste functionality.
+> A multiline textbox with copy, paste and highlighting functionality.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
@@ -251,6 +269,6 @@ Note: Uses [ImagesGrid](https://github.com/LEv145/images-grid-comfy-plugin) for 
 ![Lora Tester](./imgs/lora_tester_workflow.png)
 
 ## T2I
-My general text to image workflow
+My general text to image workflow, note that it uses several nodes from different custom nodes.
 
 ![T2I](./imgs/normal_workflow.png)
