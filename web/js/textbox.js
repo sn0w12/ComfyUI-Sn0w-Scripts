@@ -209,21 +209,20 @@ app.registerExtension({
                     }
 
                     let color = colors[nestingLevel % colors.length];
-                    let uniqueId = null;
+                    const uniqueId = generateUniqueId();
                     if (inputEl.highlightGradient === true) {
-                        uniqueId = generateUniqueId();
                         color = `id-${uniqueId}`;
                     }
                     switch(char) {
                         case '(':
                             highlightedText += text.slice(lastIndex, i) + `<span id="${uniqueId}" style="background-color: ${color};">${escapeHtml(char)}`;
-                            spanStack.push({ id: uniqueId, start: highlightedText.length, nestingLevel });
+                            spanStack.push({ id: uniqueId, start: highlightedText.length, originalSpan: `<span id="${uniqueId}" style="background-color: ${color};">`, nestingLevel });
                             nestingLevel++;
                             lastIndex = i + 1;
                             break;
                         case '<':
-                            highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${loraColor};">${escapeHtml(char)}`;
-                            spanStack.push({ start: highlightedText.length - 3, originalSpan: `<span style="background-color: ${loraColor};">`, nestingLevel });
+                            highlightedText += text.slice(lastIndex, i) + `<span id="${uniqueId}" style="background-color: ${loraColor};">${escapeHtml(char)}`;
+                            spanStack.push({ id: uniqueId, start: highlightedText.length - 3, originalSpan: `<span id="${uniqueId}" style="background-color: ${loraColor};">`, nestingLevel });
                             nestingLevel++;
                             lastIndex = i + 1;
                             break;
@@ -231,7 +230,7 @@ app.registerExtension({
                         case '>':
                             if (nestingLevel > 0) {
                                 highlightedText += text.slice(lastIndex, i) + `${escapeHtml(char)}</span>`;
-                                const { id, nestingLevel: startNestingLevel } = spanStack.pop();
+                                const { id } = spanStack.pop();
                                 nestingLevel--;
 
                                 if (inputEl.highlightGradient === true) {
@@ -252,25 +251,30 @@ app.registerExtension({
                     }
                 }
 
-                if (inputEl.highlightGradient === true) {
-                    // Apply the updated colors to the highlighted text
-                    uniqueIdMap.forEach((newColor, id) => {
-                        highlightedText = highlightedText.replace(`background-color: id-${id}`, `background-color: ${newColor}`);
-                    });
-                }
-
                 highlightedText += text.slice(lastIndex);
 
                 if (nestingLevel > 0) {
                     // Apply red highlight to the unclosed spans
                     while (spanStack.length > 0) {
-                        const { start, originalSpan } = spanStack.pop();
-                        const errorSpanTag = `<span style="background-color: ${errorColor};">`;
+                        const spanData = spanStack.pop();
+                        if (spanData) {
+                            const { id, start, originalSpan } = spanData;
+                            const errorSpanTag = `<span id="${id}" style="background-color: ${errorColor};">`;
 
-                        const newText = highlightedText.slice(start - (originalSpan.length + 1), highlightedText.length).replace(originalSpan, errorSpanTag)
-                        highlightedText = highlightedText.slice(0, start - originalSpan.length - 1) + newText;
-                        highlightedText += `</span>`;
+                            if (originalSpan) {
+                                const newText = highlightedText.slice(start - (originalSpan.length + 1), highlightedText.length).replace(originalSpan, errorSpanTag);
+                                highlightedText = highlightedText.slice(0, start - originalSpan.length + 1) + newText;
+                                highlightedText += `</span>`;
+                            }
+                        }
                     }
+                }
+
+                if (inputEl.highlightGradient === true) {
+                    // Apply the updated colors to the highlighted text
+                    uniqueIdMap.forEach((newColor, id) => {
+                        highlightedText = highlightedText.replace(`background-color: id-${id}`, `background-color: ${newColor}`);
+                    });
                 }
 
                 overlayEl.innerHTML = highlightedText;
