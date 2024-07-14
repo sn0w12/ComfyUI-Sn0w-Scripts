@@ -91,7 +91,6 @@ app.registerExtension({
 
             async function setTextHighlightType(inputEl) {
                 const highlightGradient = await SettingUtils.getSetting('sn0w.TextboxGradientColors');
-                console.log(highlightGradient);
                 if (highlightGradient === null) {
                     inputEl.highlightGradient = false;
                     return;
@@ -183,11 +182,17 @@ app.registerExtension({
                     return;
                 }
 
+                let uniqueIdCounter = 0;
+                function generateUniqueId() {
+                    return `unique-span-${uniqueIdCounter++}`;
+                }
+
                 let nestingLevel = 0;
                 let highlightedText = '';
                 let lastIndex = 0;
 
                 let spanStack = [];
+                const uniqueIdMap = new Map();
 
                 for (let i = 0; i < text.length; i++) {
                     const char = text[i];
@@ -203,17 +208,22 @@ app.registerExtension({
                         continue;
                     }
 
-                    const color = colors[nestingLevel % colors.length];
+                    let color = colors[nestingLevel % colors.length];
+                    let uniqueId = null;
+                    if (inputEl.highlightGradient === true) {
+                        uniqueId = generateUniqueId();
+                        color = `id-${uniqueId}`;
+                    }
                     switch(char) {
                         case '(':
-                            highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${color};">${escapeHtml(char)}`;
-                            spanStack.push({ start: highlightedText.length, originalSpan: `<span style="background-color: ${color};">` });
+                            highlightedText += text.slice(lastIndex, i) + `<span id="${uniqueId}" style="background-color: ${color};">${escapeHtml(char)}`;
+                            spanStack.push({ id: uniqueId, start: highlightedText.length, nestingLevel });
                             nestingLevel++;
                             lastIndex = i + 1;
                             break;
                         case '<':
                             highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${loraColor};">${escapeHtml(char)}`;
-                            spanStack.push({ start: highlightedText.length - 3, originalSpan: `<span style="background-color: ${loraColor};">` });
+                            spanStack.push({ start: highlightedText.length - 3, originalSpan: `<span style="background-color: ${loraColor};">`, nestingLevel });
                             nestingLevel++;
                             lastIndex = i + 1;
                             break;
@@ -221,7 +231,7 @@ app.registerExtension({
                         case '>':
                             if (nestingLevel > 0) {
                                 highlightedText += text.slice(lastIndex, i) + `${escapeHtml(char)}</span>`;
-                                spanStack.pop();
+                                const { id, nestingLevel: startNestingLevel } = spanStack.pop();
                                 nestingLevel--;
 
                                 if (inputEl.highlightGradient === true) {
@@ -229,18 +239,24 @@ app.registerExtension({
                                     const strengthText = text.slice(Math.max(0, i - 10), i);
                                     const match = strengthText.match(/(\d+(\.\d+)?)\s*$/);
                                     if (match) {
-                                        const strength = match[1];
+                                        const strength = parseFloat(match[1]);
                                         const clampedStrength = Math.max(0, Math.min(2, strength));
                                         const normalizedStrength = clampedStrength / 2;
-                                        const oldColor = colors[nestingLevel % colors.length];
                                         const newColor = interpolateColor(colors[0], colors[colors.length - 1], easeInOutCubic(normalizedStrength));
-                                        highlightedText = highlightedText.replace(oldColor, newColor);
+                                        uniqueIdMap.set(id, newColor);
                                     }
                                 }
                                 lastIndex = i + 1;
                             }
                             break;
                     }
+                }
+
+                if (inputEl.highlightGradient === true) {
+                    // Apply the updated colors to the highlighted text
+                    uniqueIdMap.forEach((newColor, id) => {
+                        highlightedText = highlightedText.replace(`background-color: id-${id}`, `background-color: ${newColor}`);
+                    });
                 }
 
                 highlightedText += text.slice(lastIndex);
@@ -284,8 +300,8 @@ app.registerExtension({
                 overlayEl.style.color = 'rgba(0,0,0,0)';
                 overlayEl.style.padding = textareaStyle.padding;
                 overlayEl.style.boxSizing = textareaStyle.boxSizing;
-                overlayEl.style.zIndex = '1'; // Ensure it's just below the textarea
-                overlayEl.style.pointerEvents = 'none'; // Allow clicks to pass through
+                overlayEl.style.zIndex = '1';
+                overlayEl.style.pointerEvents = 'none';
                 overlayEl.style.color = 'transparent';
                 overlayEl.style.overflow = 'hidden';
                 overlayEl.style.whiteSpace = 'pre-wrap';
@@ -301,15 +317,13 @@ app.registerExtension({
     },
 });
 
-const defaultValue = 'rgba(0, 255, 0, 0.5)\nrgba(0, 0, 255, 0.5)\nrgba(255, 0, 0, 0.5)\nrgba(255, 255, 0, 0.5)';
-const tooltip = 'A list of either rgb or hex colors, one color per line.';
 const settingsDefinitions = [
     {
         id: 'sn0w.TextboxColors',
         name: '[Sn0w] Custom Textbox Colors',
         type: SettingUtils.createMultilineSetting,
-        defaultValue: defaultValue,
-        attrs: { tooltip: tooltip },
+        defaultValue: 'rgba(0, 255, 0, 0.5)\nrgba(0, 0, 255, 0.5)\nrgba(255, 0, 0, 0.5)\nrgba(255, 255, 0, 0.5)',
+        attrs: { tooltip: 'A list of either rgb or hex colors, one color per line.' },
     },
     {
         id: 'sn0w.TextboxGradientColors',
