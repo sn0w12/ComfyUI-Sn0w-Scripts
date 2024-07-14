@@ -119,17 +119,31 @@ app.registerExtension({
                 return colors;
             }
 
+            function escapeHtml(char) {
+                switch (char) {
+                    case '<':
+                        return '&lt;';
+                    case '>':
+                        return '&gt;';
+                    default:
+                        return char;
+                }
+            }
+
             async function syncText(inputEl, overlayEl) {
                 const text = inputEl.value;
                 overlayEl.textContent = text;
 
-                // Colors for nested parentheses
                 let colors = inputEl.colors;
                 if (colors == undefined) {
                     return;
                 }
                 let errorColor = inputEl.errorColor;
                 if (errorColor == undefined) {
+                    return;
+                }
+                let loraColor = colors[0];
+                if (loraColor == undefined) {
                     return;
                 }
 
@@ -147,26 +161,34 @@ app.registerExtension({
                         i++;
                         continue;
                     } else if (char === '/' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
-                        highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${errorColor};">/</span>${text[i + 1]}`;
-                        console.log(`Try replacing "${char}" at ${i} with "\\"`);
-                        i++;
+                        highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${errorColor};">/</span>`;
+                        console.error(`Try replacing "${char}" at char ${i} with "\\"`);
                         lastIndex = i + 1;
                         continue;
                     }
 
+                    const color = colors[nestingLevel % colors.length];
                     switch(char) {
                         case '(':
-                            const color = colors[nestingLevel % colors.length];
-                            highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${color};">(`;
-                            spanStack.push(highlightedText.length);
+                            highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${color};">${escapeHtml(char)}`;
+                            spanStack.push({ start: highlightedText.length, originalSpan: `<span style="background-color: ${color};">` });
+                            nestingLevel++;
+                            lastIndex = i + 1;
+                            break;
+                        case '<':
+                            highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${loraColor};">${escapeHtml(char)}`;
+                            spanStack.push({ start: highlightedText.length - 3, originalSpan: `<span style="background-color: ${loraColor};">` });
                             nestingLevel++;
                             lastIndex = i + 1;
                             break;
                         case ')':
-                            nestingLevel--;
-                            highlightedText += text.slice(lastIndex, i) + `)</span>`;
-                            spanStack.pop();
-                            lastIndex = i + 1;
+                        case '>':
+                            if (nestingLevel > 0) {
+                                nestingLevel--;
+                                highlightedText += text.slice(lastIndex, i) + `${escapeHtml(char)}</span>`;
+                                spanStack.pop();
+                                lastIndex = i + 1;
+                            }
                             break;
                     }
                 }
@@ -175,15 +197,12 @@ app.registerExtension({
 
                 if (nestingLevel > 0) {
                     // Apply red highlight to the unclosed spans
-                    let insertOffset = 0;
                     while (spanStack.length > 0) {
-                        const spanStartIndex = spanStack.pop() - 1;
-                        const spanStartTag = `<span style="background-color: ${errorColor};">`;
-                        highlightedText =
-                            highlightedText.slice(0, spanStartIndex + insertOffset) +
-                            spanStartTag +
-                            highlightedText.slice(spanStartIndex + insertOffset);
-                        insertOffset += spanStartTag.length;
+                        const { start, originalSpan } = spanStack.pop();
+                        const errorSpanTag = `<span style="background-color: ${errorColor};">`;
+
+                        const newText = highlightedText.slice(start - (originalSpan.length + 1), highlightedText.length).replace(originalSpan, errorSpanTag)
+                        highlightedText = highlightedText.slice(0, start - originalSpan.length - 1) + newText;
                         highlightedText += `</span>`;
                     }
                 }
