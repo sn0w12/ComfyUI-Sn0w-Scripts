@@ -209,7 +209,7 @@ app.registerExtension({
                     }
 
                     let color = colors[nestingLevel % colors.length];
-                    const uniqueId = generateUniqueId();
+                    let uniqueId = generateUniqueId();
                     if (inputEl.highlightGradient === true) {
                         color = `id-${uniqueId}`;
                     }
@@ -221,8 +221,10 @@ app.registerExtension({
                             lastIndex = i + 1;
                             break;
                         case '<':
-                            highlightedText += text.slice(lastIndex, i) + `<span id="${uniqueId}" style="background-color: ${loraColor};">${escapeHtml(char)}`;
-                            spanStack.push({ id: uniqueId, start: highlightedText.length - 3, originalSpan: `<span id="${uniqueId}" style="background-color: ${loraColor};">`, nestingLevel });
+                            uniqueId = `${uniqueId}-lora`;
+                            color = `id-${uniqueId}`;
+                            highlightedText += text.slice(lastIndex, i) + `<span id="${uniqueId}" style="background-color: ${color};">${escapeHtml(char)}`;
+                            spanStack.push({ id: uniqueId, start: highlightedText.length - 3, originalSpan: `<span id="${uniqueId}" style="background-color: ${color};">`, nestingLevel });
                             nestingLevel++;
                             lastIndex = i + 1;
                             break;
@@ -233,7 +235,7 @@ app.registerExtension({
                                 const { id } = spanStack.pop();
                                 nestingLevel--;
 
-                                if (inputEl.highlightGradient === true) {
+                                if (inputEl.highlightGradient === true || id.endsWith('lora')) {
                                     // Check for the strength
                                     const strengthText = text.slice(Math.max(0, i - 10), i);
                                     const match = strengthText.match(/(\d+(\.\d+)?)\s*$/);
@@ -270,12 +272,10 @@ app.registerExtension({
                     }
                 }
 
-                if (inputEl.highlightGradient === true) {
-                    // Apply the updated colors to the highlighted text
-                    uniqueIdMap.forEach((newColor, id) => {
-                        highlightedText = highlightedText.replace(`background-color: id-${id}`, `background-color: ${newColor}`);
-                    });
-                }
+                // Apply the updated colors to the highlighted text
+                uniqueIdMap.forEach((newColor, id) => {
+                    highlightedText = highlightedText.replace(`background-color: id-${id}`, `background-color: ${newColor}`);
+                });
 
                 overlayEl.innerHTML = highlightedText;
             }
