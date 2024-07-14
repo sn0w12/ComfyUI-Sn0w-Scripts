@@ -137,29 +137,29 @@ app.registerExtension({
                 let highlightedText = '';
                 let lastIndex = 0;
 
-                const regex = /\\.|(\()|(\))/g;
-                let match;
                 let spanStack = [];
 
-                while ((match = regex.exec(text)) !== null) {
-                    if (match[0][0] === '\\') {
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+
+                    // Check for escape character
+                    if (char === '\\' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
+                        i++;
                         continue;
-                    } else if (match[1]) {
-                        // if it matches '('
+                    }
+
+                    if (char === '(') {
                         const color = colors[nestingLevel % colors.length];
-                        highlightedText +=
-                            text.slice(lastIndex, match.index) +
-                            `<span style="background-color: ${color};">${match[1]}`;
+                        highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${color};">(`;
                         spanStack.push(highlightedText.length);
                         nestingLevel++;
-                    } else if (match[2]) {
-                        // if it matches ')'
+                        lastIndex = i + 1;
+                    } else if (char === ')') {
                         nestingLevel--;
-                        highlightedText +=
-                            text.slice(lastIndex, match.index) + `${match[2]}</span>`;
+                        highlightedText += text.slice(lastIndex, i) + `)</span>`;
                         spanStack.pop();
+                        lastIndex = i + 1;
                     }
-                    lastIndex = regex.lastIndex;
                 }
 
                 highlightedText += text.slice(lastIndex);
