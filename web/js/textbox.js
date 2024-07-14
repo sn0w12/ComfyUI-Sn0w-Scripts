@@ -23,7 +23,6 @@ app.registerExtension({
                 this.addWidget("button", "Paste", "Paste", () => {
                     navigator.clipboard.readText().then(text => {
                         this.inputEl.value = text;
-                        setTextHighlightType(this.inputEl.inputEl);
                         syncText(this.inputEl.inputEl, this.overlayEl);
                     }).catch(error => {
                         console.error('Failed to read clipboard contents:', error);
@@ -44,7 +43,6 @@ app.registerExtension({
 
                     // Sync text initially and on input
                     this.inputEl.inputEl.addEventListener('input', () => {
-                        setTextHighlightType(this.inputEl.inputEl);
                         syncText(this.inputEl.inputEl, this.overlayEl);
                         setOverlayStyle(this.inputEl, this.overlayEl);
                     });
@@ -77,7 +75,6 @@ app.registerExtension({
                             (event.key === 'ArrowUp' || event.key === 'ArrowDown')
                         ) {
                             setTimeout(() => {
-                                setTextHighlightType(this.inputEl.inputEl);
                                 syncText(this.inputEl.inputEl, this.overlayEl);
                             }, 10);
                         }
@@ -105,6 +102,7 @@ app.registerExtension({
 
             async function setTextColors(inputEl, overlayEl) {
                 const customTextboxColors = await SettingUtils.getSetting('sn0w.TextboxColors');
+                setTextHighlightType(inputEl);
                 if (
                     customTextboxColors == null ||
                     (customTextboxColors.length === 1 && customTextboxColors[0] === '') ||
@@ -118,7 +116,6 @@ app.registerExtension({
                     ];
                     inputEl.colors = defaultColors;
                     inputEl.errorColor = 'var(--error-text)';
-                    setTextHighlightType(inputEl);
                     syncText(inputEl, overlayEl);
                     return defaultColors;
                 }
@@ -132,7 +129,6 @@ app.registerExtension({
                 });
                 inputEl.colors = colors;
                 inputEl.errorColor = 'var(--error-text)';
-                setTextHighlightType(inputEl);
                 syncText(inputEl, overlayEl);
                 return colors;
             }
