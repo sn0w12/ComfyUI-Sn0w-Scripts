@@ -23,6 +23,7 @@ app.registerExtension({
                 this.addWidget("button", "Paste", "Paste", () => {
                     navigator.clipboard.readText().then(text => {
                         this.inputEl.value = text;
+                        setTextHighlightType(this.inputEl.inputEl);
                         syncText(this.inputEl.inputEl, this.overlayEl);
                     }).catch(error => {
                         console.error('Failed to read clipboard contents:', error);
@@ -43,6 +44,7 @@ app.registerExtension({
 
                     // Sync text initially and on input
                     this.inputEl.inputEl.addEventListener('input', () => {
+                        setTextHighlightType(this.inputEl.inputEl);
                         syncText(this.inputEl.inputEl, this.overlayEl);
                         setOverlayStyle(this.inputEl, this.overlayEl);
                     });
@@ -75,6 +77,7 @@ app.registerExtension({
                             (event.key === 'ArrowUp' || event.key === 'ArrowDown')
                         ) {
                             setTimeout(() => {
+                                setTextHighlightType(this.inputEl.inputEl);
                                 syncText(this.inputEl.inputEl, this.overlayEl);
                             }, 10);
                         }
@@ -89,21 +92,35 @@ app.registerExtension({
                 }
             };
 
+            async function setTextHighlightType(inputEl) {
+                const highlightGradient = await SettingUtils.getSetting('sn0w.TextboxGradientColors');
+                console.log(highlightGradient);
+                if (highlightGradient === null) {
+                    inputEl.highlightGradient = false;
+                    return;
+                }
+
+                inputEl.highlightGradient = highlightGradient;
+            }
+
             async function setTextColors(inputEl, overlayEl) {
                 const customTextboxColors = await SettingUtils.getSetting('sn0w.TextboxColors');
                 if (
                     customTextboxColors == null ||
                     (customTextboxColors.length === 1 && customTextboxColors[0] === '') ||
-                    customTextboxColors == ''
+                    customTextboxColors == '' || customTextboxColors.length == 0
                 ) {
-                    inputEl.colors = [
+                    const defaultColors = [
                         'rgba(0, 255, 0, 0.5)',
                         'rgba(0, 0, 255, 0.5)',
                         'rgba(255, 0, 0, 0.5)',
                         'rgba(255, 255, 0, 0.5)',
                     ];
+                    inputEl.colors = defaultColors;
+                    inputEl.errorColor = 'var(--error-text)';
+                    setTextHighlightType(inputEl);
                     syncText(inputEl, overlayEl);
-                    return;
+                    return defaultColors;
                 }
 
                 let colors = customTextboxColors.split('\n');
@@ -115,6 +132,7 @@ app.registerExtension({
                 });
                 inputEl.colors = colors;
                 inputEl.errorColor = 'var(--error-text)';
+                setTextHighlightType(inputEl);
                 syncText(inputEl, overlayEl);
                 return colors;
             }
@@ -130,9 +148,27 @@ app.registerExtension({
                 }
             }
 
+            function interpolateColor(color1, color2, factor) {
+                const rgb1 = color1.match(/\d+/g).map(Number);
+                const rgb2 = color2.match(/\d+/g).map(Number);
+
+                const r = Math.round(rgb1[0] + factor * (rgb2[0] - rgb1[0]));
+                const g = Math.round(rgb1[1] + factor * (rgb2[1] - rgb1[1]));
+                const b = Math.round(rgb1[2] + factor * (rgb2[2] - rgb1[2]));
+
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+
             async function syncText(inputEl, overlayEl) {
                 const text = inputEl.value;
                 overlayEl.textContent = text;
+
+                if (inputEl.highlightGradient == undefined) {
+                    setTimeout(() => {
+                        syncText(inputEl, overlayEl);
+                        return;
+                    }, 10);
+                }
 
                 let colors = inputEl.colors;
                 if (colors == undefined) {
@@ -184,9 +220,23 @@ app.registerExtension({
                         case ')':
                         case '>':
                             if (nestingLevel > 0) {
-                                nestingLevel--;
                                 highlightedText += text.slice(lastIndex, i) + `${escapeHtml(char)}</span>`;
                                 spanStack.pop();
+                                nestingLevel--;
+
+                                if (inputEl.highlightGradient === true) {
+                                    // Check for the strength
+                                    const strengthText = text.slice(Math.max(0, i - 10), i);
+                                    const match = strengthText.match(/(\d+(\.\d+)?)\s*$/);
+                                    if (match) {
+                                        const strength = match[1];
+                                        const clampedStrength = Math.max(0, Math.min(2, strength));
+                                        const normalizedStrength = clampedStrength / 2;
+                                        const oldColor = colors[nestingLevel % colors.length];
+                                        const newColor = interpolateColor(colors[0], colors[colors.length - 1], normalizedStrength);
+                                        highlightedText = highlightedText.replace(oldColor, newColor);
+                                    }
+                                }
                                 lastIndex = i + 1;
                             }
                             break;
@@ -251,23 +301,43 @@ app.registerExtension({
     },
 });
 
-const id = 'sn0w.TextboxColors';
-const settingDefinition = {
-    id,
-    name: '[Sn0w] Custom Textbox Colors',
-    type: SettingUtils.createMultilineSetting,
-    defaultValue:
-        'rgba(0, 255, 0, 0.5)\nrgba(0, 0, 255, 0.5)\nrgba(255, 0, 0, 0.5)\nrgba(255, 255, 0, 0.5)',
-    attrs: { tooltip: 'A list of either rgb or hex colors, one color per line.' },
-};
-
-let setting;
-
-const extension = {
-    name: id,
-    init() {
-        setting = app.ui.settings.addSetting(settingDefinition);
+const defaultValue = 'rgba(0, 255, 0, 0.5)\nrgba(0, 0, 255, 0.5)\nrgba(255, 0, 0, 0.5)\nrgba(255, 255, 0, 0.5)';
+const tooltip = 'A list of either rgb or hex colors, one color per line.';
+const settingsDefinitions = [
+    {
+        id: 'sn0w.TextboxColors',
+        name: '[Sn0w] Custom Textbox Colors',
+        type: SettingUtils.createMultilineSetting,
+        defaultValue: defaultValue,
+        attrs: { tooltip: tooltip },
     },
+    {
+        id: 'sn0w.TextboxGradientColors',
+        name: '[Sn0w] Custom Textbox Gradient Highlight',
+        type: 'boolean',
+        defaultValue: false,
+        tooltip: 'Makes the textbox highlighting be a gradient between the first and last color based on the strength of the selection.',
+    }
+];
+
+const registerSetting = (settingDefinition) => {
+    const extension = {
+        name: settingDefinition.id,
+        init() {
+            const setting = app.ui.settings.addSetting({
+                id: settingDefinition.id,
+                name: settingDefinition.name,
+                type: settingDefinition.type,
+                defaultValue: settingDefinition.defaultValue,
+                tooltip: settingDefinition.tooltip,
+                attrs: settingDefinition.attrs,
+            });
+        },
+    };
+    app.registerExtension(extension);
 };
 
-app.registerExtension(extension);
+// Register settings
+settingsDefinitions.forEach((setting) => {
+    registerSetting(setting);
+});
