@@ -71,9 +71,11 @@ The custom Lora loaders and the character selector feature allow you to mark Lor
 
 ## Text Highlighting
 
-Text in the copy/paste textbox will be highlighted when the text is in parentheses. You can change the colors of the highlighting by changing the `[Sn0w] Custom Textbox Colors` setting, there should be one either rgb `rgb(0, 0, 0)` or hex `#000000` color per line.
+Text in the copy/paste textbox will be highlighted when the text is in parentheses. You can change the colors of the highlighting by changing the `[Sn0w] Custom Textbox Colors` setting, there should be one either rgb `rgb(0, 0, 0)` or hex `#000000` color per line. You can choose to either do the highlighting by the strength of the text or the nested level it is in.
 
-![Textbox](./imgs/textbox_highlighted.png)
+Nesting             |  Strength
+:-------------------------:|:-------------------------:
+![Textbox](./imgs/textbox_highlighted.png) | ![Textbox](./imgs/textbox_gradient.png)
 
 If you have unclosed parentheses it will be highlighted in red.
 
