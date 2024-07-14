@@ -155,6 +155,10 @@ app.registerExtension({
                 return `rgb(${r}, ${g}, ${b})`;
             }
 
+            function easeInOutCubic(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
             async function syncText(inputEl, overlayEl) {
                 const text = inputEl.value;
                 overlayEl.textContent = text;
@@ -229,7 +233,7 @@ app.registerExtension({
                                         const clampedStrength = Math.max(0, Math.min(2, strength));
                                         const normalizedStrength = clampedStrength / 2;
                                         const oldColor = colors[nestingLevel % colors.length];
-                                        const newColor = interpolateColor(colors[0], colors[colors.length - 1], normalizedStrength);
+                                        const newColor = interpolateColor(colors[0], colors[colors.length - 1], easeInOutCubic(normalizedStrength));
                                         highlightedText = highlightedText.replace(oldColor, newColor);
                                     }
                                 }
