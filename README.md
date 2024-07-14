@@ -28,6 +28,7 @@ In the ComfyUI settings, you can modify various settings. Some changes will appl
 | Animagine Prompt Style      | Places "1girl/1boy" at the beginning of your prompts in the "Prompt Combine" node.      |
 | Custom Lora Loaders SD...   | Allows creation of new LoRa loaders by specifying their name and path.        |
 | Custom Textbox Colors   | Sets the highlight color for text in textboxes.        |
+| Custom Textbox Gradient Highlight   | Makes the textbox highlighting be a gradient between the first and last color based on the strength of the selection.        |
 | Disable Default Characters   | Disables the loading of the default characters in the "Character Selector" node.        |
 | Highlight Favourite Items   | Highlights favorite LoRas and characters in green.        |
 | Logging Level   | Sets the severity level of logs that will be printed.        |
