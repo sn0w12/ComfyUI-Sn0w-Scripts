@@ -146,19 +146,28 @@ app.registerExtension({
                     if (char === '\\' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
                         i++;
                         continue;
+                    } else if (char === '/' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
+                        highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${errorColor};">/</span>${text[i + 1]}`;
+                        console.log(`Try replacing "${char}" at ${i} with "\\"`);
+                        i++;
+                        lastIndex = i + 1;
+                        continue;
                     }
 
-                    if (char === '(') {
-                        const color = colors[nestingLevel % colors.length];
-                        highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${color};">(`;
-                        spanStack.push(highlightedText.length);
-                        nestingLevel++;
-                        lastIndex = i + 1;
-                    } else if (char === ')') {
-                        nestingLevel--;
-                        highlightedText += text.slice(lastIndex, i) + `)</span>`;
-                        spanStack.pop();
-                        lastIndex = i + 1;
+                    switch(char) {
+                        case '(':
+                            const color = colors[nestingLevel % colors.length];
+                            highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${color};">(`;
+                            spanStack.push(highlightedText.length);
+                            nestingLevel++;
+                            lastIndex = i + 1;
+                            break;
+                        case ')':
+                            nestingLevel--;
+                            highlightedText += text.slice(lastIndex, i) + `)</span>`;
+                            spanStack.pop();
+                            lastIndex = i + 1;
+                            break;
                     }
                 }
 
