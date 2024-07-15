@@ -235,6 +235,8 @@ app.registerExtension({
                                         const normalizedStrength = clampedStrength / 2;
                                         const newColor = interpolateColor(colors[0], colors[colors.length - 1], easeInOutCubic(normalizedStrength));
                                         uniqueIdMap.set(id, newColor);
+                                    } else {
+                                        uniqueIdMap.set(id, interpolateColor(colors[0], colors[colors.length - 1], 0.5));
                                     }
                                 }
                                 lastIndex = i + 1;
