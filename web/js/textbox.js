@@ -170,6 +170,20 @@ app.registerExtension({
                 return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
             }
 
+            function charToType(char) {
+                switch(char) {
+                    case '<':
+                        return '-lora';
+                    default:
+                        return '';
+                }
+            }
+
+            const charPairs = {
+                '(': ')',
+                '<': '>',
+            };
+
             async function syncText(inputEl, overlayEl, tries = 1) {
                 const text = inputEl.value;
                 overlayEl.textContent = text;
@@ -187,7 +201,7 @@ app.registerExtension({
                 }
 
                 let uniqueIdCounter = 0;
-                const generateUniqueId = () => `unique-span-${uniqueIdCounter++}`;
+                const generateUniqueId = (type = "") => `unique-span-${uniqueIdCounter++}${type}`;
 
                 let nestingLevel = 0;
                 let highlightedText = '';
@@ -213,47 +227,43 @@ app.registerExtension({
                     }
 
                     let color = colors[nestingLevel % colors.length];
-                    let uniqueId = generateUniqueId();
+                    let uniqueId = generateUniqueId(charToType(char));
                     if (inputEl.highlightGradient === true) {
                         color = `id-${uniqueId}`;
                     }
                     switch(char) {
                         case '(':
-                            highlightedText += text.slice(lastIndex, i) + `<span id="${uniqueId}" style="background-color: ${color};">${escapeHtml(char)}`;
-                            spanStack.push({ id: uniqueId, start: highlightedText.length, originalSpan: `<span id="${uniqueId}" style="background-color: ${color};">`, nestingLevel });
-                            nestingLevel++;
-                            lastIndex = i + 1;
-                            break;
                         case '<':
-                            uniqueId = `${uniqueId}-lora`;
-                            color = `id-${uniqueId}`;
                             highlightedText += text.slice(lastIndex, i) + `<span id="${uniqueId}" style="background-color: ${color};">${escapeHtml(char)}`;
-                            spanStack.push({ id: uniqueId, start: highlightedText.length - 3, originalSpan: `<span id="${uniqueId}" style="background-color: ${color};">`, nestingLevel });
+                            spanStack.push({ id: uniqueId, start: highlightedText.length, originalSpan: `<span id="${uniqueId}" style="background-color: ${color};">`, nestingLevel, originalColor: color, originalChar: char });
                             nestingLevel++;
                             lastIndex = i + 1;
                             break;
                         case ')':
                         case '>':
                             if (nestingLevel > 0) {
-                                highlightedText += text.slice(lastIndex, i) + `${escapeHtml(char)}</span>`;
-                                const { id } = spanStack.pop();
-                                nestingLevel--;
+                                const { id, originalColor, originalChar } = spanStack[spanStack.length - 1];
+                                if (charPairs[originalChar] === char) {
+                                    spanStack.pop();
+                                    highlightedText += text.slice(lastIndex, i) + `${escapeHtml(char)}</span>`;
+                                    nestingLevel--;
 
-                                if (inputEl.highlightGradient === true || id.endsWith('lora')) {
-                                    // Check for the strength
-                                    const strengthText = text.slice(Math.max(0, i - 10), i);
-                                    const match = strengthText.match(/(\d+(\.\d+)?)\s*$/);
-                                    if (match) {
-                                        const strength = parseFloat(match[1]);
-                                        const clampedStrength = Math.max(0, Math.min(2, strength));
-                                        const normalizedStrength = clampedStrength / 2;
-                                        const newColor = interpolateColor(colors[0], colors[colors.length - 1], easeInOutCubic(normalizedStrength));
-                                        uniqueIdMap.set(id, newColor);
-                                    } else {
-                                        uniqueIdMap.set(id, interpolateColor(colors[0], colors[colors.length - 1], 0.5));
+                                    if (inputEl.highlightGradient === true || id.endsWith('lora')) {
+                                        // Check for the strength
+                                        const strengthText = text.slice(Math.max(0, i - 10), i);
+                                        const match = strengthText.match(/(\d+(\.\d+)?)\s*$/);
+                                        if (match) {
+                                            const strength = parseFloat(match[1]);
+                                            const clampedStrength = Math.max(0, Math.min(2, strength));
+                                            const normalizedStrength = clampedStrength / 2;
+                                            const newColor = interpolateColor(colors[0], colors[colors.length - 1], easeInOutCubic(normalizedStrength));
+                                            uniqueIdMap.set(id, [newColor, originalColor]);
+                                        } else {
+                                            uniqueIdMap.set(id, [interpolateColor(colors[0], colors[colors.length - 1], 0.5), originalColor]);
+                                        }
                                     }
+                                    lastIndex = i + 1;
                                 }
-                                lastIndex = i + 1;
                             }
                             break;
                     }
@@ -270,8 +280,7 @@ app.registerExtension({
                             const errorSpanTag = `<span id="${id}" style="background-color: ${errorColor};">`;
 
                             if (originalSpan) {
-                                const newText = highlightedText.slice(start - (originalSpan.length + 1), highlightedText.length).replace(originalSpan, errorSpanTag);
-                                highlightedText = highlightedText.slice(0, start - originalSpan.length + 1) + newText;
+                                highlightedText = highlightedText.replace(originalSpan, errorSpanTag);
                                 highlightedText += `</span>`;
                             }
                         }
@@ -279,8 +288,9 @@ app.registerExtension({
                 }
 
                 // Apply the updated colors to the highlighted text
-                uniqueIdMap.forEach((newColor, id) => {
-                    highlightedText = highlightedText.replace(`background-color: id-${id}`, `background-color: ${newColor}`);
+                uniqueIdMap.forEach((colors, id) => {
+                    const [newColor, originalColor] = [colors[0], colors[1]];
+                    highlightedText = highlightedText.replace(`id="${id}" style="background-color: ${originalColor};"`, `id="${id}" style="background-color: ${newColor};"`);
                 });
 
                 overlayEl.innerHTML = highlightedText;
