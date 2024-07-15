@@ -15,7 +15,7 @@ This extension contains a collection of nodes and improvements created for lora 
     ```
 3. Start up ComfyUI.
 
-Alternatively install through [ComfyUI-Manager](https://github.com/ltdrdata/ComfyUI-Manager)
+Alternatively install through [ComfyUI-Manager](https://github.com/ltdrdata/ComfyUI-Manager).
 
 # Configuration
 
