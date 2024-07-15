@@ -333,7 +333,8 @@ export class SettingUtils {
         }
 
         if (!nodeDef) {
-            throw new Error(`Node definition with name ${nodeName} not found`);
+            console.error(`Node definition with name ${nodeName} not found`);
+            return;
         }
 
         // Find the specific node in the graph by name
@@ -346,7 +347,8 @@ export class SettingUtils {
         }
 
         if (!node) {
-            throw new Error(`Node with name ${nodeName} not found in the graph`);
+            console.warn(`Node with name ${nodeName} not found in the graph`);
+            return;
         }
 
         for (let nodeNum in graphCanvas.graph._nodes) {
