@@ -331,17 +331,20 @@ class MessageHolder:
 
             return int(message.strip())
         except ValueError:
-            cls.logger.log(f"failed to parse '${message}' as ${'comma separated list of ints' if asList else 'int'}", "ERROR")
+            cls.logger.log(f"failed to parse '{message}' as {'comma separated list of ints' if asList else 'int'}", "ERROR")
             return [1] if asList else 1
 
 
-@PromptServer.instance.routes.get("/sn0w/loras")
+API_PREFIX = "/sn0w"
+
+
+@PromptServer.instance.routes.get(f"{API_PREFIX}/loras")
 async def get_loras(request):
     loras = folder_paths.get_filename_list("loras")
     return web.json_response(list(map(lambda a: os.path.splitext(a)[0], loras)))
 
 
-@PromptServer.instance.routes.get("/sn0w/embeddings")
+@PromptServer.instance.routes.get(f"{API_PREFIX}/embeddings")
 async def get_embeddings(request):
     embeddings = folder_paths.get_filename_list("embeddings")
     return web.json_response(list(map(lambda a: os.path.splitext(a)[0], embeddings)))
