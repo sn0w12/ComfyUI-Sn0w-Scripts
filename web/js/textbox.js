@@ -168,7 +168,7 @@ app.registerExtension({
                 const shouldHighlightGradient = inputEl.highlightGradient;
                 const loraColor = colors ? colors[0] : undefined;
 
-                if (!colors || !errorColor || !loraColor || !shouldHighlightGradient) {
+                if (!colors || !errorColor || !loraColor || shouldHighlightGradient == undefined) {
                     setTimeout(() => syncText(inputEl, overlayEl), 5);
                     return;
                 }
