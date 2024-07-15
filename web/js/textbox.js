@@ -162,46 +162,36 @@ app.registerExtension({
                 const text = inputEl.value;
                 overlayEl.textContent = text;
 
-                if (inputEl.highlightGradient == undefined) {
-                    setTimeout(() => {
-                        syncText(inputEl, overlayEl);
-                        return;
-                    }, 10);
-                }
+                const colors = inputEl.colors;
+                const errorColor = inputEl.errorColor;
+                const shouldHighlightGradient = inputEl.highlightGradient;
+                const loraColor = colors ? colors[0] : undefined;
 
-                let colors = inputEl.colors;
-                if (colors == undefined) {
-                    return;
-                }
-                let errorColor = inputEl.errorColor;
-                if (errorColor == undefined) {
-                    return;
-                }
-                let loraColor = colors[0];
-                if (loraColor == undefined) {
+                if (!colors || !errorColor || !loraColor || !shouldHighlightGradient) {
+                    setTimeout(() => syncText(inputEl, overlayEl), 5);
                     return;
                 }
 
                 let uniqueIdCounter = 0;
-                function generateUniqueId() {
-                    return `unique-span-${uniqueIdCounter++}`;
-                }
+                const generateUniqueId = () => `unique-span-${uniqueIdCounter++}`;
 
                 let nestingLevel = 0;
                 let highlightedText = '';
                 let lastIndex = 0;
-
                 let spanStack = [];
                 const uniqueIdMap = new Map();
 
                 for (let i = 0; i < text.length; i++) {
                     const char = text[i];
 
-                    // Check for escape character
+                    // Handle escape characters
                     if (char === '\\' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
                         i++;
                         continue;
-                    } else if (char === '/' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
+                    }
+
+                    // Handle wrong escape characters
+                    if (char === '/' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
                         highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${errorColor};">/</span>`;
                         console.error(`Try replacing "${char}" at char ${i} with "\\"`);
                         lastIndex = i + 1;
