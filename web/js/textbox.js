@@ -203,13 +203,13 @@ app.registerExtension({
                 return loraName;
             }
 
-            function validateLoraName(inputEl, loraName) {
-                if (!inputEl.validLoras) {
+            function validateName(validFiles, name) {
+                if (!validFiles) {
                     console.error('Valid LoRA names not defined or not an array.');
                     return false;
                 }
 
-                if (inputEl.validLoras.includes(loraName)) {
+                if (validFiles.includes(name)) {
                     return true;
                 } else {
                     return false;
@@ -282,7 +282,7 @@ app.registerExtension({
                             lastIndex = i + 1;
                             break;
                         case 'e':
-                            const embeddingColor = colors[0];
+                            let embeddingColor = colors[0];
                             const embeddingPrefix = "embedding:";
                             const startIndex = i;
 
@@ -296,6 +296,9 @@ app.registerExtension({
 
                                 // Get the full embedding text
                                 const embeddingText = text.slice(startIndex, endIndex);
+                                if (validateName(inputEl.validEmbeddings, embeddingText.split(":")[1]) === false) {
+                                    embeddingColor = errorColor;
+                                }
                                 const wrappedEmbedding = `<span id="${uniqueId}" style="background-color: ${embeddingColor};">${escapeHtml(embeddingText)}</span>`;
                                 highlightedText += text.slice(lastIndex, i) + wrappedEmbedding;
                                 lastIndex = i + embeddingText.length;
@@ -313,7 +316,7 @@ app.registerExtension({
                                     // Extract and validate the LoRA name
                                     if (id.endsWith('lora')) {
                                         const loraName = extractLoraName(text, i);
-                                        if (validateLoraName(inputEl, loraName) === false) {
+                                        if (validateName(inputEl.validLoras, loraName) === false) {
                                             uniqueIdMap.set(id, [errorColor, originalColor]);
                                             lastIndex = i + 1;
                                             continue;
@@ -400,22 +403,27 @@ app.registerExtension({
                 overlayEl.style.wordWrap = 'break-word';
             }
 
-            async function setValidLoras(inputEl) {
-                const apiRequest = await api.fetchApi(`${SettingUtils.API_PREFIX}/loras`, {
+            async function setValidFiles(inputEl) {
+                inputEl.validLoras = await getValidFiles("loras");
+                inputEl.validEmbeddings = await getValidFiles("embeddings");
+            }
+
+            async function getValidFiles(type) {
+                const apiRequest = await api.fetchApi(`${SettingUtils.API_PREFIX}/${type}`, {
                     method: "GET",
                 })
                 if (!apiRequest.ok) {
                     console.error('API request failed:', apiRequest.statusText);
                 } else {
                     const responseBody = await apiRequest.json();
-                    inputEl.validLoras = responseBody;
+                    return responseBody;
                 }
             }
 
             nodeType.prototype.onNodeCreated = function () {
                 this.populate();
                 setTextColors(this.inputEl.inputEl, this.overlayEl);
-                setValidLoras(this.inputEl.inputEl)
+                setValidFiles(this.inputEl.inputEl);
                 this.getTextboxText = this.getTextboxText.bind(this);
             };
         }
