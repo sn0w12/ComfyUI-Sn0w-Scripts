@@ -48,53 +48,57 @@ app.registerExtension({
 
                     this.inputEl.inputEl.style.background = 'transparent';
 
-                    // Sync text initially and on input
-                    this.inputEl.inputEl.addEventListener('input', () => {
-                        syncText(this.inputEl.inputEl, this.overlayEl);
-                        setOverlayStyle(this.inputEl, this.overlayEl);
-                    });
+                    addEventListeners(this);
+                    addObversers(this);
 
-                    const observer = new MutationObserver(() => {
-                        setOverlayPosition(this.inputEl, this.overlayEl);
-                    });
-
-                    observer.observe(this.inputEl.inputEl, {
-                        attributes: true,
-                        attributeFilter: ['style'],
-                        childList: true,
-                        subtree: true,
-                        characterData: true,
-                    });
-
-                    const parentObserver = new MutationObserver(() => {
-                        if (!document.contains(this.inputEl.inputEl)) {
-                            this.overlayEl.remove();
-                        }
-                    });
-
-                    parentObserver.observe(this.inputEl.inputEl.parentNode, {
-                        childList: true,
-                    });
-
-                    this.inputEl.inputEl.addEventListener('keydown', (event) => {
-                        if (
-                            event.ctrlKey &&
-                            (event.key === 'ArrowUp' || event.key === 'ArrowDown')
-                        ) {
-                            setTimeout(() => {
-                                syncText(this.inputEl.inputEl, this.overlayEl);
-                            }, 10);
-                        }
-                    });
-
-                    setTimeout(() => {
-                        setOverlayPosition(this.inputEl, this.overlayEl);
-                        setOverlayStyle(this.inputEl, this.overlayEl);
-                    }, 10);
+                    setOverlayPosition(this.inputEl, this.overlayEl);
+                    setOverlayStyle(this.inputEl, this.overlayEl);
                 } else {
                     console.error('Parent node of input element is not available.');
                 }
             };
+
+            function addEventListeners(node) {
+                node.inputEl.inputEl.addEventListener('input', () => {
+                    syncText(node.inputEl.inputEl, node.overlayEl);
+                    setOverlayStyle(node.inputEl, node.overlayEl);
+                });
+
+                node.inputEl.inputEl.addEventListener('keydown', (event) => {
+                    if (
+                        event.ctrlKey &&
+                        (event.key === 'ArrowUp' || event.key === 'ArrowDown')
+                    ) {
+                        setTimeout(() => {
+                            syncText(node.inputEl.inputEl, node.overlayEl);
+                        }, 10);
+                    }
+                });
+            }
+
+            function addObversers(node) {
+                const observer = new MutationObserver(() => {
+                    setOverlayPosition(node.inputEl, node.overlayEl);
+                });
+
+                observer.observe(node.inputEl.inputEl, {
+                    attributes: true,
+                    attributeFilter: ['style'],
+                    childList: true,
+                    subtree: true,
+                    characterData: true,
+                });
+
+                const parentObserver = new MutationObserver(() => {
+                    if (!document.contains(node.inputEl.inputEl)) {
+                        node.overlayEl.remove();
+                    }
+                });
+
+                parentObserver.observe(node.inputEl.inputEl.parentNode, {
+                    childList: true,
+                });
+            }
 
             async function setTextHighlightType(inputEl) {
                 const highlightGradient = await SettingUtils.getSetting('sn0w.TextboxGradientColors');
@@ -166,7 +170,7 @@ app.registerExtension({
                 return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
             }
 
-            async function syncText(inputEl, overlayEl) {
+            async function syncText(inputEl, overlayEl, tries = 1) {
                 const text = inputEl.value;
                 overlayEl.textContent = text;
 
@@ -176,7 +180,9 @@ app.registerExtension({
                 const loraColor = colors ? colors[0] : undefined;
 
                 if (!colors || !errorColor || !loraColor || shouldHighlightGradient == undefined) {
-                    setTimeout(() => syncText(inputEl, overlayEl), 5);
+                    if (tries < 5) {
+                        setTimeout(() => syncText(inputEl, overlayEl, tries++), tries * 5);
+                    }
                     return;
                 }
 
