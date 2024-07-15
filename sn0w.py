@@ -16,6 +16,8 @@ import torch
 from server import PromptServer
 from aiohttp import web
 
+import folder_paths
+
 
 class ConfigReader:
     """
@@ -331,3 +333,9 @@ class MessageHolder:
         except ValueError:
             cls.logger.log(f"failed to parse '${message}' as ${'comma separated list of ints' if asList else 'int'}", "ERROR")
             return [1] if asList else 1
+
+
+@PromptServer.instance.routes.get("/sn0w/loras")
+async def get_loras(request):
+    loras = folder_paths.get_filename_list("loras")
+    return web.json_response(list(map(lambda a: os.path.splitext(a)[0], loras)))

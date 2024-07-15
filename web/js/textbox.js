@@ -1,5 +1,6 @@
 import { SettingUtils } from './sn0w.js';
 import { app } from '../../../scripts/app.js';
+import { api } from '../../../scripts/api.js';
 
 app.registerExtension({
     name: 'sn0w.Textbox',
@@ -181,6 +182,40 @@ app.registerExtension({
                 }
             }
 
+            function extractLoraName(text, currentIndex) {
+                const loraPrefix = "lora:";
+                const startIndex = text.lastIndexOf(loraPrefix, currentIndex) + loraPrefix.length;
+
+                // Find the end of the LoRA name (next space, comma, or ".safetensors")
+                let endIndex = text.indexOf(' ', startIndex);
+                const commaIndex = text.indexOf(',', startIndex);
+                const safetensorsIndex = text.indexOf('.safetensors', startIndex);
+
+                if (endIndex === -1 || (commaIndex !== -1 && commaIndex < endIndex)) {
+                    endIndex = commaIndex;
+                }
+                if (endIndex === -1 || (safetensorsIndex !== -1 && safetensorsIndex < endIndex)) {
+                    endIndex = safetensorsIndex;
+                }
+
+                // If there's no space, comma, or ".safetensors" after the LoRA name, consider the end of the text
+                const loraName = endIndex === -1 ? text.slice(startIndex) : text.slice(startIndex, endIndex);
+                return loraName;
+            }
+
+            function validateLoraName(inputEl, loraName) {
+                if (!inputEl.validLoras) {
+                    console.error('Valid LoRA names not defined or not an array.');
+                    return false;
+                }
+
+                if (inputEl.validLoras.includes(loraName)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
             const charPairs = {
                 '(': ')',
                 '<': '>',
@@ -275,6 +310,16 @@ app.registerExtension({
                                     highlightedText += text.slice(lastIndex, i) + `${escapeHtml(char)}</span>`;
                                     nestingLevel--;
 
+                                    // Extract and validate the LoRA name
+                                    if (id.endsWith('lora')) {
+                                        const loraName = extractLoraName(text, i);
+                                        if (validateLoraName(inputEl, loraName) === false) {
+                                            uniqueIdMap.set(id, [errorColor, originalColor]);
+                                            lastIndex = i + 1;
+                                            continue;
+                                        }
+                                    }
+
                                     if (inputEl.highlightGradient === true || id.endsWith('lora')) {
                                         // Check for the strength
                                         const strengthText = text.slice(Math.max(0, i - 10), i);
@@ -355,9 +400,22 @@ app.registerExtension({
                 overlayEl.style.wordWrap = 'break-word';
             }
 
+            async function setValidLoras(inputEl) {
+                const apiRequest = await api.fetchApi(`${SettingUtils.API_PREFIX}/loras`, {
+                    method: "GET",
+                })
+                if (!apiRequest.ok) {
+                    console.error('API request failed:', apiRequest.statusText);
+                } else {
+                    const responseBody = await apiRequest.json();
+                    inputEl.validLoras = responseBody;
+                }
+            }
+
             nodeType.prototype.onNodeCreated = function () {
                 this.populate();
                 setTextColors(this.inputEl.inputEl, this.overlayEl);
+                setValidLoras(this.inputEl.inputEl)
                 this.getTextboxText = this.getTextboxText.bind(this);
             };
         }
