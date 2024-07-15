@@ -108,10 +108,11 @@ app.registerExtension({
                     customTextboxColors == '' || customTextboxColors.length == 0
                 ) {
                     const defaultColors = [
-                        'rgba(0, 255, 0, 0.5)',
-                        'rgba(0, 0, 255, 0.5)',
-                        'rgba(255, 0, 0, 0.5)',
-                        'rgba(255, 255, 0, 0.5)',
+                        '#559c22',
+                        '#229c57',
+                        '#229c8b',
+                        '#226f9c',
+                        '#22479c',
                     ];
                     inputEl.colors = defaultColors;
                     inputEl.errorColor = 'var(--error-text)';
@@ -318,7 +319,7 @@ const settingsDefinitions = [
         id: 'sn0w.TextboxColors',
         name: '[Sn0w] Custom Textbox Colors',
         type: SettingUtils.createMultilineSetting,
-        defaultValue: 'rgba(0, 255, 0, 0.5)\nrgba(0, 0, 255, 0.5)\nrgba(255, 0, 0, 0.5)\nrgba(255, 255, 0, 0.5)',
+        defaultValue: '#559c22\n#229c57\n#229c8b\n#226f9c\n#22479c',
         attrs: { tooltip: 'A list of either rgb or hex colors, one color per line.' },
     },
     {
