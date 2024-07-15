@@ -205,7 +205,7 @@ app.registerExtension({
 
             function validateName(validFiles, name) {
                 if (!validFiles) {
-                    console.error('Valid LoRA names not defined or not an array.');
+                    console.error('Valid names not defined or not an array.');
                     return false;
                 }
 
