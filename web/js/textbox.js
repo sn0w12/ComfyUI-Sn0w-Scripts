@@ -89,21 +89,35 @@ app.registerExtension({
                 }
             };
 
+            async function setTextHighlightType(inputEl) {
+                const highlightGradient = await SettingUtils.getSetting('sn0w.TextboxGradientColors');
+                if (highlightGradient === null) {
+                    inputEl.highlightGradient = false;
+                    return;
+                }
+
+                inputEl.highlightGradient = highlightGradient;
+            }
+
             async function setTextColors(inputEl, overlayEl) {
                 const customTextboxColors = await SettingUtils.getSetting('sn0w.TextboxColors');
+                setTextHighlightType(inputEl);
                 if (
                     customTextboxColors == null ||
                     (customTextboxColors.length === 1 && customTextboxColors[0] === '') ||
-                    customTextboxColors == ''
+                    customTextboxColors == '' || customTextboxColors.length == 0
                 ) {
-                    inputEl.colors = [
-                        'rgba(0, 255, 0, 0.5)',
-                        'rgba(0, 0, 255, 0.5)',
-                        'rgba(255, 0, 0, 0.5)',
-                        'rgba(255, 255, 0, 0.5)',
+                    const defaultColors = [
+                        '#559c22',
+                        '#229c57',
+                        '#229c8b',
+                        '#226f9c',
+                        '#22479c',
                     ];
+                    inputEl.colors = defaultColors;
+                    inputEl.errorColor = 'var(--error-text)';
                     syncText(inputEl, overlayEl);
-                    return;
+                    return defaultColors;
                 }
 
                 let colors = customTextboxColors.split('\n');
@@ -119,65 +133,142 @@ app.registerExtension({
                 return colors;
             }
 
+            function escapeHtml(char) {
+                switch (char) {
+                    case '<':
+                        return '&lt;';
+                    case '>':
+                        return '&gt;';
+                    default:
+                        return char;
+                }
+            }
+
+            function interpolateColor(color1, color2, factor) {
+                const rgb1 = color1.match(/\d+/g).map(Number);
+                const rgb2 = color2.match(/\d+/g).map(Number);
+
+                const r = Math.round(rgb1[0] + factor * (rgb2[0] - rgb1[0]));
+                const g = Math.round(rgb1[1] + factor * (rgb2[1] - rgb1[1]));
+                const b = Math.round(rgb1[2] + factor * (rgb2[2] - rgb1[2]));
+
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+
+            function easeInOutCubic(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
             async function syncText(inputEl, overlayEl) {
                 const text = inputEl.value;
                 overlayEl.textContent = text;
 
-                // Colors for nested parentheses
-                let colors = inputEl.colors;
-                if (colors == undefined) {
+                const colors = inputEl.colors;
+                const errorColor = inputEl.errorColor;
+                const shouldHighlightGradient = inputEl.highlightGradient;
+                const loraColor = colors ? colors[0] : undefined;
+
+                if (!colors || !errorColor || !loraColor || !shouldHighlightGradient) {
+                    setTimeout(() => syncText(inputEl, overlayEl), 5);
                     return;
                 }
-                let errorColor = inputEl.errorColor;
-                if (errorColor == undefined) {
-                    return;
-                }
+
+                let uniqueIdCounter = 0;
+                const generateUniqueId = () => `unique-span-${uniqueIdCounter++}`;
 
                 let nestingLevel = 0;
                 let highlightedText = '';
                 let lastIndex = 0;
-
-                const regex = /\\.|(\()|(\))/g;
-                let match;
                 let spanStack = [];
+                const uniqueIdMap = new Map();
 
-                while ((match = regex.exec(text)) !== null) {
-                    if (match[0][0] === '\\') {
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+
+                    // Handle escape characters
+                    if (char === '\\' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
+                        i++;
                         continue;
-                    } else if (match[1]) {
-                        // if it matches '('
-                        const color = colors[nestingLevel % colors.length];
-                        highlightedText +=
-                            text.slice(lastIndex, match.index) +
-                            `<span style="background-color: ${color};">${match[1]}`;
-                        spanStack.push(highlightedText.length);
-                        nestingLevel++;
-                    } else if (match[2]) {
-                        // if it matches ')'
-                        nestingLevel--;
-                        highlightedText +=
-                            text.slice(lastIndex, match.index) + `${match[2]}</span>`;
-                        spanStack.pop();
                     }
-                    lastIndex = regex.lastIndex;
+
+                    // Handle wrong escape characters
+                    if (char === '/' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
+                        highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${errorColor};">/</span>`;
+                        console.error(`Try replacing "${char}" at char ${i} with "\\"`);
+                        lastIndex = i + 1;
+                        continue;
+                    }
+
+                    let color = colors[nestingLevel % colors.length];
+                    let uniqueId = generateUniqueId();
+                    if (inputEl.highlightGradient === true) {
+                        color = `id-${uniqueId}`;
+                    }
+                    switch(char) {
+                        case '(':
+                            highlightedText += text.slice(lastIndex, i) + `<span id="${uniqueId}" style="background-color: ${color};">${escapeHtml(char)}`;
+                            spanStack.push({ id: uniqueId, start: highlightedText.length, originalSpan: `<span id="${uniqueId}" style="background-color: ${color};">`, nestingLevel });
+                            nestingLevel++;
+                            lastIndex = i + 1;
+                            break;
+                        case '<':
+                            uniqueId = `${uniqueId}-lora`;
+                            color = `id-${uniqueId}`;
+                            highlightedText += text.slice(lastIndex, i) + `<span id="${uniqueId}" style="background-color: ${color};">${escapeHtml(char)}`;
+                            spanStack.push({ id: uniqueId, start: highlightedText.length - 3, originalSpan: `<span id="${uniqueId}" style="background-color: ${color};">`, nestingLevel });
+                            nestingLevel++;
+                            lastIndex = i + 1;
+                            break;
+                        case ')':
+                        case '>':
+                            if (nestingLevel > 0) {
+                                highlightedText += text.slice(lastIndex, i) + `${escapeHtml(char)}</span>`;
+                                const { id } = spanStack.pop();
+                                nestingLevel--;
+
+                                if (inputEl.highlightGradient === true || id.endsWith('lora')) {
+                                    // Check for the strength
+                                    const strengthText = text.slice(Math.max(0, i - 10), i);
+                                    const match = strengthText.match(/(\d+(\.\d+)?)\s*$/);
+                                    if (match) {
+                                        const strength = parseFloat(match[1]);
+                                        const clampedStrength = Math.max(0, Math.min(2, strength));
+                                        const normalizedStrength = clampedStrength / 2;
+                                        const newColor = interpolateColor(colors[0], colors[colors.length - 1], easeInOutCubic(normalizedStrength));
+                                        uniqueIdMap.set(id, newColor);
+                                    } else {
+                                        uniqueIdMap.set(id, interpolateColor(colors[0], colors[colors.length - 1], 0.5));
+                                    }
+                                }
+                                lastIndex = i + 1;
+                            }
+                            break;
+                    }
                 }
 
                 highlightedText += text.slice(lastIndex);
 
                 if (nestingLevel > 0) {
                     // Apply red highlight to the unclosed spans
-                    let insertOffset = 0;
                     while (spanStack.length > 0) {
-                        const spanStartIndex = spanStack.pop() - 1;
-                        const spanStartTag = `<span style="background-color: ${errorColor};">`;
-                        highlightedText =
-                            highlightedText.slice(0, spanStartIndex + insertOffset) +
-                            spanStartTag +
-                            highlightedText.slice(spanStartIndex + insertOffset);
-                        insertOffset += spanStartTag.length;
-                        highlightedText += `</span>`;
+                        const spanData = spanStack.pop();
+                        if (spanData) {
+                            const { id, start, originalSpan } = spanData;
+                            const errorSpanTag = `<span id="${id}" style="background-color: ${errorColor};">`;
+
+                            if (originalSpan) {
+                                const newText = highlightedText.slice(start - (originalSpan.length + 1), highlightedText.length).replace(originalSpan, errorSpanTag);
+                                highlightedText = highlightedText.slice(0, start - originalSpan.length + 1) + newText;
+                                highlightedText += `</span>`;
+                            }
+                        }
                     }
                 }
+
+                // Apply the updated colors to the highlighted text
+                uniqueIdMap.forEach((newColor, id) => {
+                    highlightedText = highlightedText.replace(`background-color: id-${id}`, `background-color: ${newColor}`);
+                });
 
                 overlayEl.innerHTML = highlightedText;
             }
@@ -206,8 +297,8 @@ app.registerExtension({
                 overlayEl.style.color = 'rgba(0,0,0,0)';
                 overlayEl.style.padding = textareaStyle.padding;
                 overlayEl.style.boxSizing = textareaStyle.boxSizing;
-                overlayEl.style.zIndex = '1'; // Ensure it's just below the textarea
-                overlayEl.style.pointerEvents = 'none'; // Allow clicks to pass through
+                overlayEl.style.zIndex = '1';
+                overlayEl.style.pointerEvents = 'none';
                 overlayEl.style.color = 'transparent';
                 overlayEl.style.overflow = 'hidden';
                 overlayEl.style.whiteSpace = 'pre-wrap';
@@ -223,23 +314,41 @@ app.registerExtension({
     },
 });
 
-const id = 'sn0w.TextboxColors';
-const settingDefinition = {
-    id,
-    name: '[Sn0w] Custom Textbox Colors',
-    type: SettingUtils.createMultilineSetting,
-    defaultValue:
-        'rgba(0, 255, 0, 0.5)\nrgba(0, 0, 255, 0.5)\nrgba(255, 0, 0, 0.5)\nrgba(255, 255, 0, 0.5)',
-    attrs: { tooltip: 'A list of either rgb or hex colors, one color per line.' },
-};
-
-let setting;
-
-const extension = {
-    name: id,
-    init() {
-        setting = app.ui.settings.addSetting(settingDefinition);
+const settingsDefinitions = [
+    {
+        id: 'sn0w.TextboxColors',
+        name: '[Sn0w] Custom Textbox Colors',
+        type: SettingUtils.createMultilineSetting,
+        defaultValue: '#559c22\n#229c57\n#229c8b\n#226f9c\n#22479c',
+        attrs: { tooltip: 'A list of either rgb or hex colors, one color per line.' },
     },
+    {
+        id: 'sn0w.TextboxGradientColors',
+        name: '[Sn0w] Custom Textbox Gradient Highlight',
+        type: 'boolean',
+        defaultValue: false,
+        tooltip: 'Makes the textbox highlighting be a gradient between the first and last color based on the strength of the selection.',
+    }
+];
+
+const registerSetting = (settingDefinition) => {
+    const extension = {
+        name: settingDefinition.id,
+        init() {
+            const setting = app.ui.settings.addSetting({
+                id: settingDefinition.id,
+                name: settingDefinition.name,
+                type: settingDefinition.type,
+                defaultValue: settingDefinition.defaultValue,
+                tooltip: settingDefinition.tooltip,
+                attrs: settingDefinition.attrs,
+            });
+        },
+    };
+    app.registerExtension(extension);
 };
 
-app.registerExtension(extension);
+// Register settings
+settingsDefinitions.forEach((setting) => {
+    registerSetting(setting);
+});

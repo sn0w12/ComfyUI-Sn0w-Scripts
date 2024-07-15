@@ -15,6 +15,8 @@ This extension contains a collection of nodes and improvements created for lora 
     ```
 3. Start up ComfyUI.
 
+Alternatively install through [ComfyUI-Manager](https://github.com/ltdrdata/ComfyUI-Manager).
+
 # Configuration
 
 In the ComfyUI settings, you can modify various settings. Some changes will apply immediately, while others require a refresh to take effect.
@@ -26,6 +28,7 @@ In the ComfyUI settings, you can modify various settings. Some changes will appl
 | Animagine Prompt Style      | Places "1girl/1boy" at the beginning of your prompts in the "Prompt Combine" node.      |
 | Custom Lora Loaders SD...   | Allows creation of new LoRa loaders by specifying their name and path.        |
 | Custom Textbox Colors   | Sets the highlight color for text in textboxes.        |
+| Custom Textbox Gradient Highlight   | Makes the textbox highlighting be a gradient between the first and last color based on the strength of the selection.        |
 | Disable Default Characters   | Disables the loading of the default characters in the "Character Selector" node.        |
 | Highlight Favourite Items   | Highlights favorite LoRas and characters in green.        |
 | Logging Level   | Sets the severity level of logs that will be printed.        |
@@ -68,9 +71,11 @@ The custom Lora loaders and the character selector feature allow you to mark Lor
 
 ## Text Highlighting
 
-Text in the copy/paste textbox will be highlighted when the text is in parentheses. You can change the colors of the highlighting by changing the `[Sn0w] Custom Textbox Colors` setting, there should be one either rgb `rgb(0, 0, 0)` or hex `#000000` color per line.
+Text in the copy/paste textbox will be highlighted when the text is in parentheses. You can change the colors of the highlighting by changing the `[Sn0w] Custom Textbox Colors` setting, there should be one either rgb `rgb(0, 0, 0)` or hex `#000000` color per line. You can choose to either do the highlighting by the strength of the text or the nested level it is in.
 
-![Textbox](./imgs/textbox_highlighted.png)
+Nesting             |  Strength
+:-------------------------:|:-------------------------:
+![Textbox](./imgs/textbox_highlighted.png) | ![Textbox](./imgs/textbox_gradient.png)
 
 If you have unclosed parentheses it will be highlighted in red.
 
