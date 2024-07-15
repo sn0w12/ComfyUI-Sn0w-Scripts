@@ -11,6 +11,13 @@ app.registerExtension({
                 return textbox;
             };
 
+            nodeType.prototype.updateHighlightType = function () {
+                const inputEl = this.inputEl.inputEl;
+                const overlayEl = this.overlayEl;
+                setTextColors(inputEl, overlayEl);
+                setTimeout(() => syncText(this.inputEl.inputEl, this.overlayEl), 50);
+            }
+
             nodeType.prototype.populate = function () {
                 this.inputEl = this.widgets[0];
 
@@ -321,6 +328,12 @@ const settingsDefinitions = [
         type: SettingUtils.createMultilineSetting,
         defaultValue: '#559c22\n#229c57\n#229c8b\n#226f9c\n#22479c',
         attrs: { tooltip: 'A list of either rgb or hex colors, one color per line.' },
+        onChange: () => {
+            const nodes = app.graph._nodes.filter(node => node.type === 'Copy/Paste Textbox');
+            nodes.forEach(node => {
+                node.updateHighlightType();
+            });
+        },
     },
     {
         id: 'sn0w.TextboxGradientColors',
@@ -328,6 +341,12 @@ const settingsDefinitions = [
         type: 'boolean',
         defaultValue: false,
         tooltip: 'Makes the textbox highlighting be a gradient between the first and last color based on the strength of the selection.',
+        onChange: () => {
+            const nodes = app.graph._nodes.filter(node => node.type === 'Copy/Paste Textbox');
+            nodes.forEach(node => {
+                node.updateHighlightType();
+            });
+        },
     }
 ];
 
@@ -342,6 +361,7 @@ const registerSetting = (settingDefinition) => {
                 defaultValue: settingDefinition.defaultValue,
                 tooltip: settingDefinition.tooltip,
                 attrs: settingDefinition.attrs,
+                onChange: settingDefinition.onChange,
             });
         },
     };
