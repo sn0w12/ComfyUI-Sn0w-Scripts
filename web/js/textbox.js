@@ -174,6 +174,8 @@ app.registerExtension({
                 switch(char) {
                     case '<':
                         return '-lora';
+                    case 'e':
+                        return '-embedding';
                     default:
                         return '';
                 }
@@ -201,7 +203,7 @@ app.registerExtension({
                 }
 
                 let uniqueIdCounter = 0;
-                const generateUniqueId = (type = "") => `unique-span-${uniqueIdCounter++}${type}`;
+                const generateUniqueId = (type = "") => `span-${uniqueIdCounter++}${type}`;
 
                 let nestingLevel = 0;
                 let highlightedText = '';
@@ -209,8 +211,13 @@ app.registerExtension({
                 let spanStack = [];
                 const uniqueIdMap = new Map();
 
+                /*
+                 * This loop iterates over each character in the `text` string to apply syntax highlighting and handle special cases.
+                 * - lastIndex: index of the last processed character, used to slice text segments.
+                 * - spanStack: stack to manage opened spans, storing their ids, start positions, original colors, and characters.
+                */
                 for (let i = 0; i < text.length; i++) {
-                    const char = text[i];
+                    const char = text[i].toLowerCase();
 
                     // Handle escape characters
                     if (char === '\\' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
@@ -238,6 +245,26 @@ app.registerExtension({
                             spanStack.push({ id: uniqueId, start: highlightedText.length, originalSpan: `<span id="${uniqueId}" style="background-color: ${color};">`, nestingLevel, originalColor: color, originalChar: char });
                             nestingLevel++;
                             lastIndex = i + 1;
+                            break;
+                        case 'e':
+                            const embeddingColor = colors[0];
+                            const embeddingPrefix = "embedding:";
+                            const startIndex = i;
+
+                            // Check if the text starts with "embedding:" at position i
+                            if (text.toLowerCase().startsWith(embeddingPrefix, i)) {
+                                // Find the end of the embedding (next space or comma)
+                                let endIndex = i + embeddingPrefix.length;
+                                while (endIndex < text.length && text[endIndex] !== ' ' && text[endIndex] !== ',') {
+                                    endIndex++;
+                                }
+
+                                // Get the full embedding text
+                                const embeddingText = text.slice(startIndex, endIndex);
+                                const wrappedEmbedding = `<span id="${uniqueId}" style="background-color: ${embeddingColor};">${escapeHtml(embeddingText)}</span>`;
+                                highlightedText += text.slice(lastIndex, i) + wrappedEmbedding;
+                                lastIndex = i + embeddingText.length;
+                            }
                             break;
                         case ')':
                         case '>':
