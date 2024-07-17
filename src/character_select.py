@@ -9,6 +9,10 @@ from ..sn0w import ConfigReader, Logger, Utility, MessageHolder
 routes = MessageHolder.routes
 API_PREFIX = MessageHolder.API_PREFIX
 
+# File paths
+CHARACTER_FILE_PATH = "web/settings/characters.json"
+CUSTOM_CHARACTER_FILE_PATH = "web/settings/custom_characters.json"
+
 
 @routes.post(f"{API_PREFIX}/update_characters")
 async def handle_update_characters(request):
@@ -39,14 +43,31 @@ class CharacterSelectNode:
         cls.load_characters(dir_path)
 
     @classmethod
+    def get_base_dir(cls):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        if os.path.basename(dir_path) == "src":
+            dir_path = os.path.dirname(dir_path)
+        return dir_path
+
+    @classmethod
+    def check_initialize(cls):
+        if not cls.final_characters or cls.cached_default_character_setting != ConfigReader.get_setting(
+            "sn0w.DisableDefaultCharacters", False
+        ):
+            cls.cached_default_character_setting = ConfigReader.get_setting("sn0w.DisableDefaultCharacters", False)
+            cls.initialize()
+        elif cls.cached_sorting_setting != ConfigReader.get_setting("sn0w.SortBySeries", False):
+            cls.sort_characters()
+
+    @classmethod
     def load_characters(cls, dir_path):
         character_data = []
         if not cls.cached_default_character_setting:
-            json_path = os.path.join(dir_path, "web/settings/characters.json")
+            json_path = os.path.join(dir_path, CHARACTER_FILE_PATH)
             with open(json_path, "r", encoding="utf-8") as file:
                 character_data = json.load(file)
 
-        custom_json_path = os.path.join(dir_path, "web/settings/custom_characters.json")
+        custom_json_path = os.path.join(dir_path, CUSTOM_CHARACTER_FILE_PATH)
         if os.path.exists(custom_json_path):
             with open(custom_json_path, "r", encoding="utf-8") as file:
                 custom_character_data = json.load(file)
@@ -64,7 +85,10 @@ class CharacterSelectNode:
 
     @staticmethod
     def extract_series_name(character_name):
-        return character_name.split("(")[-1].split(")")[0].strip()
+        series = character_name.split("(")[-1].split(")")[0].strip()
+        if character_name == series:
+            Logger().log(f"{character_name} has no series name.", "WARNING")
+        return series
 
     @classmethod
     def sort_characters(cls, force_sort=False):
@@ -84,13 +108,7 @@ class CharacterSelectNode:
 
     @classmethod
     def INPUT_TYPES(cls):
-        if not cls.final_characters:  # Check if initialization is needed
-            cls.initialize()
-        elif cls.cached_default_character_setting != ConfigReader.get_setting("sn0w.DisableDefaultCharacters", False):
-            cls.cached_default_character_setting = not cls.cached_default_character_setting
-            cls.initialize()
-        else:
-            cls.sort_characters()
+        cls.check_initialize()
         character_names = ["None"] + list(cls.final_characters)
         return {
             "required": {
