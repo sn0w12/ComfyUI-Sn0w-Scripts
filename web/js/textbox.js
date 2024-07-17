@@ -305,7 +305,7 @@ app.registerExtension({
                     // Handle wrong escape characters
                     if (char === '/' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
                         highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${errorColor};">/</span>`;
-                        console.error(`Try replacing "${char}" at char ${i} with "\\"`);
+                        console.error(`Replace "${char}" at char ${i} with "\\"`);
                         lastIndex = i + 1;
                         continue;
                     }
@@ -326,7 +326,6 @@ app.registerExtension({
                         case 'e':
                             let embeddingColor = colors[0];
                             const embeddingPrefix = "embedding:";
-                            const startIndex = i;
 
                             // Check if the text starts with "embedding:" at position i
                             if (text.toLowerCase().startsWith(embeddingPrefix, i)) {
@@ -337,7 +336,7 @@ app.registerExtension({
                                 }
 
                                 // Get the full embedding text
-                                const embeddingText = text.slice(startIndex, endIndex);
+                                const embeddingText = text.slice(i, endIndex);
                                 if (validateName(inputEl.validEmbeddings, embeddingText.split(":")[1]) === false) {
                                     embeddingColor = errorColor;
                                 }
@@ -416,7 +415,7 @@ app.registerExtension({
                         return segment;
                     }
 
-                    const trimmedSegment = processTag(segment)
+                    const trimmedSegment = processTag(segment);
 
                     // Check for duplicates
                     if (tagCounts.get(trimmedSegment) > 1) {
