@@ -277,3 +277,7 @@ Note: Uses [ImagesGrid](https://github.com/LEv145/images-grid-comfy-plugin) for 
 My general text to image workflow, note that it uses several nodes from different custom nodes.
 
 ![T2I](./imgs/normal_workflow.png)
+
+# Known Issues
+
+* Embedding highlighting does not work on linux.
