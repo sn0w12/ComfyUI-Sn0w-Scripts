@@ -31,12 +31,12 @@ In the ComfyUI settings, you can modify various settings. Some changes will appl
 | Custom Textbox Gradient Highlight   | True / False | Makes the textbox highlighting be a gradient between the first and last color based on the strength of the selection.        |
 | Disable Default Characters   | True / False | Disables the loading of the default characters in the "Character Selector" node.        |
 | Highlight Favourite Items   | True / False | Highlights favorite LoRas and characters in green.        |
-| Logging Level   | Warnings, Informational, Debug | Sets the severity level of logs that will be printed.        |
+| Logging Level   | Warnings<br>Informational<br>Debug | Sets the severity level of logs that will be printed.        |
 | Max Difference in Lora Loading   | 0 - 100 | Specifies the maximum allowable difference between a tag and a LoRa for it to be loaded.        |
 | Random Characters from Favourites Only   | True / False | Ensures random characters are selected only from your favorited characters.        |
 | Remove Lora Path   | True / False | Removes the path information from loras and only keeps the name.        |
 | Sort Characters By Series   | True / False | Sorts characters by their series instead of alphabetically.        |
-| Sort Loras By   | Alphabetically, Last Changed | Sorts loras either alphabetically or by latest changed.        |
+| Sort Loras By   | Alphabetically<br>Last Changed | Sorts loras either alphabetically or by latest changed.        |
 
 ## Important Note
 The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using.
