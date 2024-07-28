@@ -71,6 +71,10 @@ The custom Lora loaders and the character selector feature allow you to mark Lor
 
 ![Favourite Showcase](./imgs/favourite_list.png)
 
+### Sort Loras
+
+There are options to sort your loras either alphabetically or by the latest changed file. You can also remove the path information to keep the loader clean. Do note that if you remove the path information and have two loras with the same filename in different paths it will not be able to differentiate them.
+
 ## Text Highlighting
 
 Text in the copy/paste textbox will be highlighted when the text is in parentheses. You can change the colors of the highlighting by changing the `[Sn0w] Custom Textbox Colors` setting, there should be one either rgb `rgb(0, 0, 0)` or hex `#000000` color per line. You can choose to either do the highlighting by the strength of the text or the nested level it is in.
