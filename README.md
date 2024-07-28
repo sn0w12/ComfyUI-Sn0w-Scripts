@@ -34,7 +34,9 @@ In the ComfyUI settings, you can modify various settings. Some changes will appl
 | Logging Level   | Sets the severity level of logs that will be printed.        |
 | Max Difference in Lora Loading   | Specifies the maximum allowable difference between a tag and a LoRa for it to be loaded.        |
 | Random Characters from Favourites Only   | Ensures random characters are selected only from your favorited characters.        |
+| Remove Lora Path   | Removes the path information from loras and only keeps the name.        |
 | Sort Characters By Series   | Sorts characters by their series instead of alphabetically.        |
+| Sort Loras By   | Sorts loras either alphabetically or by latest changed.        |
 
 ## Important Note
 The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using.

@@ -61,7 +61,8 @@ class ConfigReader:
         # Determine the correct path based on the portable attribute
         if ConfigReader.portable is None:
             ConfigReader.print_sn0w(
-                f"Local configuration file not found at either {ConfigReader.PORTABLE_PATH} or {ConfigReader.DEFAULT_PATH}.", "\033[0;33m"
+                f"Local configuration file not found at either {ConfigReader.PORTABLE_PATH} or {ConfigReader.DEFAULT_PATH}.",
+                "\033[0;33m",
             )
             return default
 
@@ -257,7 +258,15 @@ class Utility:
         if setting_type == "INT":
             return ("INT", {"default": setting_value[1], "min": setting_value[2], "max": setting_value[3]})
         if setting_type == "FLOAT":
-            return ("FLOAT", {"default": setting_value[1], "min": setting_value[2], "max": setting_value[3], "step": setting_value[4]})
+            return (
+                "FLOAT",
+                {
+                    "default": setting_value[1],
+                    "min": setting_value[2],
+                    "max": setting_value[3],
+                    "step": setting_value[4],
+                },
+            )
         if setting_type == "STRING":
             return ("STRING", {"default": setting_value[1]})
         if setting_type == "BOOLEAN":
@@ -331,7 +340,9 @@ class MessageHolder:
 
             return int(message.strip())
         except ValueError:
-            cls.logger.log(f"failed to parse '{message}' as {'comma separated list of ints' if asList else 'int'}", "ERROR")
+            cls.logger.log(
+                f"failed to parse '{message}' as {'comma separated list of ints' if asList else 'int'}", "ERROR"
+            )
             return [1] if asList else 1
 
 
@@ -348,3 +359,42 @@ async def get_loras(request):
 async def get_embeddings(request):
     embeddings = folder_paths.get_filename_list("embeddings")
     return web.json_response(list(map(lambda a: os.path.splitext(a)[0], embeddings)))
+
+
+@PromptServer.instance.routes.post(f"{API_PREFIX}/add_lora_loaders")
+async def add_lora_loaders(request):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    if os.path.basename(dir_path) == "src":
+        dir_path = os.path.dirname(dir_path)
+    json_path = os.path.join(dir_path, "web/settings/sn0w_settings.json")
+    print(json_path)
+    try:
+        # Parse the request body to get the new loaders
+        new_loaders = await request.json()
+        if not isinstance(new_loaders, list):
+            return web.json_response({"error": "Invalid input, expected a list."}, status=400)
+
+        # Read the existing JSON data from the file
+        if os.path.exists(json_path):
+            with open(json_path, "r") as file:
+                data = json.load(file)
+        else:
+            data = {}
+
+        # Initialize 'loraLoaders' if it doesn't exist in the JSON
+        if "loraLoaders" not in data:
+            data["loraLoaders"] = []
+
+        # Concatenate the new loaders with the existing ones
+        data["loraLoaders"].extend(new_loaders)
+
+        # Write the updated JSON data back to the file
+        with open(json_path, "w") as file:
+            json.dump(data, file, indent=4)
+
+        return web.json_response({"message": "Lora loaders added successfully."})
+
+    except json.JSONDecodeError:
+        return web.json_response({"error": "Invalid JSON format."}, status=400)
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
