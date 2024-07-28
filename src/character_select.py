@@ -87,7 +87,7 @@ class CharacterSelectNode:
     def extract_series_name(character_name):
         series = character_name.split("(")[-1].split(")")[0].strip()
         if character_name == series:
-            Logger().log(f"{character_name} has no series name.", "WARNING")
+            Logger().log(f"{character_name} has no series name.", "DEBUG")
         return series
 
     @classmethod
@@ -113,7 +113,10 @@ class CharacterSelectNode:
         return {
             "required": {
                 "character": (character_names,),
-                "character_strength": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.05, "round": 0.01}),
+                "character_strength": (
+                    "FLOAT",
+                    {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.05, "round": 0.01},
+                ),
                 "character_prompt": ("BOOLEAN", {"default": False}),
                 "random_character": ("BOOLEAN", {"default": False}),
             },
@@ -169,7 +172,9 @@ class CharacterSelectNode:
             return ""
 
         # Filter the characters by excluding the ones in the exclusion list
-        filtered_characters = {name: char for name, char in self.final_character_dict.items() if name in favourite_characters}
+        filtered_characters = {
+            name: char for name, char in self.final_character_dict.items() if name in favourite_characters
+        }
 
         # Choosing a random character from the filtered list
         if filtered_characters:
