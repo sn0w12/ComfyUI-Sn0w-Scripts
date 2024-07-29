@@ -391,6 +391,9 @@ async def add_lora_loaders(request):
         new_unique_loaders = [loader for loader in new_loaders if tuple(loader) not in existing_loaders_set]
         data["loraLoaders"].extend(new_unique_loaders)
 
+        if len(new_unique_loaders) == 0:
+            return web.json_response({"message": "No new lora loaders added."})
+
         # Write the updated JSON data back to the file
         with open(json_path, "w") as file:
             json.dump(data, file, indent=4)

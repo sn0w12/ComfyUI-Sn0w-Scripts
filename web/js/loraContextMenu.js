@@ -2,6 +2,28 @@ import { SettingUtils } from './sn0w.js';
 import { app } from '../../../scripts/app.js';
 import { api } from '../../../scripts/api.js';
 
+async function addLoraLoaders(loraLoaders) {
+    try {
+        const response = await api.fetchApi(`${SettingUtils.API_PREFIX}/add_lora_loaders`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(loraLoaders),
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`[sn0w] ${response.status} ${response.statusText} - ${errorData.error}`);
+        }
+
+        const data = await response.json();
+        console.log("[sn0w]", data.message);
+    } catch (error) {
+        console.error("[sn0w]", error.message);
+    }
+}
+
 const id = 'sn0w.HighlightFavourite';
 const settingDefinition = {
     id,
@@ -45,13 +67,7 @@ app.registerExtension({
 
         // Combine the existing custom loaders with the fetched ones
         loraLoaders = loraLoaders.concat(...customLoraLoadersArrays);
-        const apiRequest = await api.fetchApi(`${SettingUtils.API_PREFIX}/add_lora_loaders`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(loraLoaders),
-        })
+        addLoraLoaders(loraLoaders);
 
         const original_getNodeMenuOptions = app.canvas.getNodeMenuOptions;
         app.canvas.getNodeMenuOptions = function (node) {
