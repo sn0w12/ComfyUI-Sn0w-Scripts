@@ -105,6 +105,7 @@ class Logger:
     GREEN_TEXT = "\033[0;32m"
     RESET_TEXT = "\033[0m"
     PREFIX = "[sn0w] "
+    ALWAYS_LOG = ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"]
 
     enabled_levels = ConfigReader.get_setting("sn0w.LoggingLevel", ["INFORMATIONAL", "WARNING"])
 
@@ -121,16 +122,15 @@ class Logger:
     def log(self, message, level="ERROR"):
         """Log a message with a specified severity level."""
         # Determine the color based on the type of message
-        if level.upper() in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"]:
+        if level.upper() in self.ALWAYS_LOG:
             color = self.RED_TEXT
         elif level.upper() == "WARNING":
             color = self.YELLOW_TEXT
         else:
             color = self.PURPLE_TEXT  # Default color
 
-        self.reload_config()
         # Check if the message's level is in the enabled log levels
-        if level.upper() in self.enabled_levels or level.upper() in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"]:
+        if level.upper() in self.enabled_levels or level.upper() in self.ALWAYS_LOG:
             self.print_sn0w(message, color)
 
     def print_sigmas_differences(self, name, sigmas):
@@ -359,6 +359,12 @@ async def get_loras(request):
 async def get_embeddings(request):
     embeddings = folder_paths.get_filename_list("embeddings")
     return web.json_response(list(map(lambda a: os.path.splitext(a)[0], embeddings)))
+
+
+@PromptServer.instance.routes.get(f"{API_PREFIX}/update_logging_level")
+async def update_logging_level(request):
+    Logger.reload_config()
+    return web.json_response("Success")
 
 
 @PromptServer.instance.routes.post(f"{API_PREFIX}/add_lora_loaders")

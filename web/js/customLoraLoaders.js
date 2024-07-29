@@ -22,12 +22,6 @@ const settingUtils = new SettingUtils();
 
 // KEPT IN FOR FUTURE INTEGRATION (MAYBE)
 function updateLoraSorting(graphCanvas) {
-    api.fetchApi(`${SettingUtils.API_PREFIX}/update_characters`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
     setTimeout(() => {
         let loraLoaders = sn0wSettings['loraLoaders'];
         loraLoaders.forEach((loraLoader) => {

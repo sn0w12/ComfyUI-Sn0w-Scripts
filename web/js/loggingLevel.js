@@ -2,14 +2,11 @@ import { SettingUtils } from './sn0w.js';
 import { app } from '../../../scripts/app.js';
 import { api } from '../../../scripts/api.js';
 
-function updateLoggingLevel() {
-    api.fetchApi(`${SettingUtils.API_PREFIX}/update_sorting`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ update: true }),
+async function updateLoggingLevel() {
+    const request = await api.fetchApi(`${SettingUtils.API_PREFIX}/update_logging_level`, {
+        method: 'GET',
     });
+    SettingUtils.logSn0w(`Logging levels selected:\n${await SettingUtils.getSetting("sn0w.LoggingLevel")}`, "debug")
 }
 
 const debouncedUpdateLoggingLevel = SettingUtils.debounce(updateLoggingLevel, 1000);
