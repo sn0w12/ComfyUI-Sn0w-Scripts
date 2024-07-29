@@ -89,7 +89,7 @@ def generate_and_register_lora_node(lora_type, setting):
             CURRENT_UNIQUE_ID += 1
             unique_id_with_name = f"{name}_{CURRENT_UNIQUE_ID}"
 
-            logger.log(f"Adding custom lora loader: {folders}, {unique_id_with_name}, {combos}", "INFORMATIONAL")
+            logger.log(f"Adding custom lora loader. Path: {folders}, Name: {name}, Inputs: {combos}", "INFORMATIONAL")
             DynamicLoraNode = generate_lora_node_class(lora_type, folders, combos)
 
             if name in NODE_CLASS_MAPPINGS:

@@ -53,6 +53,7 @@ class ConfigReader:
             return True
 
         # If neither exist
+        ConfigReader.print_sn0w("Could not find comfy settings.")
         return None
 
     @staticmethod
