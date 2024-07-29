@@ -12,15 +12,10 @@ async function addLoraLoaders(loraLoaders) {
             body: JSON.stringify(loraLoaders),
         })
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`[sn0w] ${response.status} ${response.statusText} - ${errorData.error}`);
-        }
-
         const data = await response.json();
-        console.log("[sn0w]", data.message);
+        SettingUtils.logSn0w(data.message, "informational");
     } catch (error) {
-        console.error("[sn0w]", error.message);
+        SettingUtils.logSn0w(error.message, "error");
     }
 }
 

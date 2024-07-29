@@ -461,6 +461,20 @@ export class SettingUtils {
         };
     }
 
+    static logSn0w(message, type) {
+        switch (type.toLowerCase()) {
+            case "warning":
+                console.log("%c[sn0w]", "color: yellow;", message);
+                break;
+            case "error":
+                console.log("%c[sn0w]", "color: red;", message);
+                break;
+            default:
+                console.log("%c[sn0w]", "color: rgb(136, 23, 152);", message);
+                break;
+        }
+    }
+
     static drawSigmas(sigmas) {
         // Define the size of the canvas
         const width = 800;
