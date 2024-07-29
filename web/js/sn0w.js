@@ -461,17 +461,20 @@ export class SettingUtils {
         };
     }
 
-    static logSn0w(message, type) {
-        switch (type.toLowerCase()) {
-            case "warning":
-                console.log("%c[sn0w]", "color: yellow;", message);
-                break;
-            case "error":
-                console.log("%c[sn0w]", "color: red;", message);
-                break;
-            default:
-                console.log("%c[sn0w]", "color: rgb(136, 23, 152);", message);
-                break;
+    static async logSn0w(message, type) {
+        const loggingLevels = await SettingUtils.getSetting("sn0w.LoggingLevel");
+
+        const logColors = {
+            "error": "red",
+            "warning": "yellow",
+        };
+
+        const alwaysLog = ["emergency", "alert", "critical", "error"]
+        const logLevel = type.toLowerCase();
+        const color = logColors[logLevel] || "rgb(136, 23, 152)";
+
+        if (alwaysLog.includes(logLevel) || loggingLevels.includes(type.toUpperCase())) {
+            console.log(`%c[sn0w]`, `color: ${color};`, message);
         }
     }
 
