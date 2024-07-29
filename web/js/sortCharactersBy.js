@@ -16,12 +16,16 @@ function updateSorting(graphCanvas) {
     }, 50);
 }
 
-const id = 'sn0w.SortBySeries';
+const id = 'sn0w.SortCharactersBy';
 const settingDefinition = {
     id,
-    name: '[Sn0w] Sort Characters By Series',
+    name: '[Sn0w] Sort Characters By',
     defaultValue: false,
-    type: 'boolean',
+    options: [
+        { text: 'Alphabetical', value: 'alphabetical' },
+        { text: 'Series', value: 'series' },
+    ],
+    type: 'combo',
     onChange: () => updateSorting(app),
 };
 

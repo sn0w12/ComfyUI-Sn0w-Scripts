@@ -35,7 +35,7 @@ In the ComfyUI settings, you can modify various settings. Some changes will appl
 | Max Difference in Lora Loading   | 0 - 100 | Specifies the maximum allowable difference between a tag and a LoRa for it to be loaded.        |
 | Random Characters from Favourites Only   | True / False | Ensures random characters are selected only from your favorited characters.        |
 | Remove Lora Path   | True / False | Removes the path information from loras and only keeps the name.        |
-| Sort Characters By Series   | True / False | Sorts characters by their series instead of alphabetically.        |
+| Sort Characters By   | Alphabetically<br>Series | Sorts characters either alphabetically or  by their series.        |
 | Sort Loras By   | Alphabetically<br>Last Changed | Sorts loras either alphabetically or by latest changed.        |
 
 ## Important Note

@@ -28,7 +28,7 @@ class CharacterSelectNode:
     character_dict = {}
     final_character_dict = {}
     final_characters = []
-    cached_sorting_setting = ConfigReader.get_setting("sn0w.SortBySeries", False)
+    cached_sorting_setting = ConfigReader.get_setting("sn0w.SortCharactersBy", "alphabetical")
     cached_default_character_setting = ConfigReader.get_setting("sn0w.DisableDefaultCharacters", False)
     last_character = ""
 
@@ -56,7 +56,7 @@ class CharacterSelectNode:
         ):
             cls.cached_default_character_setting = ConfigReader.get_setting("sn0w.DisableDefaultCharacters", False)
             cls.initialize()
-        elif cls.cached_sorting_setting != ConfigReader.get_setting("sn0w.SortBySeries", False):
+        elif cls.cached_sorting_setting != ConfigReader.get_setting("sn0w.SortCharactersBy", "alphabetical"):
             cls.sort_characters()
 
     @classmethod
@@ -92,13 +92,13 @@ class CharacterSelectNode:
 
     @classmethod
     def sort_characters(cls, force_sort=False):
-        current_sorting_setting = ConfigReader.get_setting("sn0w.SortBySeries", False)
+        current_sorting_setting = ConfigReader.get_setting("sn0w.SortCharactersBy", "alphabetical")
         if current_sorting_setting != cls.cached_sorting_setting or force_sort:
-            if current_sorting_setting:
+            if current_sorting_setting == "series":
                 cls.final_character_dict = {
                     name: cls.character_dict[name] for name in sorted(cls.character_dict, key=cls.extract_series_name)
                 }
-            else:
+            if current_sorting_setting == "alphabetical":
                 cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict)}
 
             cls.cached_sorting_setting = current_sorting_setting
