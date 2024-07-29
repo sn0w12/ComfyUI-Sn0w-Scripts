@@ -76,7 +76,7 @@ const loraSettingsDefinitions = [
     {
         id: 'sn0w.SortLorasBy',
         name: '[Sn0w] Sort Loras By',
-        defaultValue: defaultValue,
+        defaultValue: "alphabetical",
         options: [
             { text: 'Alphabetical', value: 'alphabetical' },
             { text: 'Last Changed', value: 'last_changed' },
