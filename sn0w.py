@@ -367,7 +367,8 @@ async def add_lora_loaders(request):
     if os.path.basename(dir_path) == "src":
         dir_path = os.path.dirname(dir_path)
     json_path = os.path.join(dir_path, "web/settings/sn0w_settings.json")
-    print(json_path)
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(json_path), exist_ok=True)
     try:
         # Parse the request body to get the new loaders
         new_loaders = await request.json()
@@ -385,14 +386,16 @@ async def add_lora_loaders(request):
         if "loraLoaders" not in data:
             data["loraLoaders"] = []
 
-        # Concatenate the new loaders with the existing ones
-        data["loraLoaders"].extend(new_loaders)
+        # Add only new loaders that are not already in the list
+        existing_loaders_set = set(tuple(loader) for loader in data["loraLoaders"])
+        new_unique_loaders = [loader for loader in new_loaders if tuple(loader) not in existing_loaders_set]
+        data["loraLoaders"].extend(new_unique_loaders)
 
         # Write the updated JSON data back to the file
         with open(json_path, "w") as file:
             json.dump(data, file, indent=4)
 
-        return web.json_response({"message": "Lora loaders added successfully."})
+        return web.json_response({"message": f"Lora loaders: {new_unique_loaders} added successfully."})
 
     except json.JSONDecodeError:
         return web.json_response({"error": "Invalid JSON format."}, status=400)
