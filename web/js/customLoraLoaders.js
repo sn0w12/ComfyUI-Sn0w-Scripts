@@ -18,10 +18,10 @@ async function fetchExtensionSettings() {
 }
 
 const sn0wSettings = await fetchExtensionSettings();
-const settingUtils = new SettingUtils();
 
 /*
-KEPT IN FOR FUTURE INTEGRATION
+const settingUtils = new SettingUtils();
+
 function updateLoraSorting(graphCanvas) {
     setTimeout(() => {
         let loraLoaders = sn0wSettings['loraLoaders'];
