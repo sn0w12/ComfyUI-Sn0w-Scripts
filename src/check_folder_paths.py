@@ -8,6 +8,11 @@ from ..sn0w import Logger
 def check_lora_folders():
     logger = Logger()
     custom_paths = ["loras_15", "loras_xl", "loras_3"]
+    custom_path_map = {
+        "loras_15": "SD1.5",
+        "loras_xl": "SDXL",
+        "loras_3": "SD3"
+    }
     existing_paths = []
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -23,7 +28,11 @@ def check_lora_folders():
             if lora_path:
                 existing_paths.append(path)
         except Exception as e:
-            logger.log(f"{path} doesn't exist: {e}", "WARNING")
+            exception_path = str(e)[1:-1]
+            if exception_path not in custom_path_map:
+                logger.log(f"Extra model path doesn't exist: {e}, add it to extra_model_paths.yaml if you want {e} custom lora loaders to work.", "WARNING")
+            else:
+                logger.log(f"Extra model path doesn't exist: {e}, add it to extra_model_paths.yaml if you want {custom_path_map[exception_path]} custom lora loaders to work.", "WARNING")
 
     # Write the result to a JSON file in /web/settings
     data = {"loaders_enabled": existing_paths}

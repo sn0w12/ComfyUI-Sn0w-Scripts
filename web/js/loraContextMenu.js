@@ -1,5 +1,23 @@
 import { SettingUtils } from './sn0w.js';
 import { app } from '../../../scripts/app.js';
+import { api } from '../../../scripts/api.js';
+
+async function addLoraLoaders(loraLoaders) {
+    try {
+        const response = await api.fetchApi(`${SettingUtils.API_PREFIX}/add_lora_loaders`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(loraLoaders),
+        })
+
+        const data = await response.json();
+        SettingUtils.logSn0w(data.message, "informational");
+    } catch (error) {
+        SettingUtils.logSn0w(error.message, "error");
+    }
+}
 
 const id = 'sn0w.HighlightFavourite';
 const settingDefinition = {
@@ -44,6 +62,7 @@ app.registerExtension({
 
         // Combine the existing custom loaders with the fetched ones
         loraLoaders = loraLoaders.concat(...customLoraLoadersArrays);
+        addLoraLoaders(loraLoaders);
 
         const original_getNodeMenuOptions = app.canvas.getNodeMenuOptions;
         app.canvas.getNodeMenuOptions = function (node) {

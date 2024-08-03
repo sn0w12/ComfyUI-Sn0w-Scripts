@@ -461,6 +461,23 @@ export class SettingUtils {
         };
     }
 
+    static async logSn0w(message, type) {
+        const loggingLevels = await SettingUtils.getSetting("sn0w.LoggingLevel");
+
+        const logColors = {
+            "error": "red",
+            "warning": "yellow",
+        };
+
+        const alwaysLog = ["emergency", "alert", "critical", "error"]
+        const logLevel = type.toLowerCase();
+        const color = logColors[logLevel] || "rgb(136, 23, 152)";
+
+        if (alwaysLog.includes(logLevel) || loggingLevels.includes(type.toUpperCase())) {
+            console.log(`%c[sn0w]`, `color: ${color};`, message);
+        }
+    }
+
     static drawSigmas(sigmas) {
         // Define the size of the canvas
         const width = 800;

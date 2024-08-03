@@ -114,33 +114,24 @@ app.registerExtension({
             async function setTextColors(inputEl, overlayEl) {
                 const customTextboxColors = await SettingUtils.getSetting('sn0w.TextboxColors');
                 setTextHighlightType(inputEl);
-                if (
-                    customTextboxColors == null ||
-                    (customTextboxColors.length === 1 && customTextboxColors[0] === '') ||
-                    customTextboxColors == '' || customTextboxColors.length == 0
-                ) {
-                    const defaultColors = [
-                        '#559c22',
-                        '#229c57',
-                        '#229c8b',
-                        '#226f9c',
-                        '#22479c',
-                    ];
-                    inputEl.colors = defaultColors;
-                    inputEl.errorColor = 'var(--error-text)';
-                    syncText(inputEl, overlayEl);
-                    return defaultColors;
-                }
 
-                let colors = customTextboxColors.split('\n');
-                colors = colors.map((color) => {
-                    if (color.charAt(0) == '#') {
-                        return SettingUtils.hexToRgb(color);
-                    }
-                    return color;
-                });
-                inputEl.colors = colors;
+                const defaultColors = [
+                    '#559c22',
+                    '#229c57',
+                    '#229c8b',
+                    '#226f9c',
+                    '#22479c',
+                ];
+
+                const colors = (!customTextboxColors || customTextboxColors.trim() === '')
+                    ? defaultColors
+                    : customTextboxColors.split('\n');
+
+                inputEl.colors = colors.map(color =>
+                    color.charAt(0) === '#' ? SettingUtils.hexToRgb(color) : color
+                );
                 inputEl.errorColor = 'var(--error-text)';
+
                 syncText(inputEl, overlayEl);
                 return colors;
             }

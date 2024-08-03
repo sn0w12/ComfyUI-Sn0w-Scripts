@@ -28,7 +28,7 @@ class CharacterSelectNode:
     character_dict = {}
     final_character_dict = {}
     final_characters = []
-    cached_sorting_setting = ConfigReader.get_setting("sn0w.SortBySeries", False)
+    cached_sorting_setting = ConfigReader.get_setting("sn0w.SortCharactersBy", "alphabetical")
     cached_default_character_setting = ConfigReader.get_setting("sn0w.DisableDefaultCharacters", False)
     last_character = ""
 
@@ -56,7 +56,7 @@ class CharacterSelectNode:
         ):
             cls.cached_default_character_setting = ConfigReader.get_setting("sn0w.DisableDefaultCharacters", False)
             cls.initialize()
-        elif cls.cached_sorting_setting != ConfigReader.get_setting("sn0w.SortBySeries", False):
+        elif cls.cached_sorting_setting != ConfigReader.get_setting("sn0w.SortCharactersBy", "alphabetical"):
             cls.sort_characters()
 
     @classmethod
@@ -68,7 +68,9 @@ class CharacterSelectNode:
                 character_data = json.load(file)
 
         custom_json_path = os.path.join(dir_path, CUSTOM_CHARACTER_FILE_PATH)
-        if os.path.exists(custom_json_path):
+        if not os.path.exists(custom_json_path):
+            cls.logger.log(f"Custom character file doesn't exist. Please create the json file at: {custom_json_path}", "WARNING")
+        else:
             with open(custom_json_path, "r", encoding="utf-8") as file:
                 custom_character_data = json.load(file)
                 for custom_character in custom_character_data:
@@ -87,18 +89,18 @@ class CharacterSelectNode:
     def extract_series_name(character_name):
         series = character_name.split("(")[-1].split(")")[0].strip()
         if character_name == series:
-            Logger().log(f"{character_name} has no series name.", "WARNING")
+            Logger().log(f"{character_name} has no series name.", "DEBUG")
         return series
 
     @classmethod
     def sort_characters(cls, force_sort=False):
-        current_sorting_setting = ConfigReader.get_setting("sn0w.SortBySeries", False)
+        current_sorting_setting = ConfigReader.get_setting("sn0w.SortCharactersBy", "alphabetical")
         if current_sorting_setting != cls.cached_sorting_setting or force_sort:
-            if current_sorting_setting:
+            if current_sorting_setting == "series":
                 cls.final_character_dict = {
                     name: cls.character_dict[name] for name in sorted(cls.character_dict, key=cls.extract_series_name)
                 }
-            else:
+            if current_sorting_setting == "alphabetical":
                 cls.final_character_dict = {name: cls.character_dict[name] for name in sorted(cls.character_dict)}
 
             cls.cached_sorting_setting = current_sorting_setting
@@ -113,7 +115,10 @@ class CharacterSelectNode:
         return {
             "required": {
                 "character": (character_names,),
-                "character_strength": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.05, "round": 0.01}),
+                "character_strength": (
+                    "FLOAT",
+                    {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.05, "round": 0.01},
+                ),
                 "character_prompt": ("BOOLEAN", {"default": False}),
                 "random_character": ("BOOLEAN", {"default": False}),
             },
@@ -169,7 +174,9 @@ class CharacterSelectNode:
             return ""
 
         # Filter the characters by excluding the ones in the exclusion list
-        filtered_characters = {name: char for name, char in self.final_character_dict.items() if name in favourite_characters}
+        filtered_characters = {
+            name: char for name, char in self.final_character_dict.items() if name in favourite_characters
+        }
 
         # Choosing a random character from the filtered list
         if filtered_characters:

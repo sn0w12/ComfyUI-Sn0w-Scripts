@@ -23,18 +23,20 @@ In the ComfyUI settings, you can modify various settings. Some changes will appl
 
 ## Settings
 
-| Setting      | Definition |
-| ----------- | ----------- |
-| Animagine Prompt Style      | Places "1girl/1boy" at the beginning of your prompts in the "Prompt Combine" node.      |
-| Custom Lora Loaders SD...   | Allows creation of new LoRa loaders by specifying their name and path.        |
-| Custom Textbox Colors   | Sets the highlight color for text in textboxes.        |
-| Custom Textbox Gradient Highlight   | Makes the textbox highlighting be a gradient between the first and last color based on the strength of the selection.        |
-| Disable Default Characters   | Disables the loading of the default characters in the "Character Selector" node.        |
-| Highlight Favourite Items   | Highlights favorite LoRas and characters in green.        |
-| Logging Level   | Sets the severity level of logs that will be printed.        |
-| Max Difference in Lora Loading   | Specifies the maximum allowable difference between a tag and a LoRa for it to be loaded.        |
-| Random Characters from Favourites Only   | Ensures random characters are selected only from your favorited characters.        |
-| Sort Characters By Series   | Sorts characters by their series instead of alphabetically.        |
+| Setting      | Options | Definition |
+| ----------- | ----------- | ----------- |
+| Animagine Prompt Style      | True / False | Places "1girl/1boy" at the beginning of your prompts in the "Prompt Combine" node.      |
+| Custom Lora Loaders SD...   | Textbox | Allows creation of new LoRa loaders by specifying their name and path.        |
+| Custom Textbox Colors   | Textbox | Sets the highlight color for text in textboxes.        |
+| Custom Textbox Gradient Highlight   | True / False | Makes the textbox highlighting be a gradient between the first and last color based on the strength of the selection.        |
+| Disable Default Characters   | True / False | Disables the loading of the default characters in the "Character Selector" node.        |
+| Highlight Favourite Items   | True / False | Highlights favorite LoRas and characters in green.        |
+| Logging Level   | Warnings<br>Informational<br>Debug | Sets the severity level of logs that will be printed.        |
+| Max Difference in Lora Loading   | 0 - 100 | Specifies the maximum allowable difference between a tag and a LoRa for it to be loaded.        |
+| Random Characters from Favourites Only   | True / False | Ensures random characters are selected only from your favorited characters.        |
+| Remove Lora Path   | True / False | Removes the path information from loras and only keeps the name.        |
+| Sort Characters By   | Alphabetically<br>Series | Sorts characters either alphabetically or  by their series.        |
+| Sort Loras By   | Alphabetically<br>Last Changed | Sorts loras either alphabetically or by latest changed.        |
 
 ## Important Note
 The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using.
@@ -68,6 +70,10 @@ Styles XL:style:2
 The custom Lora loaders and the character selector feature allow you to mark Loras and characters as favorites, placing them at the top of the loaders for easy access. Favorite Loras are accessible across all your custom Lora loaders and the standard Lora loader, although the standard loader does not sort them correctly.
 
 ![Favourite Showcase](./imgs/favourite_list.png)
+
+### Sort Loras
+
+There are options to sort your loras either alphabetically or by the latest changed file. You can also remove the path information to keep the loader clean. Do note that if you remove the path information and have two loras with the same filename in different paths it will not be able to differentiate them.
 
 ## Text Highlighting
 
