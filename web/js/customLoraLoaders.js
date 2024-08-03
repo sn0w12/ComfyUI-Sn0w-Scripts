@@ -20,7 +20,8 @@ async function fetchExtensionSettings() {
 const sn0wSettings = await fetchExtensionSettings();
 const settingUtils = new SettingUtils();
 
-// KEPT IN FOR FUTURE INTEGRATION (MAYBE)
+/*
+KEPT IN FOR FUTURE INTEGRATION
 function updateLoraSorting(graphCanvas) {
     setTimeout(() => {
         let loraLoaders = sn0wSettings['loraLoaders'];
@@ -38,6 +39,7 @@ function updateLoraSorting(graphCanvas) {
         })
     }, 50);
 }
+*/
 
 const defaultValue = 'ExampleName1:Value1\nExampleName2:Value2';
 const tooltip = 'Enter each name-value pair on a new line, separated by a colon (:).';
