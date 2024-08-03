@@ -3,7 +3,7 @@ import { app } from '../../../scripts/app.js';
 import { api } from '../../../scripts/api.js';
 
 async function updateLoggingLevel() {
-    const request = await api.fetchApi(`${SettingUtils.API_PREFIX}/update_logging_level`, {
+    await api.fetchApi(`${SettingUtils.API_PREFIX}/update_logging_level`, {
         method: 'GET',
     });
     SettingUtils.logSn0w(`Logging levels selected:\n${await SettingUtils.getSetting("sn0w.LoggingLevel")}`, "debug")
