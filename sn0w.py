@@ -235,7 +235,7 @@ class Utility:
         if isinstance(arr, dict):
             arr = list(arr.keys())
 
-        favourites = ConfigReader.get_setting(setting, [])
+        favourites = ConfigReader.get_setting(setting, None)
         if favourites is None:
             return arr
 
