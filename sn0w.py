@@ -22,6 +22,13 @@ import folder_paths
 class ConfigReader:
     """
     Handles reading and managing configuration settings for ComfyUI without using the API.
+
+    Methods:
+    get_setting(setting_id, default)
+        Retrieve a setting value from the configuration file.
+
+    is_comfy_portable()
+        Check if comfy is running in portable mode.
     """
 
     DEFAULT_PATH = os.path.abspath(os.path.join(os.getcwd(), "user/default/comfy.settings.json"))
@@ -98,6 +105,13 @@ class Logger:
         - WARNING
         - INFORMATIONAL
         - DEBUG
+
+    Methods:
+    log(message, level)
+        Log a message with a specified severity level.
+
+    print_sigmas_differences(name, sigmas)
+        Prints sigmas to terminal.
     """
 
     PURPLE_TEXT = "\033[0;35m"
@@ -116,7 +130,7 @@ class Logger:
         cls.enabled_levels = ConfigReader.get_setting("sn0w.LoggingLevel", ["INFORMATIONAL", "WARNING"])
 
     @classmethod
-    def print_sn0w(cls, message, color):
+    def _print_sn0w(cls, message, color):
         """Print a message with a specific color prefix."""
         print(f"{color}{cls.PREFIX}{cls.RESET_TEXT}{message}")
 
@@ -132,7 +146,7 @@ class Logger:
 
         # Check if the message's level is in the enabled log levels
         if level.upper() in self.enabled_levels or level.upper() in self.ALWAYS_LOG:
-            self.print_sn0w(message, color)
+            self._print_sn0w(message, color)
 
     def print_sigmas_differences(self, name, sigmas):
         """
@@ -143,7 +157,7 @@ class Logger:
         sigmas (torch.Tensor): A 1D tensor of sigmas with a zero appended at the end.
         """
         if "DEBUG" in self.enabled_levels:
-            self.print_sn0w(f"Scheduler: {name}", self.PURPLE_TEXT)
+            self._print_sn0w(f"Scheduler: {name}", self.PURPLE_TEXT)
             print("Index | Sigma Value | Difference to Next | % Difference")
             print("-" * 65)
 
@@ -165,6 +179,28 @@ class Logger:
 class Utility:
     """
     Utility class providing various static methods for common operations.
+
+    Methods:
+    levenshtein_distance(s1, s2):
+        Calculate the Levenshtein distance between two strings.
+
+    image_batch(**kwargs):
+        Concatenate and batch multiple image tensors.
+
+    get_model_type(model_patcher):
+        Retrieve the type of the model from the model patcher.
+
+    get_model_type_simple(model_patcher):
+        Retrieve a standardized model type from the model patcher.
+
+    put_favourite_on_top(setting, arr):
+        Prioritize favorite items in a list based on a setting.
+
+    create_setting_entry(setting_type, setting_value):
+        Create a setting entry based on the type and value.
+
+    get_node_output(data, node_id, output_id):
+        Get the output of a node from the workflow data.
     """
 
     logger = Logger()
