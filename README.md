@@ -38,8 +38,8 @@ In the ComfyUI settings, you can modify various settings. Some changes will appl
 | Sort Characters By   | Alphabetically<br>Series | Sorts characters either alphabetically or  by their series.        |
 | Sort Loras By   | Alphabetically<br>Last Changed | Sorts loras either alphabetically or by latest changed.        |
 
-## Important Note
-The custom lora loaders require these paths to be in your `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using.
+> [!IMPORTANT]
+> The custom lora loaders require these paths to be in your  `extra_model_paths.yaml` (with your real directories of course). You only need to add the ones you are actively using.
 
 ```yaml
 loras:
