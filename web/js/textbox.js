@@ -103,12 +103,21 @@ app.registerExtension({
 
             async function setTextHighlightType(inputEl) {
                 const highlightGradient = await SettingUtils.getSetting('sn0w.TextboxGradientColors');
-                if (highlightGradient === null) {
-                    inputEl.highlightGradient = false;
-                    return;
+
+                let shouldHighlightGradient = false;
+                switch(highlightGradient) {
+                    case "nesting":
+                        shouldHighlightGradient = false;
+                        break;
+                    case "strength":
+                        shouldHighlightGradient = true;
+                        break;
+                    default:
+                        shouldHighlightGradient = false;
+                        break;
                 }
 
-                inputEl.highlightGradient = highlightGradient;
+                inputEl.highlightGradient = shouldHighlightGradient;
             }
 
             async function setTextColors(inputEl, overlayEl) {
@@ -492,10 +501,13 @@ const settingsDefinitions = [
     },
     {
         id: 'sn0w.TextboxGradientColors',
-        name: '[Sn0w] Custom Textbox Gradient Highlight',
-        type: 'boolean',
-        defaultValue: false,
-        tooltip: 'Makes the textbox highlighting be a gradient between the first and last color based on the strength of the selection.',
+        name: '[Sn0w] Textbox Highlight Type',
+        options: [
+            { text: 'Nesting', value: 'nesting' },
+            { text: 'Strength', value: 'strength' },
+        ],
+        type: 'combo',
+        defaultValue: 'nesting',
         onChange: () => {
             const nodes = app.graph._nodes.filter(node => node.type === 'Copy/Paste Textbox');
             nodes.forEach(node => {
@@ -512,6 +524,7 @@ const registerSetting = (settingDefinition) => {
             const setting = app.ui.settings.addSetting({
                 id: settingDefinition.id,
                 name: settingDefinition.name,
+                options: settingDefinition.options,
                 type: settingDefinition.type,
                 defaultValue: settingDefinition.defaultValue,
                 tooltip: settingDefinition.tooltip,
