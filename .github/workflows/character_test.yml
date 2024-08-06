@@ -1,6 +1,12 @@
 name: Run Character Tag Validator
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'web/settings/characters.json'
+  pull_request:
+    paths:
+      - 'web/settings/characters.json'
 
 jobs:
   build:
