@@ -69,13 +69,16 @@ class CharacterSelectNode:
 
         custom_json_path = os.path.join(dir_path, CUSTOM_CHARACTER_FILE_PATH)
         if not os.path.exists(custom_json_path):
-            cls.logger.log(f"Custom character file doesn't exist. Please create the json file at: {custom_json_path}", "WARNING")
+            cls.logger.log(
+                f"Custom character file doesn't exist. Please create the json file at: {custom_json_path}", "WARNING"
+            )
         else:
             with open(custom_json_path, "r", encoding="utf-8") as file:
                 custom_character_data = json.load(file)
                 for custom_character in custom_character_data:
                     for character in character_data:
                         if custom_character["name"] == character["name"]:
+                            character["associated_string"] += ", " + custom_character["associated_string"]
                             character["prompt"] += ", " + custom_character["prompt"]
                             break
                     else:
