@@ -19,6 +19,23 @@ export class SettingUtils {
         }
     }
 
+    static async fetchApi(route, options) {
+        if (!options) {
+			options = {};
+		}
+		if (!options.headers) {
+			options.headers = {};
+		}
+        const url = `${location.protocol}//${location.host}${route}`;
+        try {
+            const response = await fetch(url, options);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('There was a problem with the fetch operation:', error);
+        }
+    }
+
     // Callback function to add or remove the filename from the settings list
     static async toggleFavourite(existingList, filename, setting) {
         try {
@@ -47,34 +64,32 @@ export class SettingUtils {
         const textarea = document.createElement('textarea');
 
         // Generate a unique ID for associating the label with the textarea
-        const uniqueId = `${name.replaceAll(' ', '').replace('[', '').replace(']', '-')}`;
+        const uniqueId = `${name.replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '-')}`;
         label.setAttribute('for', uniqueId);
         label.textContent = name;
 
         textarea.id = uniqueId;
         textarea.value = value;
         const maxLines = 10;
-        const lineHeight = 15;
         // Function to set the height based on the number of lines
         const adjustHeight = () => {
+            textarea.style.height = ''; // Allow to shrink
             const lines = textarea.value.split('\n').length;
+            const scrollHeight = textarea.scrollHeight + 3;
             if (lines > maxLines) {
+                const height = (scrollHeight / lines) * maxLines
                 textarea.setAttribute(
                     'style',
-                    `width: 100%; height: ${lineHeight * maxLines}px; resize: none;`
+                    `width: 100%; height: ${height}px; resize: none;`
                 );
                 return;
             }
-            const height = lines * lineHeight;
-            textarea.setAttribute('style', `width: 100%; height: ${height}px; resize: none;`);
+            textarea.setAttribute('style', `width: 100%; height: ${scrollHeight}px; resize: none;`);
         };
 
         adjustHeight();
         textarea.onchange = () => setter(textarea.value);
         textarea.addEventListener('input', adjustHeight);
-
-        // Apply event handler
-        textarea.onchange = () => setter(textarea.value);
 
         // Apply additional attributes
         for (const [key, val] of Object.entries(attrs)) {
@@ -94,6 +109,17 @@ export class SettingUtils {
             label.className = 'comfy-tooltip-indicator';
         }
 
+        // Update height when settings are opened
+        const dialog = document.getElementById('comfy-settings-dialog');
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'open') {
+                    adjustHeight();
+                }
+            });
+        });
+        observer.observe(dialog, { attributes: true });
+
         return tr;
     }
 
@@ -108,7 +134,7 @@ export class SettingUtils {
         const label = document.createElement('label');
 
         // Generate a unique ID for the setting container
-        const uniqueId = `${name.replaceAll(' ', '').replace('[', '').replace(']', '-')}`;
+        const uniqueId = `${name.replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '-')}`;
         label.setAttribute('for', uniqueId);
         label.textContent = name;
 

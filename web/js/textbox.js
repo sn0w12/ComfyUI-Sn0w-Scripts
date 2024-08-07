@@ -228,7 +228,7 @@ app.registerExtension({
                 let trimmedTag = tag.trim();
 
                 // Remove HTML tags
-                trimmedTag = trimmedTag.replace(/<[^>]*>/g, '');
+                trimmedTag = trimmedTag.replace(/<|>/g, "");
 
                 // Remove the first character if it is a parenthesis
                 if (trimmedTag.startsWith('(')) {
@@ -464,15 +464,9 @@ app.registerExtension({
             }
 
             async function getValidFiles(type) {
-                const apiRequest = await api.fetchApi(`${SettingUtils.API_PREFIX}/${type}`, {
+                return await SettingUtils.fetchApi(`${SettingUtils.API_PREFIX}/${type}`, {
                     method: "GET",
-                })
-                if (!apiRequest.ok) {
-                    console.error('API request failed:', apiRequest.statusText);
-                } else {
-                    const responseBody = await apiRequest.json();
-                    return responseBody;
-                }
+                });
             }
 
             nodeType.prototype.onNodeCreated = function () {

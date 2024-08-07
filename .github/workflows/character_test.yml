@@ -1,6 +1,12 @@
 name: Run Character Tag Validator
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'web/settings/characters.json'
+  pull_request:
+    paths:
+      - 'web/settings/characters.json'
 
 jobs:
   build:
@@ -12,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.10
+        python-version: 3.10.9
 
     - name: Install dependencies
       run: |

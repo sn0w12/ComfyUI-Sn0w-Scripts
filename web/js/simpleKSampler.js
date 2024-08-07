@@ -23,13 +23,13 @@ app.registerExtension({
             };
 
             nodeType.prototype.onNodeCreated = function () {
-                this.inputs[3].type = ['STRING', 'CONDITIONING'];
-                this.inputs[4].type = ['STRING', 'CONDITIONING'];
+                //this.inputs[3].type = ['STRING', 'CONDITIONING'];
+                //this.inputs[4].type = ['STRING', 'CONDITIONING'];
             };
 
             nodeType.prototype.onConfigure = function () {
-                this.inputs[3].type = ['STRING', 'CONDITIONING'];
-                this.inputs[4].type = ['STRING', 'CONDITIONING'];
+                //this.inputs[3].type = ['STRING', 'CONDITIONING'];
+                //this.inputs[4].type = ['STRING', 'CONDITIONING'];
             };
         }
     },
