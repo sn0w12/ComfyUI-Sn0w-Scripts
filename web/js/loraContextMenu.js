@@ -67,30 +67,55 @@ app.registerExtension({
         const original_getNodeMenuOptions = app.canvas.getNodeMenuOptions;
         app.canvas.getNodeMenuOptions = function (node) {
             const options = original_getNodeMenuOptions.apply(this, arguments);
+
+            // Collect all Lora widgets.
+            const loraWidgets = node.widgets.filter(widget => widget.name.includes("lora") && widget.type === "combo");
+            const totalLoras = loraWidgets.length;
+
             if (loraLoaders.includes(node.type)) {
                 const settingUtils = new SettingUtils();
                 const nullIndex = options.indexOf(null);
+                let optionsArr = []
 
-                // Check if the filename is in the existingList
-                const selectedLora = node.widgets[0].value;
-                const pathArray = selectedLora.split('\\');
-                const filename = pathArray[pathArray.length - 1];
-                const isFavourite = existingList.includes(filename);
+                loraWidgets.forEach(widget => {
+                    const selectedLora = widget.value;
+                    const pathArray = selectedLora.split('\\');
+                    const filename = pathArray[pathArray.length - 1];
+                    if (filename == "None") {
+                        return;
+                    }
+                    const isFavourite = existingList.includes(filename);
 
-                // Create the new menu item
-                const newMenuItem = {
-                    content: isFavourite ? 'Unfavourite Lora ☆' : 'Favourite Lora ★',
-                    disabled: false,
-                    callback: () => {
-                        SettingUtils.toggleFavourite(existingList, filename, favouriteLoraId);
-                        settingUtils.refreshComboInSingleNode(app, node.title);
-                    },
-                };
+                    const newMenuItem = {
+                        content: (isFavourite ? 'Unfavourite ' : 'Favourite ') + filename.split(".")[0] + (isFavourite ? ' ☆' : ' ★'),
+                        disabled: false,
+                        callback: () => {
+                            SettingUtils.toggleFavourite(existingList, filename, favouriteLoraId);
+                            settingUtils.refreshComboInSingleNode(app, node.title);
+                        },
+                    };
+
+                    optionsArr.push(newMenuItem);
+                });
+
+                let menuItem
+                if (totalLoras === 1) {
+                    menuItem = optionsArr[0]
+                } else if (totalLoras > 1) {
+                    menuItem = {
+                        content: "Favourite",
+                        disabled: false,
+                        has_submenu: true,
+                        submenu:  {
+                            options: optionsArr
+                        }
+                    }
+                }
 
                 if (nullIndex !== -1) {
-                    options.splice(nullIndex, 0, newMenuItem);
+                    options.splice(nullIndex, 0, menuItem);
                 } else {
-                    options.push(newMenuItem);
+                    options.push(menuItem);
                 }
             }
             return options;
