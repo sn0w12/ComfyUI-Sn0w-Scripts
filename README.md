@@ -129,8 +129,10 @@ A custom scheduler that generally produces similar quality results as most other
 
 Nodes that are specifically for generating and processing images.
 
-### Simple Sampler Custom
+### Sn0w KSampler
 > Ksampler with more settings and optional inputs. Support for custom schedulers
+> [!IMPORTANT]
+> If you have saved a workflow with this node, make sure to re-save the workflow before the new comfyui frontend is implemented as the old implementation will corrupt your workflow.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
