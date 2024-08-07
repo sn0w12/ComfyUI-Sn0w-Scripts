@@ -62,6 +62,7 @@ app.registerExtension({
 
         // Combine the existing custom loaders with the fetched ones
         loraLoaders = loraLoaders.concat(...customLoraLoadersArrays);
+        addLoraLoaders(loraLoaders);
 
         const original_getNodeMenuOptions = app.canvas.getNodeMenuOptions;
         app.canvas.getNodeMenuOptions = function (node) {
