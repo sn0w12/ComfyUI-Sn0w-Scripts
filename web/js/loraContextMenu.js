@@ -62,7 +62,6 @@ app.registerExtension({
 
         // Combine the existing custom loaders with the fetched ones
         loraLoaders = loraLoaders.concat(...customLoraLoadersArrays);
-        addLoraLoaders(loraLoaders);
 
         const original_getNodeMenuOptions = app.canvas.getNodeMenuOptions;
         app.canvas.getNodeMenuOptions = function (node) {
@@ -99,16 +98,23 @@ app.registerExtension({
                 });
 
                 let menuItem
-                if (totalLoras === 1) {
-                    menuItem = optionsArr[0]
-                } else if (totalLoras > 1) {
-                    menuItem = {
-                        content: "Favourite",
-                        disabled: false,
-                        has_submenu: true,
-                        submenu:  {
-                            options: optionsArr
+                if (optionsArr.length > 0) {
+                    if (totalLoras === 1) {
+                        menuItem = optionsArr[0]
+                    } else if (totalLoras > 1) {
+                        menuItem = {
+                            content: "Favourite",
+                            disabled: false,
+                            has_submenu: true,
+                            submenu:  {
+                                options: optionsArr
+                            }
                         }
+                    }
+                } else {
+                    menuItem = {
+                        content: "No lora selected",
+                        disabled: true,
                     }
                 }
 
