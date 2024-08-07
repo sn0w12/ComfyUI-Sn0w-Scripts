@@ -64,7 +64,7 @@ export class SettingUtils {
         const textarea = document.createElement('textarea');
 
         // Generate a unique ID for associating the label with the textarea
-        const uniqueId = `${name.replaceAll(' ', '').replace('[', '').replace(']', '-')}`;
+        const uniqueId = `${name.replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '-')}`;
         label.setAttribute('for', uniqueId);
         label.textContent = name;
 
@@ -134,7 +134,7 @@ export class SettingUtils {
         const label = document.createElement('label');
 
         // Generate a unique ID for the setting container
-        const uniqueId = `${name.replaceAll(' ', '').replace('[', '').replace(']', '-')}`;
+        const uniqueId = `${name.replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '-')}`;
         label.setAttribute('for', uniqueId);
         label.textContent = name;
 

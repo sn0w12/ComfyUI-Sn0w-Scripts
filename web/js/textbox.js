@@ -228,7 +228,7 @@ app.registerExtension({
                 let trimmedTag = tag.trim();
 
                 // Remove HTML tags
-                trimmedTag = trimmedTag.replace(/<[^>]*>/g, '');
+                trimmedTag = trimmedTag.replaceAll(/<[^>]*>/g, '');
 
                 // Remove the first character if it is a parenthesis
                 if (trimmedTag.startsWith('(')) {
