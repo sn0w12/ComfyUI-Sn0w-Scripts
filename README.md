@@ -4,6 +4,9 @@
 
 This extension contains a collection of nodes and improvements created for lora management and general quality of life.
 
+> [!IMPORTANT]
+> If you have saved a workflow with the `sn0w ksampler` node, make sure to re-save the workflow before the new comfyui frontend is implemented as the old implementation will corrupt your workflow.
+
 # Get Started
 
 ## Install
@@ -131,8 +134,6 @@ Nodes that are specifically for generating and processing images.
 
 ### Sn0w KSampler
 > Ksampler with more settings and optional inputs. Support for custom schedulers
-> [!IMPORTANT]
-> If you have saved a workflow with this node, make sure to re-save the workflow before the new comfyui frontend is implemented as the old implementation will corrupt your workflow.
 > <details>
 >    <summary>ℹ️ <i>See More Information</i></summary>
 >
