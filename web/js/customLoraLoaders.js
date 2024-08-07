@@ -3,18 +3,7 @@ import { app } from '../../../scripts/app.js';
 import { api } from '../../../scripts/api.js';
 
 async function fetchExtensionSettings() {
-    try {
-        const response = await api.fetchApi(
-            '/extensions/ComfyUI-Sn0w-Scripts/settings/sn0w_settings.json'
-        );
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-        }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
-    }
+    return SettingUtils.fetchApi("/extensions/ComfyUI-Sn0w-Scripts/settings/sn0w_settings.json");
 }
 
 const sn0wSettings = await fetchExtensionSettings();
