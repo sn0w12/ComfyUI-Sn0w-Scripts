@@ -22,14 +22,15 @@ app.registerExtension({
                 onConnectInput.apply(this, arguments);
             };
 
+            // Remove old array input types to prevernt new frontend complaining.
             nodeType.prototype.onNodeCreated = function () {
-                //this.inputs[3].type = ['STRING', 'CONDITIONING'];
-                //this.inputs[4].type = ['STRING', 'CONDITIONING'];
+                this.inputs[3].type = '*';
+                this.inputs[4].type = '*';
             };
 
             nodeType.prototype.onConfigure = function () {
-                //this.inputs[3].type = ['STRING', 'CONDITIONING'];
-                //this.inputs[4].type = ['STRING', 'CONDITIONING'];
+                this.inputs[3].type = '*';
+                this.inputs[4].type = '*';
             };
         }
     },
