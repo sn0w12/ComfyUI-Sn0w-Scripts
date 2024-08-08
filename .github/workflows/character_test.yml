@@ -3,32 +3,32 @@ name: Run Character Tag Validator
 on:
   push:
     paths:
-      - 'web/settings/characters.json'
+      - "web/settings/characters.json"
   pull_request:
     paths:
-      - 'web/settings/characters.json'
+      - "web/settings/characters.json"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.10.9
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.9
 
-    - name: Install dependencies
-      run: |
-        pip install requests
+      - name: Install dependencies
+        run: |
+          pip install requests
 
-    - name: Run script
-      id: run_script
-      run: |
-        python testing/git_check_characters.py || echo "Script failed due to low-use characters. Please run the script locally to address this issue."
+      - name: Run script
+        id: run_script
+        run: |
+          python .github/py/git_check_characters.py || echo "Script failed due to low-use characters. Please run the script `testing/check_characters.py` locally to address this issue."
 
-    - name: Fail the build if the script failed
-      if: failure()
-      run: exit 1
+      - name: Fail the build if the script failed
+        if: failure()
+        run: exit 1
