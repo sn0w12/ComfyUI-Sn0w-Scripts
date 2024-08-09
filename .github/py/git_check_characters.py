@@ -11,7 +11,7 @@ import sys
 CHARACTER_FILE_PATH = os.getenv("CHARACTER_FILE_PATH", "web/settings/characters.json")
 TAGS_FILE_PATH = os.getenv("TAGS_FILE_PATH", "testing/danbooru-tags.csv")
 BASE_URL = "https://gelbooru.com/index.php?page=dapi&s=tag&q=index&name="
-REQUEST_DELAY = 0.5  # Delay between requests in seconds
+REQUEST_DELAY = 0.25  # Delay between requests in seconds
 MIN_USES = int(os.getenv("MIN_USES", 100))
 SIMILARITY_THRESHOLD = 0.9
 
