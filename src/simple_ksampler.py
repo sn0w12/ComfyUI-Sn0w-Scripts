@@ -1,5 +1,11 @@
 from nodes import VAEDecode, EmptyLatentImage, CLIPTextEncode
-from comfy_extras.nodes_custom_sampler import SamplerCustom, BasicScheduler, PolyexponentialScheduler, VPScheduler, SplitSigmasDenoise
+from comfy_extras.nodes_custom_sampler import (
+    SamplerCustom,
+    BasicScheduler,
+    PolyexponentialScheduler,
+    VPScheduler,
+    SplitSigmasDenoise,
+)
 import comfy.samplers
 
 from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
@@ -21,8 +27,12 @@ class SimpleSamplerCustom:
     def build_scheduler_list(cls):
         custom_scheduler_names = list(cls.custom_schedulers.get_scheduler_settings().keys())
         cls.logger.log(custom_scheduler_names, "DEBUG")
-        cls.scheduler_list = comfy.samplers.KSampler.SCHEDULERS + ["align_your_steps", "polyexponential", "vp"] + custom_scheduler_names
-        cls.scheduler_settings = {name: settings for name, settings in cls.custom_schedulers.get_scheduler_settings().items()}
+        cls.scheduler_list = (
+            comfy.samplers.KSampler.SCHEDULERS + ["align_your_steps", "polyexponential", "vp"] + custom_scheduler_names
+        )
+        cls.scheduler_settings = {
+            name: settings for name, settings in cls.custom_schedulers.get_scheduler_settings().items()
+        }
         cls.custom_scheduler_defaults = cls.custom_schedulers.get_scheduler_defaults()
 
     @classmethod
@@ -58,6 +68,10 @@ class SimpleSamplerCustom:
             },
         }
 
+    @classmethod
+    def VALIDATE_INPUTS(cls, input_types):
+        return True
+
     RETURN_TYPES = ("IMAGE", "LATENT", "CONDITIONING", "CONDITIONING")
     RETURN_NAMES = ("IMAGE", "LATENT", "POSITIVE", "NEGATIVE")
 
@@ -65,7 +79,22 @@ class SimpleSamplerCustom:
 
     CATEGORY = "sampling/custom_sampling"
 
-    def sample(self, model, clip, vae, add_noise, noise_seed, steps, cfg, sampler_name, scheduler_name, denoise, width, height, **kwargs):
+    def sample(
+        self,
+        model,
+        clip,
+        vae,
+        add_noise,
+        noise_seed,
+        steps,
+        cfg,
+        sampler_name,
+        scheduler_name,
+        denoise,
+        width,
+        height,
+        **kwargs,
+    ):
         custom_sampler = SamplerCustom()
         vae_decode = VAEDecode()
         text_encode = CLIPTextEncode()
@@ -81,7 +110,9 @@ class SimpleSamplerCustom:
         sigmas = self.get_custom_sigmas(model, model_type, scheduler_name, steps, denoise)
         self.logger.print_sigmas_differences(scheduler_name, sigmas)
 
-        samples = custom_sampler.sample(model, add_noise, noise_seed, cfg, positive_prompt, negative_prompt, sampler, sigmas, latent_image)
+        samples = custom_sampler.sample(
+            model, add_noise, noise_seed, cfg, positive_prompt, negative_prompt, sampler, sigmas, latent_image
+        )
         if image_output["links"] != []:
             image = vae_decode.decode(vae, samples[1])
         else:
@@ -104,14 +135,18 @@ class SimpleSamplerCustom:
                 model_type = "SDXL"
             sigmas = AlignYourStepsScheduler.get_sigmas(self, model_type, steps, denoise)[0]
         elif scheduler_name == "polyexponential":
-            sigmas = self.get_denoised_sigmas(PolyexponentialScheduler.get_sigmas(self, steps, 14.614642, 0.0291675, 1.0)[0], denoise)[1]
+            sigmas = self.get_denoised_sigmas(
+                PolyexponentialScheduler.get_sigmas(self, steps, 14.614642, 0.0291675, 1.0)[0], denoise
+            )[1]
         elif scheduler_name == "vp":
             sigmas = self.get_denoised_sigmas(VPScheduler.get_sigmas(self, steps, 14.0, 0.05, 0.075)[0], denoise)[1]
         elif scheduler_name in comfy.samplers.KSampler.SCHEDULERS:
             sigmas = BasicScheduler.get_sigmas(self, model, scheduler_name, steps, denoise)[0]
         else:
             defaults = self.get_custom_scheduler_defaults(scheduler_name)
-            sigmas = self.get_denoised_sigmas(self.get_custom_class_sigmas(scheduler_name, steps, *defaults.values())[0], denoise)[1]
+            sigmas = self.get_denoised_sigmas(
+                self.get_custom_class_sigmas(scheduler_name, steps, *defaults.values())[0], denoise
+            )[1]
 
         return sigmas
 
