@@ -12,3 +12,4 @@ src/prompt_combine_testing.py
 web/settings/sn0w_settings.json
 testing/test_scheduler.py
 update-dev.bat
+/.vscode
