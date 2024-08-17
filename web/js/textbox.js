@@ -485,7 +485,7 @@ const settingsDefinitions = [
         name: 'Custom Textbox Colors',
         type: SettingUtils.createMultilineSetting,
         defaultValue: '#559c22\n#229c57\n#229c8b\n#226f9c\n#22479c',
-        attrs: { tooltip: 'A list of either rgb or hex colors, one color per line.' },
+        tooltip: 'A list of either rgb or hex colors, one color per line.',
         onChange: () => {
             const nodes = app.graph._nodes.filter(node => node.type === 'Copy/Paste Textbox');
             nodes.forEach(node => {
