@@ -95,7 +95,11 @@ app.registerExtension({
                         },
                     };
 
-                    optionsArr.push(newMenuItem);
+                    const itemExists = optionsArr.some(item => item.content === newMenuItem.content);
+
+                    if (!itemExists) {
+                        optionsArr.push(newMenuItem);
+                    }
                 });
 
                 let menuItem
