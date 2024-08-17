@@ -26,9 +26,8 @@ export class SettingUtils {
 		if (!options.headers) {
 			options.headers = {};
 		}
-        const url = `${location.protocol}/${location.host}${route}`;
         try {
-            const response = await fetch(url, options);
+            const response = await fetch(route, options);
             const data = await response.json();
             return data;
         } catch (error) {
