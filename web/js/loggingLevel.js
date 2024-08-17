@@ -51,24 +51,6 @@ const settingsDefinitions = [
     },
 ]
 
-const registerSetting = (settingDefinition) => {
-    const extension = {
-        name: settingDefinition.id,
-        init() {
-            const setting = app.ui.settings.addSetting({
-                id: settingDefinition.id,
-                name: settingDefinition.name,
-                type: settingDefinition.type,
-                defaultValue: settingDefinition.defaultValue,
-                attrs: settingDefinition.attrs,
-                options: settingDefinition.options,
-                onChange: settingDefinition.onChange,
-            });
-        },
-    };
-    app.registerExtension(extension);
-};
-
 settingsDefinitions.forEach((setting) => {
-    registerSetting(setting);
+    SettingUtils.registerSetting(setting);
 });

@@ -511,26 +511,7 @@ const settingsDefinitions = [
     }
 ];
 
-const registerSetting = (settingDefinition) => {
-    const extension = {
-        name: settingDefinition.id,
-        init() {
-            const setting = app.ui.settings.addSetting({
-                id: settingDefinition.id,
-                name: settingDefinition.name,
-                options: settingDefinition.options,
-                type: settingDefinition.type,
-                defaultValue: settingDefinition.defaultValue,
-                tooltip: settingDefinition.tooltip,
-                attrs: settingDefinition.attrs,
-                onChange: settingDefinition.onChange,
-            });
-        },
-    };
-    app.registerExtension(extension);
-};
-
 // Register settings
 settingsDefinitions.forEach((setting) => {
-    registerSetting(setting);
+    SettingUtils.registerSetting(setting);
 });

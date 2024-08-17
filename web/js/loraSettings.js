@@ -1,6 +1,5 @@
 import { SettingUtils } from './sn0w.js';
 import { app } from '../../../scripts/app.js';
-import { api } from '../../../scripts/api.js';
 
 async function fetchExtensionSettings() {
     return SettingUtils.fetchApi("/extensions/ComfyUI-Sn0w-Scripts/settings/sn0w_settings.json");
@@ -39,21 +38,21 @@ const loraLoadersSettingsDefinitions = [
         name: 'Custom Lora Loaders SD 1.5',
         type: SettingUtils.createMultilineSetting,
         defaultValue: defaultValue,
-        attrs: { tooltip: tooltip },
+        tooltip: tooltip,
     },
     {
         id: 'sn0w.CustomLoraLoaders.XL',
         name: 'Custom Lora Loaders SDXL',
         type: SettingUtils.createMultilineSetting,
         defaultValue: defaultValue,
-        attrs: { tooltip: tooltip },
+        tooltip: tooltip,
     },
     {
         id: 'sn0w.CustomLoraLoaders.3',
         name: 'Custom Lora Loaders SD3',
         type: SettingUtils.createMultilineSetting,
         defaultValue: defaultValue,
-        attrs: { tooltip: tooltip },
+        tooltip: tooltip,
     },
 ];
 
@@ -87,32 +86,14 @@ const loraSettingsDefinitions = [
     }
 ]
 
-const registerSetting = (settingDefinition) => {
-    const extension = {
-        name: settingDefinition.id,
-        init() {
-            const setting = app.ui.settings.addSetting({
-                id: settingDefinition.id,
-                name: settingDefinition.name,
-                type: settingDefinition.type,
-                defaultValue: settingDefinition.defaultValue,
-                attrs: settingDefinition.attrs,
-                options: settingDefinition.options,
-                onChange: settingDefinition.onChange,
-            });
-        },
-    };
-    app.registerExtension(extension);
-};
-
 const sn0wSettings = await fetchExtensionSettings();
 // Register settings
 loraLoadersSettingsDefinitions.forEach((setting) => {
     if (sn0wSettings['loaders_enabled'].includes(settingsMap[setting.id])) {
-        registerSetting(setting);
+        SettingUtils.registerSetting(setting);
     }
 });
 
 loraSettingsDefinitions.forEach((setting) => {
-    registerSetting(setting);
+    SettingUtils.registerSetting(setting);
 });

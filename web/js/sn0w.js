@@ -1,3 +1,4 @@
+import { app } from '../../../scripts/app.js';
 import { api } from '../../../scripts/api.js';
 import { $el } from '../../../scripts/ui.js'
 
@@ -83,6 +84,18 @@ export class SettingUtils {
             console.error('Error updating settings:', error);
         }
     }
+
+    static registerSetting = (settingDefinition) => {
+        const extension = {
+            name: settingDefinition.id,
+            init() {
+                const setting = app.ui.settings.addSetting({
+                    ...settingDefinition, // Spread all properties from settingDefinition
+                });
+            },
+        };
+        app.registerExtension(extension);
+    };
 
     static createMultilineSetting(name, setter, value, attrs) {
         // Ensure that tooltip has a default value if not provided
