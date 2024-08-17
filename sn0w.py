@@ -42,6 +42,10 @@ class ConfigReader:
         print(f"{color}[sn0w] \033[0m{message}")
 
     @classmethod
+    def _get_path(cls):
+        return ConfigReader.PORTABLE_PATH if ConfigReader.portable else ConfigReader.DEFAULT_PATH
+
+    @classmethod
     def is_comfy_portable(cls):
         """Check if the application is running in portable mode."""
         if cls.portable is not None:
@@ -74,7 +78,7 @@ class ConfigReader:
             )
             return default
 
-        path = ConfigReader.PORTABLE_PATH if ConfigReader.portable else ConfigReader.DEFAULT_PATH
+        path = ConfigReader._get_path()
 
         # Try to read the settings from the determined path
         try:
@@ -88,9 +92,82 @@ class ConfigReader:
 
         return default
 
+    @staticmethod
+    def set_setting(setting_id: str, value):
+        """Set a setting value in the configuration file."""
+        # Determine the correct path based on the portable attribute
+        if ConfigReader.portable is None:
+            ConfigReader.print_sn0w(
+                f"Local configuration file not found at either {ConfigReader.PORTABLE_PATH} or {ConfigReader.DEFAULT_PATH}.",
+                "\033[0;33m",
+            )
+            return False
+
+        path = ConfigReader._get_path()
+
+        # Try to read the existing settings from the determined path
+        try:
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as file:
+                    settings = json.load(file)
+            else:
+                settings = {}  # If the file doesn't exist, start with an empty dict
+
+            # If value is None, remove the setting if it exists
+            if value is None:
+                if setting_id in settings:
+                    del settings[setting_id]
+            else:
+                # Update the setting value
+                settings[setting_id] = value
+
+            # Write the updated settings back to the file
+            with open(path, "w", encoding="utf-8") as file:
+                json.dump(settings, file, indent=4)
+
+            return True
+
+        except FileNotFoundError:
+            ConfigReader.print_sn0w(f"Local configuration file not found at {path}.", "\033[0;33m")
+        except json.JSONDecodeError:
+            ConfigReader.print_sn0w(f"Error decoding JSON from {path}.", "\033[0;31m")
+        except IOError as e:
+            ConfigReader.print_sn0w(f"Error writing to {path}: {e}", "\033[0;31m")
+
+        return False
+
+    @classmethod
+    def validate_settings(cls):
+        """Update to new settings values after frontend update."""
+        conversion_map = {
+            "sn0w.CustomLoraLoaders1.5": "sn0w.CustomLoraLoaders",
+            "sn0w.CustomLoraLoadersXL": "sn0w.CustomLoraLoaders.XL",
+            "sn0w.CustomLoraLoaders3": "sn0w.CustomLoraLoaders.3",
+            "sn0w.TextboxColors": "sn0w.TextboxSettings",
+            "sn0w.TextboxGradientColors": "sn0w.TextboxSettings.GradientColors",
+            "sn0w.SortLorasBy": "sn0w.LoraSettings.SortLorasBy",
+            "sn0w.RemoveLoraPath": "sn0w.LoraSettings.RemoveLoraPath",
+            "sn0w.LoraFolderMinDistance": "sn0w.LoraSettings.LoraFolderMinDistance",
+            "sn0w.DisableDefaultCharacters": "sn0w.CharacterSettings.DisableDefaultCharacters",
+            "sn0w.ExcludedRandomCharacters": "sn0w.CharacterSettings.ExcludedRandomCharacters",
+            "sn0w.SortCharactersBy": "sn0w.CharacterSettings.SortCharactersBy",
+        }
+
+        path = ConfigReader._get_path()
+        with open(path, "r", encoding="utf-8") as file:
+            settings = json.load(file)
+
+        for setting in settings:
+            if setting in conversion_map:
+                setting_value = cls.get_setting(setting)
+                if setting_value:
+                    cls.set_setting(conversion_map[setting], setting_value)
+                    cls.set_setting(setting, None)  # Remove the old setting
+
 
 # Initialize portable check when the class is defined
 ConfigReader.is_comfy_portable()
+ConfigReader.validate_settings()
 
 
 class Logger:

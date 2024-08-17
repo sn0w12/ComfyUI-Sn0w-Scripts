@@ -2,22 +2,11 @@ import os
 import json
 import random
 
-from aiohttp import web
-
-from ..sn0w import ConfigReader, Logger, Utility, MessageHolder
-
-routes = MessageHolder.routes
-API_PREFIX = MessageHolder.API_PREFIX
+from ..sn0w import ConfigReader, Logger, Utility
 
 # File paths
 CHARACTER_FILE_PATH = "web/settings/characters.json"
 CUSTOM_CHARACTER_FILE_PATH = "web/settings/custom_characters.json"
-
-
-@routes.post(f"{API_PREFIX}/update_characters")
-async def handle_update_characters(request):
-    CharacterSelectNode.initialize()
-    return web.json_response({"status": "ok"})
 
 
 class CharacterSelectNode:
@@ -28,8 +17,10 @@ class CharacterSelectNode:
     character_dict = {}
     final_character_dict = {}
     final_characters = []
-    cached_sorting_setting = ConfigReader.get_setting("sn0w.SortCharactersBy", "alphabetical")
-    cached_default_character_setting = ConfigReader.get_setting("sn0w.DisableDefaultCharacters", False)
+    cached_sorting_setting = ConfigReader.get_setting("sn0w.CharacterSettings.SortCharactersBy", "alphabetical")
+    cached_default_character_setting = ConfigReader.get_setting(
+        "sn0w.CharacterSettings.DisableDefaultCharacters", False
+    )
     last_character = ""
 
     logger = Logger()
@@ -52,11 +43,15 @@ class CharacterSelectNode:
     @classmethod
     def check_initialize(cls):
         if not cls.final_characters or cls.cached_default_character_setting != ConfigReader.get_setting(
-            "sn0w.DisableDefaultCharacters", False
+            "sn0w.CharacterSettings.DisableDefaultCharacters", False
         ):
-            cls.cached_default_character_setting = ConfigReader.get_setting("sn0w.DisableDefaultCharacters", False)
+            cls.cached_default_character_setting = ConfigReader.get_setting(
+                "sn0w.CharacterSettings.DisableDefaultCharacters", False
+            )
             cls.initialize()
-        elif cls.cached_sorting_setting != ConfigReader.get_setting("sn0w.SortCharactersBy", "alphabetical"):
+        elif cls.cached_sorting_setting != ConfigReader.get_setting(
+            "sn0w.CharacterSettings.SortCharactersBy", "alphabetical"
+        ):
             cls.sort_characters()
 
     @classmethod
@@ -97,7 +92,7 @@ class CharacterSelectNode:
 
     @classmethod
     def sort_characters(cls, force_sort=False):
-        current_sorting_setting = ConfigReader.get_setting("sn0w.SortCharactersBy", "alphabetical")
+        current_sorting_setting = ConfigReader.get_setting("sn0w.CharacterSettings.SortCharactersBy", "alphabetical")
         if current_sorting_setting != cls.cached_sorting_setting or force_sort:
             if current_sorting_setting == "series":
                 cls.final_character_dict = {
@@ -164,7 +159,7 @@ class CharacterSelectNode:
 
     def select_random_character(self):
         # Fetching the exclusion settings
-        exclude_characters = ConfigReader.get_setting("sn0w.ExcludedRandomCharacters", False)
+        exclude_characters = ConfigReader.get_setting("sn0w.CharacterSettings.ExcludedRandomCharacters", False)
         if exclude_characters is False:
             random_character_name = random.choice(list(self.final_character_dict.keys()))
             char_item = self.final_character_dict[random_character_name]

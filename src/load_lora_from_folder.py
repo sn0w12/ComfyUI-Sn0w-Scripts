@@ -101,17 +101,27 @@ class LoadLoraFolderNode:
 
         # Include only paths in the master folder, if specified
         if master_folder:
-            filtered_lora_paths = [path for path in filtered_lora_paths if master_folder in self.normalize_folder_name(path)]
+            filtered_lora_paths = [
+                path for path in filtered_lora_paths if master_folder in self.normalize_folder_name(path)
+            ]
 
         # Further filter paths to include and exclude specific folders
-        lora_paths = [path for path in filtered_lora_paths if any(folder in self.normalize_folder_name(path) for folder in include_folders)]
-        lora_paths = [path for path in lora_paths if not any(exclude in self.normalize_folder_name(path) for exclude in exclude_folders)]
+        lora_paths = [
+            path
+            for path in filtered_lora_paths
+            if any(folder in self.normalize_folder_name(path) for folder in include_folders)
+        ]
+        lora_paths = [
+            path
+            for path in lora_paths
+            if not any(exclude in self.normalize_folder_name(path) for exclude in exclude_folders)
+        ]
 
         lora_candidates = {}
         loaded_loras = set()
         lora_found = False
 
-        max_distance = int(ConfigReader.get_setting("sn0w.LoraFolderMinDistance", 5))
+        max_distance = int(ConfigReader.get_setting("sn0w.LoraSettings.LoraFolderMinDistance", 5))
         self.logger.log("Max Distance: " + str(max_distance), "DEBUG")
 
         # Match prompt parts with Lora filenames
@@ -124,7 +134,10 @@ class LoadLoraFolderNode:
                 # Check if prompt part matches the cleaned filename
                 if prompt_part in processed_lora_filename:
                     distance = Utility.levenshtein_distance(prompt_part, processed_lora_filename)
-                    self.logger.log("Processing: Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part, "DEBUG")
+                    self.logger.log(
+                        "Processing: Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part,
+                        "DEBUG",
+                    )
                     # Store matching Loras if within acceptable distance
                     for full_path in full_lora_paths:
                         if lora_filename in full_path.lower() and distance <= max_distance:
@@ -132,7 +145,13 @@ class LoadLoraFolderNode:
                                 lora_candidates[prompt_part] = []
                             lora_candidates[prompt_part].append({"full_path": full_path, "distance": distance})
                             self.logger.log(
-                                "Final: Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part, "DEBUG"
+                                "Final: Distance: "
+                                + str(distance)
+                                + " Lora: "
+                                + lora_filename
+                                + " Tag: "
+                                + prompt_part,
+                                "DEBUG",
                             )
                             break
 
@@ -146,8 +165,12 @@ class LoadLoraFolderNode:
                 if selected_candidate["full_path"] not in loaded_loras and (
                     folder_name not in include_folders or len(loaded_loras) < include_folders[folder_name]
                 ):
-                    self.logger.log(f"Loading Lora: {os.path.split(selected_candidate['full_path'])[-1]}", "INFORMATIONAL")
-                    model, clip = LoraLoader().load_lora(model, clip, selected_candidate["full_path"], lora_strength, lora_strength)
+                    self.logger.log(
+                        f"Loading Lora: {os.path.split(selected_candidate['full_path'])[-1]}", "INFORMATIONAL"
+                    )
+                    model, clip = LoraLoader().load_lora(
+                        model, clip, selected_candidate["full_path"], lora_strength, lora_strength
+                    )
                     loaded_loras.add(selected_candidate["full_path"])
 
         if not lora_found:

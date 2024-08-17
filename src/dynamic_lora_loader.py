@@ -9,6 +9,13 @@ from ..sn0w import Logger, Utility, ConfigReader
 
 def generate_lora_node_class(lora_type, required_folders=None, combos=1):
     """Generates a custom lora loader node"""
+    try:
+        # Get the list of filenames based on the lora_type
+        folder_paths.get_filename_list(lora_type)
+    except Exception:
+        logger = Logger()
+        logger.log(f"{lora_type} doesn't exist. Please add {lora_type} to extra_model_paths.yaml", "WARNING")
+        return None
 
     class DynamicLoraNode:
         logger = Logger()
@@ -32,11 +39,13 @@ def generate_lora_node_class(lora_type, required_folders=None, combos=1):
                 # Get the list of filenames based on the lora_type
                 loras = folder_paths.get_filename_list(lora_type)
             except Exception:
-                cls.logger.log(f"{lora_type} doesnt exist. Please add {lora_type} to extra_model_paths.yaml", "WARNING")
+                cls.logger.log(
+                    f"{lora_type} doesn't exist. Please add {lora_type} to extra_model_paths.yaml", "WARNING"
+                )
                 loras = folder_paths.get_filename_list("loras")
 
-            sort_by = ConfigReader.get_setting("sn0w.SortLorasBy", "alphabetical")
-            remove_paths = ConfigReader.get_setting("sn0w.RemoveLoraPath", False)
+            sort_by = ConfigReader.get_setting("sn0w.LoraSettings.SortLorasBy", "alphabetical")
+            remove_paths = ConfigReader.get_setting("sn0w.LoraSettings.RemoveLoraPath", False)
             if not isinstance(remove_paths, bool):
                 remove_paths = bool(remove_paths)
             sorted_loras = cls.sort_loras(loras, sort_by)

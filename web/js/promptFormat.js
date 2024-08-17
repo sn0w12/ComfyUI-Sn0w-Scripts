@@ -3,7 +3,7 @@ import { app } from '../../../scripts/app.js';
 const id = 'sn0w.PromptFormat';
 const settingDefinition = {
     id,
-    name: '[Sn0w] Animagine Prompt Style',
+    name: 'Animagine Prompt Style',
     defaultValue: false,
     type: 'boolean',
     tooltip: 'Puts 1girl/ 1boy at the front of prompts.',

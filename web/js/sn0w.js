@@ -1,20 +1,46 @@
 import { api } from '../../../scripts/api.js';
+import { $el } from '../../../scripts/ui.js'
 
 export class SettingUtils {
     static API_PREFIX = '/sn0w';
 
     // SETTINGS
-    static async getSetting(url) {
+    static async getSetting(url, defaultValue = null) {
         try {
             const settingUrl = `/settings/${url}`;
             const response = await fetch(settingUrl);
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                return defaultValue;
             }
             const data = await response.json();
+            if (data == null) {
+                return defaultValue;
+            }
             return data;
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
+            return defaultValue;
+        }
+    }
+
+    static async getMultipleSettings(settingsArray) {
+        // Create an array of promises using getSetting with the corresponding default values
+        const promises = settingsArray.map(({ url, defaultValue }) =>
+            this.getSetting(url, defaultValue)
+        );
+
+        try {
+            const results = await Promise.all(promises);
+
+            // Convert the results to a Map or a plain object where each URL is the key
+            const settingsMap = {};
+            settingsArray.forEach(({ url }, index) => {
+                settingsMap[url] = results[index];
+            });
+
+            return settingsMap;
+        } catch (error) {
+            console.error('There was a problem with one of the fetch operations:', error);
             return null;
         }
     }
@@ -26,6 +52,9 @@ export class SettingUtils {
 		if (!options.headers) {
 			options.headers = {};
 		}
+
+        options.cache = 'no-store';
+
         try {
             const response = await fetch(route, options);
             const data = await response.json();
@@ -56,70 +85,56 @@ export class SettingUtils {
     }
 
     static createMultilineSetting(name, setter, value, attrs) {
-        const tr = document.createElement('tr');
-        const tdLabel = document.createElement('td');
-        const tdInput = document.createElement('td');
-        const label = document.createElement('label');
-        const textarea = document.createElement('textarea');
+        // Ensure that tooltip has a default value if not provided
+        const htmlID = `${name.replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '-')}`;
 
-        // Generate a unique ID for associating the label with the textarea
-        const uniqueId = `${name.replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '-')}`;
-        label.setAttribute('for', uniqueId);
-        label.textContent = name;
+        // Create the textarea element
+        const textarea = $el('textarea', {
+            value,
+            id: htmlID,
+            oninput: (e) => {
+                adjustHeight();
+            },
+            className: "p-inputtext",
+            style: {
+                width: "100%",
+                resize: "none",
+            },
+            ...attrs
+        });
 
-        textarea.id = uniqueId;
-        textarea.value = value;
         const maxLines = 10;
-        // Function to set the height based on the number of lines
+
         const adjustHeight = () => {
-            textarea.style.height = ''; // Allow to shrink
-            const lines = textarea.value.split('\n').length;
-            const scrollHeight = textarea.scrollHeight + 3;
-            if (lines > maxLines) {
-                const height = (scrollHeight / lines) * maxLines
-                textarea.setAttribute(
-                    'style',
-                    `width: 100%; height: ${height}px; resize: none;`
-                );
-                return;
-            }
-            textarea.setAttribute('style', `width: 100%; height: ${scrollHeight}px; resize: none;`);
+            requestAnimationFrame(() => {
+                const parentDiv = textarea.parentElement;
+                if (parentDiv != null) {
+                    parentDiv.style.width = "100%";
+
+                    const id = parentDiv.id;
+                    if (id != null) {
+                        api.storeSetting(id, textarea.value);
+                    }
+                }
+
+                textarea.style.height = ''; // Allow to shrink
+                const lines = textarea.value.split('\n').length;
+                const scrollHeight = textarea.scrollHeight + 3;
+                if (lines > maxLines) {
+                    const height = (scrollHeight / lines) * maxLines
+                    textarea.setAttribute(
+                        'style',
+                        `width: 100%; height: ${height}px; resize: none;`
+                    );
+                    return;
+                }
+                textarea.setAttribute('style', `width: 100%; height: ${scrollHeight}px; resize: none;`);
+            });
         };
 
         adjustHeight();
-        textarea.onchange = () => setter(textarea.value);
-        textarea.addEventListener('input', adjustHeight);
 
-        // Apply additional attributes
-        for (const [key, val] of Object.entries(attrs)) {
-            textarea.setAttribute(key, val);
-        }
-
-        tdLabel.appendChild(label);
-        tdInput.appendChild(textarea);
-        tr.appendChild(tdLabel);
-        tr.appendChild(tdInput);
-
-        const tooltip = attrs['tooltip'];
-
-        // Setting tooltip if provided
-        if (tooltip != '' && tooltip != undefined) {
-            tr.title = tooltip;
-            label.className = 'comfy-tooltip-indicator';
-        }
-
-        // Update height when settings are opened
-        const dialog = document.getElementById('comfy-settings-dialog');
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mutation => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'open') {
-                    adjustHeight();
-                }
-            });
-        });
-        observer.observe(dialog, { attributes: true });
-
-        return tr;
+        return textarea;
     }
 
     static createCheckboxSetting(name, setter, value, attrs) {
@@ -128,14 +143,10 @@ export class SettingUtils {
         const hideThreshold = 5;
 
         const tr = document.createElement('tr');
-        const tdLabel = document.createElement('td');
         const tdInput = document.createElement('td');
-        const label = document.createElement('label');
 
         // Generate a unique ID for the setting container
         const uniqueId = `${name.replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '-')}`;
-        label.setAttribute('for', uniqueId);
-        label.textContent = name;
 
         // Checkbox container
         const checkboxContainer = document.createElement('div');
@@ -264,8 +275,6 @@ export class SettingUtils {
 
         tdInput.appendChild(checkboxContainer);
 
-        tdLabel.appendChild(label);
-        tr.appendChild(tdLabel);
         tr.appendChild(tdInput);
 
         const tooltip = attrs.tooltip;

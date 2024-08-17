@@ -91,21 +91,21 @@ def generate_and_register_lora_node(lora_type, setting):
 
             logger.log(f"Adding custom lora loader. Path: {folders}, Name: {name}, Inputs: {combos}", "INFORMATIONAL")
             DynamicLoraNode = generate_lora_node_class(lora_type, folders, combos)
-
-            if name in NODE_CLASS_MAPPINGS:
-                NODE_CLASS_MAPPINGS[unique_id_with_name] = DynamicLoraNode
-                NODE_DISPLAY_NAME_MAPPINGS[unique_id_with_name] = f"{name}"
-            else:
-                NODE_CLASS_MAPPINGS[name] = DynamicLoraNode
-                NODE_DISPLAY_NAME_MAPPINGS[name] = f"{name}"
+            if DynamicLoraNode:
+                if name in NODE_CLASS_MAPPINGS:
+                    NODE_CLASS_MAPPINGS[unique_id_with_name] = DynamicLoraNode
+                    NODE_DISPLAY_NAME_MAPPINGS[unique_id_with_name] = f"{name}"
+                else:
+                    NODE_CLASS_MAPPINGS[name] = DynamicLoraNode
+                    NODE_DISPLAY_NAME_MAPPINGS[name] = f"{name}"
 
 
 def generate_and_register_all_lora_nodes():
     """Generate and register all custom lora nodes."""
     lora_types = [
-        ("loras_xl", "sn0w.CustomLoraLoadersXL"),
-        ("loras_15", "sn0w.CustomLoraLoaders1.5"),
-        ("loras_3", "sn0w.CustomLoraLoaders3"),
+        ("loras_xl", "sn0w.CustomLoraLoaders.XL"),
+        ("loras_15", "sn0w.CustomLoraLoaders"),
+        ("loras_3", "sn0w.CustomLoraLoaders.3"),
     ]
     for lora_type, setting in lora_types:
         generate_and_register_lora_node(lora_type, setting)

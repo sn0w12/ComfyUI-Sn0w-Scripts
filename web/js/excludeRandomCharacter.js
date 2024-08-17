@@ -1,9 +1,9 @@
 import { app } from '../../../scripts/app.js';
 
-const id = 'sn0w.ExcludedRandomCharacters';
+const id = 'sn0w.CharacterSettings.ExcludedRandomCharacters';
 const settingDefinition = {
     id,
-    name: '[Sn0w] Random Characters from Favourites Only',
+    name: 'Random Characters from Favourites Only',
     defaultValue: false,
     type: 'boolean',
 };

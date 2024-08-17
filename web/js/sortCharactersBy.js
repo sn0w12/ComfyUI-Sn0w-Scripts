@@ -16,11 +16,11 @@ function updateSorting(graphCanvas) {
     }, 50);
 }
 
-const id = 'sn0w.SortCharactersBy';
+const id = 'sn0w.CharacterSettings.SortCharactersBy';
 const settingDefinition = {
     id,
-    name: '[Sn0w] Sort Characters By',
-    defaultValue: false,
+    name: 'Sort Characters By',
+    defaultValue: 'alphabetical',
     options: [
         { text: 'Alphabetical', value: 'alphabetical' },
         { text: 'Series', value: 'series' },

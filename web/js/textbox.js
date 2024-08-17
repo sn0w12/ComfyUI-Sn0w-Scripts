@@ -3,7 +3,7 @@ import { app } from '../../../scripts/app.js';
 import { api } from '../../../scripts/api.js';
 
 app.registerExtension({
-    name: 'sn0w.Textbox',
+    name: 'sn0w.TextboxNode',
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
         if (nodeData.name === 'Copy/Paste Textbox') {
             // Get textbox text
@@ -102,7 +102,7 @@ app.registerExtension({
             }
 
             async function setTextHighlightType(inputEl) {
-                const highlightGradient = await SettingUtils.getSetting('sn0w.TextboxGradientColors');
+                const highlightGradient = await SettingUtils.getSetting('sn0w.TextboxSettings.GradientColors');
 
                 let shouldHighlightGradient = false;
                 switch(highlightGradient) {
@@ -121,7 +121,7 @@ app.registerExtension({
             }
 
             async function setTextColors(inputEl, overlayEl) {
-                const customTextboxColors = await SettingUtils.getSetting('sn0w.TextboxColors');
+                const customTextboxColors = await SettingUtils.getSetting('sn0w.TextboxSettings');
                 setTextHighlightType(inputEl);
 
                 const defaultColors = [
@@ -481,8 +481,8 @@ app.registerExtension({
 
 const settingsDefinitions = [
     {
-        id: 'sn0w.TextboxColors',
-        name: '[Sn0w] Custom Textbox Colors',
+        id: 'sn0w.TextboxSettings',
+        name: 'Custom Textbox Colors',
         type: SettingUtils.createMultilineSetting,
         defaultValue: '#559c22\n#229c57\n#229c8b\n#226f9c\n#22479c',
         attrs: { tooltip: 'A list of either rgb or hex colors, one color per line.' },
@@ -494,8 +494,8 @@ const settingsDefinitions = [
         },
     },
     {
-        id: 'sn0w.TextboxGradientColors',
-        name: '[Sn0w] Textbox Highlight Type',
+        id: 'sn0w.TextboxSettings.GradientColors',
+        name: 'Textbox Highlight Type',
         options: [
             { text: 'Nesting', value: 'nesting' },
             { text: 'Strength', value: 'strength' },

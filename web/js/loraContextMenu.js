@@ -22,7 +22,7 @@ async function addLoraLoaders(loraLoaders) {
 const id = 'sn0w.HighlightFavourite';
 const settingDefinition = {
     id,
-    name: '[Sn0w] Highlight Favourite Items',
+    name: 'Highlight Favourite Items',
     defaultValue: false,
     type: 'boolean',
 };
@@ -38,9 +38,9 @@ app.registerExtension({
     },
     async setup() {
         const customLoaderKeys = [
-            'sn0w.CustomLoraLoadersXL',
-            'sn0w.CustomLoraLoaders15',
-            'sn0w.CustomLoraLoaders3',
+            'sn0w.CustomLoraLoaders',
+            'sn0w.CustomLoraLoaders.XL',
+            'sn0w.CustomLoraLoaders.3',
         ];
         let customLoraLoadersArrays = [];
 
