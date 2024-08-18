@@ -1,6 +1,12 @@
 <h1 align="center">
     sn0w-scripts
 </h1>
+<div align="center">
+    <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/sn0w12/ComfyUI-Sn0w-Scripts/github-code-scanning%2Fcodeql">
+    <a href="https://app.codacy.com/gh/sn0w12/ComfyUI-Sn0w-Scripts/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"><img src="https://app.codacy.com/project/badge/Grade/0f33e71f5385411ca2b651e8b4a5252f"/></a>
+    <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/sn0w12/ComfyUI-Sn0w-Scripts">
+</div>
+
 
 This extension contains a collection of nodes and improvements created for lora management and general quality of life.
 
