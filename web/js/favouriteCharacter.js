@@ -46,17 +46,6 @@ app.registerExtension({
             return options;
         };
 
-        var observer = new MutationObserver(function (mutations) {
-            if (document.contains(document.getElementsByClassName('litecontextmenu')[0])) {
-                SettingUtils.addStarsToFavourited(existingList);
-            }
-        });
-
-        observer.observe(document, {
-            attributes: false,
-            childList: true,
-            characterData: false,
-            subtree: true,
-        });
+        SettingUtils.observeContextMenu(existingList);
     },
 });

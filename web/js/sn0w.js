@@ -4,9 +4,17 @@ import { $el } from '../../../scripts/ui.js'
 
 export class SettingUtils {
     static API_PREFIX = '/sn0w';
+    static settingsCache = {};
 
-    // SETTINGS
     static async getSetting(url, defaultValue = null) {
+        const currentTime = Date.now();
+        const cacheEntry = this.settingsCache[url];
+
+        // Check if the cache entry exists and is still valid (not older than 10 seconds)
+        if (cacheEntry && currentTime - cacheEntry.timestamp < 10000) {
+            return cacheEntry.data;
+        }
+
         try {
             const settingUrl = `/settings/${url}`;
             const response = await fetch(settingUrl);
@@ -17,6 +25,13 @@ export class SettingUtils {
             if (data == null) {
                 return defaultValue;
             }
+
+            // Store the fetched setting in the cache with the current timestamp
+            this.settingsCache[url] = {
+                data: data,
+                timestamp: currentTime
+            };
+
             return data;
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
@@ -431,8 +446,7 @@ export class SettingUtils {
         await this.#invokeExtensionsAsync('refreshComboInSingleNodeByName', graphCanvas, defs);
     }
 
-    static async addStarsToFavourited(existingList) {
-        const menuEntries = document.querySelectorAll('.litemenu-entry');
+    static async addStarsToFavourited(menuEntries, existingList) {
         const highlightLora = await SettingUtils.getSetting('sn0w.HighlightFavourite');
 
         const root = document.documentElement;
@@ -449,19 +463,6 @@ export class SettingUtils {
                 entry.style.alignItems = 'center';
             }
         };
-
-        const observerConfig = { attributes: true, attributeFilter: ['style'] };
-
-        // Create the observer
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                    const entry = mutation.target;
-                    const currentBgColor = window.getComputedStyle(entry).backgroundColor;
-                    checkAndUpdateBackgroundColor(entry, currentBgColor);
-                }
-            });
-        });
 
         menuEntries.forEach((entry) => {
             const value = entry.getAttribute('data-value');
@@ -490,10 +491,33 @@ export class SettingUtils {
                 // Initial background color check
                 const currentBgColor = window.getComputedStyle(entry).backgroundColor;
                 checkAndUpdateBackgroundColor(entry, currentBgColor);
-
-                // Attach the observer to the entry
-                observer.observe(entry, observerConfig);
             }
+        });
+    }
+
+    static observeContextMenu(existingList) {
+        const handleMutations = SettingUtils.leadingEdgeDebounce(function(mutations) {
+            const litecontextmenu = document.getElementsByClassName('litecontextmenu')[0];
+            if (litecontextmenu) {
+                const menuEntries = litecontextmenu.querySelectorAll('.litemenu-entry');
+                const menuEntriesArray = Array.from(menuEntries);
+                const containsItemFromList = menuEntriesArray.some(entry => {
+                    const value = entry.value;
+                    return existingList.includes(value);
+                });
+                if (containsItemFromList) {
+                    SettingUtils.addStarsToFavourited(menuEntries, existingList);
+                }
+            }
+        }, 100);
+
+        const observer = new MutationObserver(handleMutations);
+
+        observer.observe(document, {
+            attributes: false,
+            childList: true,
+            characterData: false,
+            subtree: true,
         });
     }
 
@@ -505,6 +529,28 @@ export class SettingUtils {
             const args = arguments;
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
+
+    static leadingEdgeDebounce(func, wait) {
+        let timeout;
+        let lastCallTime = 0;
+
+        return function(...args) {
+            const now = Date.now();
+
+            // If the last call was longer ago than the wait period, reset the timeout
+            if (now - lastCallTime > wait) {
+                lastCallTime = now;
+                func.apply(this, args);  // Call the function immediately
+            }
+
+            clearTimeout(timeout);  // Clear any previous timeout
+
+            // Set a new timeout that will reset `lastCallTime` after the wait period
+            timeout = setTimeout(() => {
+                lastCallTime = 0;
+            }, wait);
         };
     }
 
