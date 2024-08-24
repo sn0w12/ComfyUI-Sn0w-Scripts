@@ -18,12 +18,6 @@ export class SettingUtils {
                 return defaultValue;
             }
 
-            // Store the fetched setting in the cache with the current timestamp
-            this.settingsCache[url] = {
-                data: data,
-                timestamp: currentTime
-            };
-
             SettingUtils.logSn0w(`Got setting: ${url}`, "debug", "setting", data);
             return data;
         } catch (error) {
@@ -489,7 +483,7 @@ export class SettingUtils {
                 checkAndUpdateBackgroundColor(entry, currentBgColor);
             }
         });
-        SettingUtils.logSn0w(`Total Favourited Items: ${starred[0]}`, "debug", "node", starred[1])
+        SettingUtils.logSn0w(`Total Favourited Items: ${starred[0]}`, "informational", "node", starred[1])
     }
 
     static observeContextMenu(existingList) {
@@ -564,7 +558,6 @@ export class SettingUtils {
         const logLevel = type.toLowerCase();
 
         if (!alwaysLog.includes(logLevel) && !loggingLevels.includes(type.toUpperCase())) {
-            console.log("dont log")
             return;
         }
 
@@ -580,6 +573,7 @@ export class SettingUtils {
         const categoryColors = {
             "api": "#c19c00",
             "lora": "#3a96dd",
+            "node": "#c19c00",
         }
 
         const color = logColors[logLevel] || "#881798";
