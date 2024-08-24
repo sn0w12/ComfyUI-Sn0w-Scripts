@@ -21,7 +21,9 @@ async function updateLoggingLevel() {
     await api.fetchApi(`${SettingUtils.API_PREFIX}/update_logging_level`, {
         method: 'GET',
     });
-    SettingUtils.logSn0w("Logging Levels Updated", "debug", "setting", `Logging levels selected:\n${loggingArray}`)
+
+    SettingUtils.setLoggingLevel(loggingArray);
+    SettingUtils.logSn0w("Logging Levels Updated", "debug", "setting", `Logging levels selected:\n${loggingArray}`);
 }
 
 const debouncedUpdateLoggingLevel = SettingUtils.debounce(updateLoggingLevel, 1000);

@@ -4,17 +4,9 @@ import { $el } from '../../../scripts/ui.js'
 
 export class SettingUtils {
     static API_PREFIX = '/sn0w';
-    static settingsCache = {};
+    static cachedLoggingLevel = null;
 
     static async getSetting(url, defaultValue = null) {
-        const currentTime = Date.now();
-        const cacheEntry = this.settingsCache[url];
-
-        // Check if the cache entry exists and is still valid (not older than 1 seconds)
-        if (cacheEntry && currentTime - cacheEntry.timestamp < 1000) {
-            return cacheEntry.data;
-        }
-
         try {
             const settingUrl = `/settings/${url}`;
             const response = await fetch(settingUrl);
@@ -464,7 +456,7 @@ export class SettingUtils {
                 entry.style.alignItems = 'center';
             }
         };
-        let arr = []
+
         let starred = [0, []];
         menuEntries.forEach((entry) => {
             const value = entry.getAttribute('data-value');
@@ -496,8 +488,8 @@ export class SettingUtils {
                 const currentBgColor = window.getComputedStyle(entry).backgroundColor;
                 checkAndUpdateBackgroundColor(entry, currentBgColor);
             }
-            SettingUtils.logSn0w(`Total Favourited Items: ${starred[0]}`, "debug", "node", starred[1])
         });
+        SettingUtils.logSn0w(`Total Favourited Items: ${starred[0]}`, "debug", "node", starred[1])
     }
 
     static observeContextMenu(existingList) {
@@ -559,8 +551,15 @@ export class SettingUtils {
         };
     }
 
+    static setLoggingLevel(loggingLevel) {
+        this.cachedLoggingLevel = loggingLevel;
+    }
+
     static async logSn0w(message, type, category = "", detailMessage = "") {
-        const loggingLevels = await SettingUtils.getSetting("sn0w.LoggingLevel");
+        let loggingLevels = this.cachedLoggingLevel;
+        if (loggingLevels == null) {
+            loggingLevels = await SettingUtils.getSetting("sn0w.LoggingLevel");
+        }
         const alwaysLog = ["emergency", "alert", "critical", "error"]
         const logLevel = type.toLowerCase();
 
