@@ -10,8 +10,8 @@ export class SettingUtils {
         const currentTime = Date.now();
         const cacheEntry = this.settingsCache[url];
 
-        // Check if the cache entry exists and is still valid (not older than 10 seconds)
-        if (cacheEntry && currentTime - cacheEntry.timestamp < 10000) {
+        // Check if the cache entry exists and is still valid (not older than 1 seconds)
+        if (cacheEntry && currentTime - cacheEntry.timestamp < 1000) {
             return cacheEntry.data;
         }
 
@@ -32,6 +32,7 @@ export class SettingUtils {
                 timestamp: currentTime
             };
 
+            SettingUtils.logSn0w(`Got setting: ${url}`, "debug", "setting", data);
             return data;
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
@@ -463,7 +464,8 @@ export class SettingUtils {
                 entry.style.alignItems = 'center';
             }
         };
-
+        let arr = []
+        let starred = [0, []];
         menuEntries.forEach((entry) => {
             const value = entry.getAttribute('data-value');
             let filename = value;
@@ -486,12 +488,15 @@ export class SettingUtils {
                 // Check if star is already added to avoid duplication
                 if (!entry.querySelector('span')) {
                     entry.appendChild(star);
+                    starred[0]++;
+                    starred[1].push(filename);
                 }
 
                 // Initial background color check
                 const currentBgColor = window.getComputedStyle(entry).backgroundColor;
                 checkAndUpdateBackgroundColor(entry, currentBgColor);
             }
+            SettingUtils.logSn0w(`Total Favourited Items: ${starred[0]}`, "debug", "node", starred[1])
         });
     }
 
@@ -554,21 +559,42 @@ export class SettingUtils {
         };
     }
 
-    static async logSn0w(message, type) {
+    static async logSn0w(message, type, category = "", detailMessage = "") {
         const loggingLevels = await SettingUtils.getSetting("sn0w.LoggingLevel");
-
-        const logColors = {
-            "error": "red",
-            "warning": "yellow",
-        };
-
         const alwaysLog = ["emergency", "alert", "critical", "error"]
         const logLevel = type.toLowerCase();
-        const color = logColors[logLevel] || "rgb(136, 23, 152)";
 
-        if (alwaysLog.includes(logLevel) || loggingLevels.includes(type.toUpperCase())) {
-            console.log(`%c[sn0w]`, `color: ${color};`, message);
+        if (!alwaysLog.includes(logLevel) && !loggingLevels.includes(type.toUpperCase())) {
+            console.log("dont log")
+            return;
         }
+
+        const prefix = "sn0w";
+        const generalCss = 'color: white; padding: 2px 6px 2px 4px; font-weight: lighter;'
+        let customCSS = generalCss + ' border-radius: 3px;';
+
+        const logColors = {
+            "error": "#c50f1f",
+            "warning": "#c19c00",
+        };
+
+        const categoryColors = {
+            "api": "#c19c00",
+            "lora": "#3a96dd",
+        }
+
+        const color = logColors[logLevel] || "#881798";
+        const categoryCSS = category ? `background-color: ${categoryColors[category.toLowerCase()] || "#13a10e"}; border-radius: 0 3px 3px 0; margin-left: -5px;` : '';
+        const logMessage = category
+            ? [`%c${prefix}%c${category}`, `${customCSS.replace("6px", "10px")} background-color: ${color};`, `${generalCss} ${categoryCSS}`, message] // Category
+            : [`%c${prefix}`, `${customCSS} background-color: ${color};`, message]; // No Category
+
+        console.groupCollapsed(...logMessage);
+        if (detailMessage != "") {
+            console.log(detailMessage);
+        }
+        console.trace();
+        console.groupEnd();
     }
 
     static drawSigmas(sigmas) {

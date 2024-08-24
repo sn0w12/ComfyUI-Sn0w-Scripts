@@ -518,7 +518,8 @@ async def add_lora_loaders(request):
         with open(json_path, "w") as file:
             json.dump(data, file, indent=4)
 
-        return web.json_response({"message": f"Lora loaders: {new_unique_loaders} added successfully."})
+        new_unique_loaders_str = "[" + ", ".join(str(loader) for loader in new_unique_loaders) + "]"
+        return web.json_response({"message": f"Loaders added: {new_unique_loaders_str}"})
 
     except json.JSONDecodeError:
         return web.json_response({"error": "Invalid JSON format."}, status=400)

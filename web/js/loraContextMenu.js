@@ -13,7 +13,7 @@ async function addLoraLoaders(loraLoaders) {
         })
 
         const data = await response.json();
-        SettingUtils.logSn0w(data.message, "informational");
+        SettingUtils.logSn0w("Lora Loaders successfully added.", "informational", "lora", data.message);
     } catch (error) {
         SettingUtils.logSn0w(error.message, "error");
     }
