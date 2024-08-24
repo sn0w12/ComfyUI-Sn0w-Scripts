@@ -545,6 +545,24 @@ export class SettingUtils {
         };
     }
 
+    static getLuminance(hexColor) {
+        // Convert hex to RGB
+        const rgb = parseInt(hexColor.slice(1), 16); // Remove "#" and convert to integer
+        const r = (rgb >> 16) & 0xff;
+        const g = (rgb >> 8) & 0xff;
+        const b = (rgb >> 0) & 0xff;
+
+        // Convert RGB to relative luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance;
+    }
+
+    // Function to choose black or white text color based on luminance
+    static getTextColorBasedOnBg(bgColor) {
+        const luminance = SettingUtils.getLuminance(bgColor);
+        return luminance > 0.5 ? '#000000' : '#FFFFFF'; // Black text for bright bg, white text for dark bg
+    }
+
     static setLoggingLevel(loggingLevel) {
         this.cachedLoggingLevel = loggingLevel;
     }
@@ -577,7 +595,10 @@ export class SettingUtils {
         }
 
         const color = logColors[logLevel] || "#881798";
-        const categoryCSS = category ? `background-color: ${categoryColors[category.toLowerCase()] || "#13a10e"}; border-radius: 0 3px 3px 0; margin-left: -5px;` : '';
+        const textColor = SettingUtils.getTextColorBasedOnBg(color);
+        customCSS += `color: ${textColor};`;
+
+        const categoryCSS = category ? `background-color: ${categoryColors[category.toLowerCase()] || "#13a10e"}; color: ${SettingUtils.getTextColorBasedOnBg(categoryColors[category.toLowerCase()] || "#13a10e")}; border-radius: 0 3px 3px 0; margin-left: -5px;` : '';
         const logMessage = category
             ? [`%c${prefix}%c${category}`, `${customCSS.replace("6px", "10px")} background-color: ${color};`, `${generalCss} ${categoryCSS}`, message] // Category
             : [`%c${prefix}`, `${customCSS} background-color: ${color};`, message]; // No Category
