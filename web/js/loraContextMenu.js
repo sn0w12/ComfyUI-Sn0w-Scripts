@@ -69,6 +69,9 @@ app.registerExtension({
             const options = original_getNodeMenuOptions.apply(this, arguments);
 
             // Collect all Lora widgets.
+            if (!node.widgets) {
+                return options;
+            }
             const loraWidgets = node.widgets.filter(widget => widget.name.includes("lora") && widget.type === "combo");
             const totalLoras = loraWidgets.length;
 
