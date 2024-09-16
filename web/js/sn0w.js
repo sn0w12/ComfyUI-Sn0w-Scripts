@@ -451,6 +451,19 @@ export class SettingUtils {
             }
         };
 
+        const observerConfig = { attributes: true, attributeFilter: ['style'] };
+
+        // Create the observer
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    const entry = mutation.target;
+                    const currentBgColor = window.getComputedStyle(entry).backgroundColor;
+                    checkAndUpdateBackgroundColor(entry, currentBgColor);
+                }
+            });
+        });
+
         let starred = [0, []];
         menuEntries.forEach((entry) => {
             const value = entry.getAttribute('data-value');
@@ -480,6 +493,7 @@ export class SettingUtils {
 
                 // Initial background color check
                 const currentBgColor = window.getComputedStyle(entry).backgroundColor;
+                observer.observe(entry, observerConfig);
                 checkAndUpdateBackgroundColor(entry, currentBgColor);
             }
         });
