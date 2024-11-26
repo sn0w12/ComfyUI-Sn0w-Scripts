@@ -166,6 +166,7 @@ class CombineStringNode:
 
         for match in matches:
             groups = match.groups()
+            # The parentheses has a specified strength
             if groups[1]:
                 if groups[1] in match_map:
                     match_map[groups[1]] += separator + groups[0]
