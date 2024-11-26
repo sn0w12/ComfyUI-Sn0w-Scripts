@@ -1,14 +1,14 @@
-import { SettingUtils } from './sn0w.js';
-import { app } from '../../../scripts/app.js';
-import { api } from '../../../scripts/api.js';
+import { SettingUtils } from "./sn0w.js";
+import { app } from "../../../scripts/app.js";
+import { api } from "../../../scripts/api.js";
 
 app.registerExtension({
-    name: 'sn0w.TextboxNode',
+    name: "sn0w.TextboxNode",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        if (nodeData.name === 'Copy/Paste Textbox') {
+        if (nodeData.name === "Copy/Paste Textbox") {
             // Get textbox text
             nodeType.prototype.getTextboxText = function () {
-                const textbox = this.inputEl ? this.inputEl.value : '';
+                const textbox = this.inputEl ? this.inputEl.value : "";
                 return textbox;
             };
 
@@ -17,7 +17,7 @@ app.registerExtension({
                 const overlayEl = this.overlayEl;
                 setTextColors(inputEl, overlayEl);
                 setTimeout(() => syncText(this.inputEl.inputEl, this.overlayEl), 50);
-            }
+            };
 
             nodeType.prototype.populate = function () {
                 this.inputEl = this.widgets[0];
@@ -40,14 +40,11 @@ app.registerExtension({
                 // Ensure the input element's parent exists
                 if (this.inputEl && this.inputEl.inputEl && this.inputEl.inputEl.parentNode) {
                     // Create overlay div for highlighting
-                    this.overlayEl = document.createElement('div');
-                    this.overlayEl.className = 'input-overlay';
-                    this.inputEl.inputEl.parentNode.insertBefore(
-                        this.overlayEl,
-                        this.inputEl.inputEl
-                    );
+                    this.overlayEl = document.createElement("div");
+                    this.overlayEl.className = "input-overlay";
+                    this.inputEl.inputEl.parentNode.insertBefore(this.overlayEl, this.inputEl.inputEl);
 
-                    this.inputEl.inputEl.style.background = 'transparent';
+                    this.inputEl.inputEl.style.background = "transparent";
 
                     addEventListeners(this);
                     addObversers(this);
@@ -55,21 +52,18 @@ app.registerExtension({
                     setOverlayPosition(this.inputEl, this.overlayEl);
                     setOverlayStyle(this.inputEl, this.overlayEl);
                 } else {
-                    console.error('Parent node of input element is not available.');
+                    console.error("Parent node of input element is not available.");
                 }
             };
 
             function addEventListeners(node) {
-                node.inputEl.inputEl.addEventListener('input', () => {
+                node.inputEl.inputEl.addEventListener("input", () => {
                     syncText(node.inputEl.inputEl, node.overlayEl);
                     setOverlayStyle(node.inputEl, node.overlayEl);
                 });
 
-                node.inputEl.inputEl.addEventListener('keydown', (event) => {
-                    if (
-                        event.ctrlKey &&
-                        (event.key === 'ArrowUp' || event.key === 'ArrowDown')
-                    ) {
+                node.inputEl.inputEl.addEventListener("keydown", (event) => {
+                    if (event.ctrlKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
                         setTimeout(() => {
                             syncText(node.inputEl.inputEl, node.overlayEl);
                         }, 10);
@@ -84,7 +78,7 @@ app.registerExtension({
 
                 observer.observe(node.inputEl.inputEl, {
                     attributes: true,
-                    attributeFilter: ['style'],
+                    attributeFilter: ["style"],
                     childList: true,
                     subtree: true,
                     characterData: true,
@@ -102,10 +96,10 @@ app.registerExtension({
             }
 
             async function setTextHighlightType(inputEl) {
-                const highlightGradient = await SettingUtils.getSetting('sn0w.TextboxSettings.GradientColors');
+                const highlightGradient = await SettingUtils.getSetting("sn0w.TextboxSettings.GradientColors");
 
                 let shouldHighlightGradient = false;
-                switch(highlightGradient) {
+                switch (highlightGradient) {
                     case "nesting":
                         shouldHighlightGradient = false;
                         break;
@@ -121,25 +115,15 @@ app.registerExtension({
             }
 
             async function setTextColors(inputEl, overlayEl) {
-                const customTextboxColors = await SettingUtils.getSetting('sn0w.TextboxSettings');
+                const customTextboxColors = await SettingUtils.getSetting("sn0w.TextboxSettings");
                 setTextHighlightType(inputEl);
 
-                const defaultColors = [
-                    '#559c22',
-                    '#229c57',
-                    '#229c8b',
-                    '#226f9c',
-                    '#22479c',
-                ];
+                const defaultColors = ["#559c22", "#229c57", "#229c8b", "#226f9c", "#22479c"];
 
-                const colors = (!customTextboxColors || customTextboxColors.trim() === '')
-                    ? defaultColors
-                    : customTextboxColors.split('\n');
+                const colors = !customTextboxColors || customTextboxColors.trim() === "" ? defaultColors : customTextboxColors.split("\n");
 
-                inputEl.colors = colors.map(color =>
-                    color.charAt(0) === '#' ? SettingUtils.hexToRgb(color) : color
-                );
-                inputEl.errorColor = 'var(--error-text)';
+                inputEl.colors = colors.map((color) => (color.charAt(0) === "#" ? SettingUtils.hexToRgb(color) : color));
+                inputEl.errorColor = "var(--error-text)";
 
                 syncText(inputEl, overlayEl);
                 return colors;
@@ -147,10 +131,10 @@ app.registerExtension({
 
             function escapeHtml(char) {
                 switch (char) {
-                    case '<':
-                        return '&lt;';
-                    case '>':
-                        return '&gt;';
+                    case "<":
+                        return "&lt;";
+                    case ">":
+                        return "&gt;";
                     default:
                         return char;
                 }
@@ -172,13 +156,13 @@ app.registerExtension({
             }
 
             function charToType(char) {
-                switch(char) {
-                    case '<':
-                        return '-lora';
-                    case 'e':
-                        return '-embedding';
+                switch (char) {
+                    case "<":
+                        return "-lora";
+                    case "e":
+                        return "-embedding";
                     default:
-                        return '';
+                        return "";
                 }
             }
 
@@ -187,9 +171,9 @@ app.registerExtension({
                 const startIndex = text.lastIndexOf(loraPrefix, currentIndex) + loraPrefix.length;
 
                 // Find the end of the LoRA name (next space, comma, or ".safetensors")
-                let endIndex = text.indexOf(' ', startIndex);
-                const commaIndex = text.indexOf(',', startIndex);
-                const safetensorsIndex = text.indexOf('.safetensors', startIndex);
+                let endIndex = text.indexOf(" ", startIndex);
+                const commaIndex = text.indexOf(",", startIndex);
+                const safetensorsIndex = text.indexOf(".safetensors", startIndex);
 
                 if (endIndex === -1 || (commaIndex !== -1 && commaIndex < endIndex)) {
                     endIndex = commaIndex;
@@ -205,7 +189,7 @@ app.registerExtension({
 
             function validateName(validFiles, name) {
                 if (!validFiles) {
-                    console.error('Valid names not defined or not an array.');
+                    console.error("Valid names not defined or not an array.");
                     return false;
                 }
 
@@ -218,9 +202,9 @@ app.registerExtension({
 
             function processTags(tags) {
                 let returnArray = [];
-                tags.forEach(tag => {
+                tags.forEach((tag) => {
                     returnArray.push(processTag(tag));
-                })
+                });
                 return returnArray;
             }
 
@@ -231,12 +215,12 @@ app.registerExtension({
                 trimmedTag = trimmedTag.replace(/<|>/g, "");
 
                 // Remove the first character if it is a parenthesis
-                if (trimmedTag.startsWith('(')) {
+                if (trimmedTag.startsWith("(")) {
                     trimmedTag = trimmedTag.substring(1).trim();
                 }
 
                 // Remove everything after a colon
-                const colonIndex = trimmedTag.indexOf(':');
+                const colonIndex = trimmedTag.indexOf(":");
                 if (colonIndex !== -1) {
                     trimmedTag = trimmedTag.substring(0, colonIndex).trim();
                 }
@@ -245,8 +229,8 @@ app.registerExtension({
             }
 
             const charPairs = {
-                '(': ')',
-                '<': '>',
+                "(": ")",
+                "<": ">",
             };
 
             async function syncText(inputEl, overlayEl, tries = 1) {
@@ -269,17 +253,17 @@ app.registerExtension({
                 const generateUniqueId = (type = "") => `span-${uniqueIdCounter++}${type}`;
 
                 let nestingLevel = 0;
-                let highlightedText = '';
+                let highlightedText = "";
                 let lastIndex = 0;
                 let spanStack = [];
                 const uniqueIdMap = new Map();
 
                 const extractTags = (text) => {
-                    let tags = text.split(',').map(tag => tag.trim());
+                    let tags = text.split(",").map((tag) => tag.trim());
                     tags = processTags(tags);
                     const tagCounts = new Map();
 
-                    tags.forEach(tag => {
+                    tags.forEach((tag) => {
                         tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
                     });
 
@@ -292,18 +276,18 @@ app.registerExtension({
                  * This loop iterates over each character in the `text` string to apply syntax highlighting and handle special cases.
                  * - lastIndex: index of the last processed character, used to slice text segments.
                  * - spanStack: stack to manage opened spans, storing their ids, start positions, original colors, and characters.
-                */
+                 */
                 for (let i = 0; i < text.length; i++) {
                     const char = text[i].toLowerCase();
 
                     // Handle escape characters
-                    if (char === '\\' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
+                    if (char === "\\" && i + 1 < text.length && (text[i + 1] === "(" || text[i + 1] === ")")) {
                         i++;
                         continue;
                     }
 
                     // Handle wrong escape characters
-                    if (char === '/' && i + 1 < text.length && (text[i + 1] === '(' || text[i + 1] === ')')) {
+                    if (char === "/" && i + 1 < text.length && (text[i + 1] === "(" || text[i + 1] === ")")) {
                         highlightedText += text.slice(lastIndex, i) + `<span style="background-color: ${errorColor};">/</span>`;
                         console.error(`Replace "${char}" at char ${i} with "\\"`);
                         lastIndex = i + 1;
@@ -315,15 +299,15 @@ app.registerExtension({
                     if (inputEl.highlightGradient === true) {
                         color = `id-${uniqueId}`;
                     }
-                    switch(char) {
-                        case '(':
-                        case '<':
+                    switch (char) {
+                        case "(":
+                        case "<":
                             highlightedText += text.slice(lastIndex, i) + `<span id="${uniqueId}" style="background-color: ${color};">${escapeHtml(char)}`;
                             spanStack.push({ id: uniqueId, start: highlightedText.length, originalSpan: `<span id="${uniqueId}" style="background-color: ${color};">`, nestingLevel, originalColor: color, originalChar: char });
                             nestingLevel++;
                             lastIndex = i + 1;
                             break;
-                        case 'e':
+                        case "e":
                             let embeddingColor = colors[0];
                             const embeddingPrefix = "embedding:";
 
@@ -331,7 +315,7 @@ app.registerExtension({
                             if (text.toLowerCase().startsWith(embeddingPrefix, i)) {
                                 // Find the end of the embedding (next space or comma)
                                 let endIndex = i + embeddingPrefix.length;
-                                while (endIndex < text.length && text[endIndex] !== ' ' && text[endIndex] !== ',') {
+                                while (endIndex < text.length && text[endIndex] !== " " && text[endIndex] !== ",") {
                                     endIndex++;
                                 }
 
@@ -345,8 +329,8 @@ app.registerExtension({
                                 lastIndex = i + embeddingText.length;
                             }
                             break;
-                        case ')':
-                        case '>':
+                        case ")":
+                        case ">":
                             if (nestingLevel > 0) {
                                 const { id, originalColor, originalChar } = spanStack[spanStack.length - 1];
                                 if (charPairs[originalChar] === char) {
@@ -355,7 +339,7 @@ app.registerExtension({
                                     nestingLevel--;
 
                                     // Extract and validate the LoRA name
-                                    if (id.endsWith('lora')) {
+                                    if (id.endsWith("lora")) {
                                         const loraName = extractLoraName(text, i);
                                         if (validateName(inputEl.validLoras, loraName) === false) {
                                             uniqueIdMap.set(id, [errorColor, originalColor]);
@@ -364,7 +348,7 @@ app.registerExtension({
                                         }
                                     }
 
-                                    if (inputEl.highlightGradient === true || id.endsWith('lora')) {
+                                    if (inputEl.highlightGradient === true || id.endsWith("lora")) {
                                         // Check for the strength
                                         const strengthText = text.slice(Math.max(0, i - 10), i);
                                         const match = strengthText.match(/(\d+(\.\d+)?)\s*$/);
@@ -410,18 +394,21 @@ app.registerExtension({
                 });
 
                 // Highlight duplicate tags
-                highlightedText.split(/(,)/).map(segment => {
-                    if (segment === ',') {
-                        return segment;
-                    }
+                highlightedText
+                    .split(/(,)/)
+                    .map((segment) => {
+                        if (segment === ",") {
+                            return segment;
+                        }
 
-                    const trimmedSegment = processTag(segment);
+                        const trimmedSegment = processTag(segment);
 
-                    // Check for duplicates
-                    if (tagCounts.get(trimmedSegment) > 1) {
-                        highlightedText = highlightedText.replaceAll(trimmedSegment, `<span style="background-color: ${errorColor};">${trimmedSegment}</span>`)
-                    }
-                }).join('');
+                        // Check for duplicates
+                        if (tagCounts.get(trimmedSegment) > 1) {
+                            highlightedText = highlightedText.replaceAll(trimmedSegment, `<span style="background-color: ${errorColor};">${trimmedSegment}</span>`);
+                        }
+                    })
+                    .join("");
 
                 overlayEl.innerHTML = highlightedText;
             }
@@ -439,23 +426,23 @@ app.registerExtension({
 
             function setOverlayStyle(inputEl, overlayEl) {
                 const textareaStyle = window.getComputedStyle(inputEl.inputEl);
-                overlayEl.style.backgroundColor = 'var(--comfy-input-bg)';
-                overlayEl.style.position = 'absolute';
+                overlayEl.style.backgroundColor = "var(--comfy-input-bg)";
+                overlayEl.style.position = "absolute";
                 overlayEl.style.fontFamily = textareaStyle.fontFamily;
                 overlayEl.style.fontSize = textareaStyle.fontSize;
                 overlayEl.style.fontWeight = textareaStyle.fontWeight;
                 overlayEl.style.lineHeight = textareaStyle.lineHeight;
                 overlayEl.style.letterSpacing = textareaStyle.letterSpacing;
                 overlayEl.style.whiteSpace = textareaStyle.whiteSpace;
-                overlayEl.style.color = 'rgba(0,0,0,0)';
+                overlayEl.style.color = "rgba(0,0,0,0)";
                 overlayEl.style.padding = textareaStyle.padding;
                 overlayEl.style.boxSizing = textareaStyle.boxSizing;
-                overlayEl.style.zIndex = '1';
-                overlayEl.style.pointerEvents = 'none';
-                overlayEl.style.color = 'transparent';
-                overlayEl.style.overflow = 'hidden';
-                overlayEl.style.whiteSpace = 'pre-wrap';
-                overlayEl.style.wordWrap = 'break-word';
+                overlayEl.style.zIndex = "1";
+                overlayEl.style.pointerEvents = "none";
+                overlayEl.style.color = "transparent";
+                overlayEl.style.overflow = "hidden";
+                overlayEl.style.whiteSpace = "pre-wrap";
+                overlayEl.style.wordWrap = "break-word";
             }
 
             async function setValidFiles(inputEl) {
@@ -481,34 +468,34 @@ app.registerExtension({
 
 const settingsDefinitions = [
     {
-        id: 'sn0w.TextboxSettings',
-        name: 'Custom Textbox Colors',
+        id: "sn0w.TextboxSettings",
+        name: "Custom Textbox Colors",
         type: SettingUtils.createMultilineSetting,
-        defaultValue: '#559c22\n#229c57\n#229c8b\n#226f9c\n#22479c',
-        tooltip: 'A list of either rgb or hex colors, one color per line.',
+        defaultValue: "#559c22\n#229c57\n#229c8b\n#226f9c\n#22479c",
+        tooltip: "A list of either rgb or hex colors, one color per line.",
         onChange: () => {
-            const nodes = app.graph._nodes.filter(node => node.type === 'Copy/Paste Textbox');
-            nodes.forEach(node => {
+            const nodes = app.graph._nodes.filter((node) => node.type === "Copy/Paste Textbox");
+            nodes.forEach((node) => {
                 node.updateHighlightType();
             });
         },
     },
     {
-        id: 'sn0w.TextboxSettings.GradientColors',
-        name: 'Textbox Highlight Type',
+        id: "sn0w.TextboxSettings.GradientColors",
+        name: "Textbox Highlight Type",
         options: [
-            { text: 'Nesting', value: 'nesting' },
-            { text: 'Strength', value: 'strength' },
+            { text: "Nesting", value: "nesting" },
+            { text: "Strength", value: "strength" },
         ],
-        type: 'combo',
-        defaultValue: 'nesting',
+        type: "combo",
+        defaultValue: "nesting",
         onChange: () => {
-            const nodes = app.graph._nodes.filter(node => node.type === 'Copy/Paste Textbox');
-            nodes.forEach(node => {
+            const nodes = app.graph._nodes.filter((node) => node.type === "Copy/Paste Textbox");
+            nodes.forEach((node) => {
                 node.updateHighlightType();
             });
         },
-    }
+    },
 ];
 
 // Register settings
