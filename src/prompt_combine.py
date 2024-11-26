@@ -150,6 +150,45 @@ class CombineStringNode:
 
         return separator.join(prioritized_tags).strip(separator)
 
+    def deduplicate_separators(self, text, separator=", "):
+        escaped_sep = re.escape(separator)
+        pattern = rf"(?:\s*{escaped_sep}\s*)+"
+        cleaned = re.sub(pattern, separator, text)
+        cleaned = cleaned.strip(separator + " ")
+        return cleaned
+
+    def combine_parentheses(self, string, separator=", "):
+        pattern = r"\((.*?)(?::([^:)]*))?\)(?:\d+(?:\.\d+)?)?"
+        matches = re.finditer(pattern, string)
+
+        temp_string = string
+        match_map = {}
+
+        for match in matches:
+            groups = match.groups()
+            if groups[1]:
+                if groups[1] in match_map:
+                    match_map[groups[1]] += separator + groups[0]
+                    temp_string = temp_string.replace(match.group(), "")
+                else:
+                    match_map[groups[1]] = groups[0]
+                    temp_string = temp_string.replace(match.group(), f"|{groups[1]}|")
+            else:
+                if "none" in match_map:
+                    match_map["none"] += separator + groups[0]
+                    temp_string = temp_string.replace(match.group(), "")
+                else:
+                    match_map["none"] = groups[0]
+                    temp_string = temp_string.replace(match.group(), "|none|")
+
+        for key, value in match_map.items():
+            if key == "none":
+                temp_string = temp_string.replace(f"|{key}|", f"({value})")
+            else:
+                temp_string = temp_string.replace(f"|{key}|", f"({value}:{key})")
+
+        return self.deduplicate_separators(temp_string, separator)
+
     def combine_string(self, separator, simplify, **kwargs):
         # Collect strings that are not None and strip them
         strings = [s.strip() for s in (kwargs.get(f"string_{char}") for char in ["a", "b", "c", "d"]) if s]
@@ -183,6 +222,7 @@ class CombineStringNode:
 
         if simplify:
             final_tags, removed_tags = self.simplify_tags(separator.join(combined), separator)
+            final_tags = self.combine_parentheses(final_tags)
         else:
             final_tags = separator.join(combined)
 
