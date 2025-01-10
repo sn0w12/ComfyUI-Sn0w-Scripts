@@ -1,10 +1,12 @@
-import { app } from '../../../scripts/app.js';
-import { api } from '../../../scripts/api.js';
-import { $el } from '../../../scripts/ui.js'
+import { app } from "../../../scripts/app.js";
+import { api } from "../../../scripts/api.js";
+import { $el } from "../../../scripts/ui.js";
 
 export class SettingUtils {
-    static API_PREFIX = '/sn0w';
+    static API_PREFIX = "/sn0w";
     static cachedLoggingLevel = null;
+    static observingContextMenu = false;
+    static contextMenuList = [];
 
     static async getSetting(url, defaultValue = null) {
         try {
@@ -21,16 +23,14 @@ export class SettingUtils {
             SettingUtils.logSn0w(`Got setting: ${url}`, "debug", "setting", data);
             return data;
         } catch (error) {
-            console.error('There was a problem with the fetch operation:', error);
+            console.error("There was a problem with the fetch operation:", error);
             return defaultValue;
         }
     }
 
     static async getMultipleSettings(settingsArray) {
         // Create an array of promises using getSetting with the corresponding default values
-        const promises = settingsArray.map(({ url, defaultValue }) =>
-            this.getSetting(url, defaultValue)
-        );
+        const promises = settingsArray.map(({ url, defaultValue }) => this.getSetting(url, defaultValue));
 
         try {
             const results = await Promise.all(promises);
@@ -43,27 +43,27 @@ export class SettingUtils {
 
             return settingsMap;
         } catch (error) {
-            console.error('There was a problem with one of the fetch operations:', error);
+            console.error("There was a problem with one of the fetch operations:", error);
             return null;
         }
     }
 
     static async fetchApi(route, options) {
         if (!options) {
-			options = {};
-		}
-		if (!options.headers) {
-			options.headers = {};
-		}
+            options = {};
+        }
+        if (!options.headers) {
+            options.headers = {};
+        }
 
-        options.cache = 'no-store';
+        options.cache = "no-store";
 
         try {
             const response = await fetch(route, options);
             const data = await response.json();
             return data;
         } catch (error) {
-            console.error('There was a problem with the fetch operation:', error);
+            console.error("There was a problem with the fetch operation:", error);
         }
     }
 
@@ -83,7 +83,7 @@ export class SettingUtils {
             // Store the updated list back in the settings
             await api.storeSetting(setting, existingList);
         } catch (error) {
-            console.error('Error updating settings:', error);
+            console.error("Error updating settings:", error);
         }
     }
 
@@ -101,10 +101,10 @@ export class SettingUtils {
 
     static createMultilineSetting(name, setter, value, attrs) {
         // Ensure that tooltip has a default value if not provided
-        const htmlID = `${name.replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '-')}`;
+        const htmlID = `${name.replaceAll(" ", "").replaceAll("[", "").replaceAll("]", "-")}`;
 
         // Create the textarea element
-        const textarea = $el('textarea', {
+        const textarea = $el("textarea", {
             value,
             id: htmlID,
             oninput: (e) => {
@@ -115,7 +115,7 @@ export class SettingUtils {
                 width: "100%",
                 resize: "none",
             },
-            ...attrs
+            ...attrs,
         });
 
         const maxLines = 10;
@@ -132,18 +132,15 @@ export class SettingUtils {
                     }
                 }
 
-                textarea.style.height = ''; // Allow to shrink
-                const lines = textarea.value.split('\n').length;
+                textarea.style.height = ""; // Allow to shrink
+                const lines = textarea.value.split("\n").length;
                 const scrollHeight = textarea.scrollHeight + 3;
                 if (lines > maxLines) {
-                    const height = (scrollHeight / lines) * maxLines
-                    textarea.setAttribute(
-                        'style',
-                        `width: 100%; height: ${height}px; resize: none;`
-                    );
+                    const height = (scrollHeight / lines) * maxLines;
+                    textarea.setAttribute("style", `width: 100%; height: ${height}px; resize: none;`);
                     return;
                 }
-                textarea.setAttribute('style', `width: 100%; height: ${scrollHeight}px; resize: none;`);
+                textarea.setAttribute("style", `width: 100%; height: ${scrollHeight}px; resize: none;`);
             });
         };
 
@@ -157,32 +154,29 @@ export class SettingUtils {
         const threshold = 10;
         const hideThreshold = 5;
 
-        const tr = document.createElement('tr');
-        const tdInput = document.createElement('td');
+        const tr = document.createElement("tr");
+        const tdInput = document.createElement("td");
 
         // Generate a unique ID for the setting container
-        const uniqueId = `${name.replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '-')}`;
+        const uniqueId = `${name.replaceAll(" ", "").replaceAll("[", "").replaceAll("]", "-")}`;
 
         // Checkbox container
-        const checkboxContainer = document.createElement('div');
+        const checkboxContainer = document.createElement("div");
         checkboxContainer.id = uniqueId;
         //checkboxContainer.style.padding = "5px";
-        checkboxContainer.style.display = 'block'; // Ensure it is initially visible
+        checkboxContainer.style.display = "block"; // Ensure it is initially visible
 
         // Hide button
         if (attrs.options.length > hideThreshold) {
-            const hideButton = document.createElement('button');
-            hideButton.textContent = 'Show';
-            checkboxContainer.style.display = 'none';
+            const hideButton = document.createElement("button");
+            hideButton.textContent = "Show";
+            checkboxContainer.style.display = "none";
             hideButton.onclick = () => {
-                checkboxContainer.style.display =
-                    checkboxContainer.style.display === 'none' ? 'block' : 'none';
-                hideButton.textContent =
-                    checkboxContainer.style.display === 'none' ? 'Show' : 'Hide';
-                hideButton.style.marginBottom =
-                    checkboxContainer.style.display === 'none' ? '0px' : '5px';
+                checkboxContainer.style.display = checkboxContainer.style.display === "none" ? "block" : "none";
+                hideButton.textContent = checkboxContainer.style.display === "none" ? "Show" : "Hide";
+                hideButton.style.marginBottom = checkboxContainer.style.display === "none" ? "0px" : "5px";
             };
-            hideButton.style.width = '100%';
+            hideButton.style.width = "100%";
 
             // Append the hide button before the checkboxes
             tdInput.appendChild(hideButton);
@@ -194,29 +188,29 @@ export class SettingUtils {
         // Check if the number of options exceeds the threshold
         if (attrs.options.length > threshold) {
             // Create search textbox
-            const searchContainer = document.createElement('div');
-            const searchInput = document.createElement('input');
-            searchInput.type = 'text';
-            searchInput.placeholder = 'Search...';
-            searchInput.style.width = '100%';
+            const searchContainer = document.createElement("div");
+            const searchInput = document.createElement("input");
+            searchInput.type = "text";
+            searchInput.placeholder = "Search...";
+            searchInput.style.width = "100%";
 
             searchContainer.appendChild(searchInput);
             checkboxContainer.appendChild(searchContainer);
 
             // Create "Check All" checkbox
-            const checkAllContainer = document.createElement('div');
-            const checkAllCheckbox = document.createElement('input');
-            const checkAllLabel = document.createElement('label');
+            const checkAllContainer = document.createElement("div");
+            const checkAllCheckbox = document.createElement("input");
+            const checkAllLabel = document.createElement("label");
             const checkAllId = `${uniqueId}-check-all`;
 
-            checkAllCheckbox.type = 'checkbox';
+            checkAllCheckbox.type = "checkbox";
             checkAllCheckbox.id = checkAllId;
             checkAllCheckbox.onchange = () => {
                 const allCheckboxes = checkboxContainer.querySelectorAll('input[type="checkbox"]');
                 allCheckboxes.forEach((checkbox) => {
                     if (checkbox !== checkAllCheckbox) {
                         checkbox.checked = checkAllCheckbox.checked;
-                        const optionValue = checkbox.id.split('-').pop();
+                        const optionValue = checkbox.id.split("-").pop();
                         if (checkAllCheckbox.checked && !values.includes(optionValue)) {
                             values.push(optionValue);
                         } else if (!checkAllCheckbox.checked && values.includes(optionValue)) {
@@ -227,28 +221,28 @@ export class SettingUtils {
                 setter(values); // Update the setting with the current array of selected values
             };
 
-            checkAllLabel.setAttribute('for', checkAllId);
-            checkAllLabel.textContent = 'Check All';
-            checkAllLabel.style.marginRight = '10px';
+            checkAllLabel.setAttribute("for", checkAllId);
+            checkAllLabel.textContent = "Check All";
+            checkAllLabel.style.marginRight = "10px";
 
-            checkAllContainer.style.borderBottom = '1px solid var(--border-color)';
-            checkAllContainer.style.paddingBottom = '4px';
-            checkAllContainer.style.marginBottom = '5px';
+            checkAllContainer.style.borderBottom = "1px solid var(--border-color)";
+            checkAllContainer.style.paddingBottom = "4px";
+            checkAllContainer.style.marginBottom = "5px";
 
             checkAllContainer.appendChild(checkAllCheckbox);
             checkAllContainer.appendChild(checkAllLabel);
             checkboxContainer.appendChild(checkAllContainer);
 
             // Filter checkboxes based on search input
-            searchInput.addEventListener('input', () => {
+            searchInput.addEventListener("input", () => {
                 const searchText = searchInput.value.toLowerCase();
                 attrs.options.forEach((option) => {
                     const checkbox = document.getElementById(`${uniqueId}-${option.value}`);
                     const label = checkbox.nextSibling;
                     if (option.label.toLowerCase().includes(searchText)) {
-                        checkbox.parentElement.style.display = '';
+                        checkbox.parentElement.style.display = "";
                     } else {
-                        checkbox.parentElement.style.display = 'none';
+                        checkbox.parentElement.style.display = "none";
                     }
                 });
             });
@@ -256,11 +250,11 @@ export class SettingUtils {
 
         // Create checkboxes based on the options provided in attrs
         attrs.options.forEach((option) => {
-            const checkbox = document.createElement('input');
-            const checkboxLabel = document.createElement('label');
+            const checkbox = document.createElement("input");
+            const checkboxLabel = document.createElement("label");
             const checkboxId = `${uniqueId}-${option.value}`;
 
-            checkbox.type = 'checkbox';
+            checkbox.type = "checkbox";
             checkbox.id = checkboxId;
             checkbox.checked = values.includes(option.value);
             checkbox.onchange = () => {
@@ -278,11 +272,11 @@ export class SettingUtils {
                 }
             };
 
-            checkboxLabel.setAttribute('for', checkboxId);
+            checkboxLabel.setAttribute("for", checkboxId);
             checkboxLabel.textContent = option.label;
-            checkboxLabel.style.marginRight = '10px';
+            checkboxLabel.style.marginRight = "10px";
 
-            const wrapper = document.createElement('div');
+            const wrapper = document.createElement("div");
             wrapper.appendChild(checkbox);
             wrapper.appendChild(checkboxLabel);
             checkboxContainer.appendChild(wrapper);
@@ -297,15 +291,15 @@ export class SettingUtils {
         // Set tooltip if provided
         if (tooltip) {
             tr.title = tooltip;
-            label.className = 'comfy-tooltip-indicator';
+            label.className = "comfy-tooltip-indicator";
         }
 
         return tr;
     }
 
     // WIDGETS
-    static hideWidget(node, widget, suffix = '') {
-        const CONVERTED_TYPE = 'converted-widget';
+    static hideWidget(node, widget, suffix = "") {
+        const CONVERTED_TYPE = "converted-widget";
         if (widget.type?.startsWith(CONVERTED_TYPE)) return;
         widget.origType = widget.type;
         widget.origComputeSize = widget.computeSize;
@@ -328,7 +322,7 @@ export class SettingUtils {
         // Hide any linked widgets, e.g. seed+seedControl
         if (widget.linkedWidgets) {
             for (const w of widget.linkedWidgets) {
-                hideWidget(node, w, ':' + widget.name);
+                hideWidget(node, w, ":" + widget.name);
             }
         }
     }
@@ -357,12 +351,7 @@ export class SettingUtils {
                     try {
                         return await ext[method](...args, graphCanvas);
                     } catch (error) {
-                        console.error(
-                            `Error calling extension '${ext.name}' method '${method}'`,
-                            { error },
-                            { extension: ext },
-                            { args }
-                        );
+                        console.error(`Error calling extension '${ext.name}' method '${method}'`, { error }, { extension: ext }, { args });
                     }
                 }
             })
@@ -412,16 +401,10 @@ export class SettingUtils {
 
                 for (const widgetNum in node.widgets) {
                     const widget = node.widgets[widgetNum];
-                    if (
-                        widget.type == 'combo' &&
-                        def['input']['required'][widget.name] !== undefined
-                    ) {
-                        widget.options.values = def['input']['required'][widget.name][0];
+                    if (widget.type == "combo" && def["input"]["required"][widget.name] !== undefined) {
+                        widget.options.values = def["input"]["required"][widget.name][0];
 
-                        if (
-                            widget.name != 'image' &&
-                            !widget.options.values.includes(widget.value)
-                        ) {
+                        if (widget.name != "image" && !widget.options.values.includes(widget.value)) {
                             widget.value = widget.options.values[0];
                             widget.callback(widget.value);
                         }
@@ -430,33 +413,91 @@ export class SettingUtils {
             }
         }
 
-        await this.#invokeExtensionsAsync('refreshComboInSingleNodeByName', graphCanvas, defs);
+        await this.#invokeExtensionsAsync("refreshComboInSingleNodeByName", graphCanvas, defs);
+    }
+
+    static getImageExtensionFromCache(imageFileName) {
+        try {
+            return localStorage.getItem(`sn0w_img_ext_${imageFileName}`);
+        } catch (e) {
+            console.warn("localStorage access failed:", e);
+            return null;
+        }
+    }
+
+    static setImageExtensionInCache(imageFileName, extension) {
+        try {
+            localStorage.setItem(`sn0w_img_ext_${imageFileName}`, extension);
+        } catch (e) {
+            console.warn("localStorage write failed:", e);
+        }
+    }
+
+    static addPreviewImage(entry, imageFileName, ext) {
+        SettingUtils.setImageExtensionInCache(imageFileName, ext);
+
+        const preview = document.createElement("img");
+        preview.className = "preview-image";
+        preview.src = `/extensions/ComfyUI-Sn0w-Scripts/images/${imageFileName}${ext}`;
+        preview.style.maxWidth = "300px";
+        preview.style.maxHeight = "300px";
+        preview.style.position = "fixed";
+
+        const rect = entry.getBoundingClientRect();
+        const padding = 10;
+        const viewportWidth = window.innerWidth;
+
+        if (rect.left >= 320) {
+            preview.style.right = `${viewportWidth - rect.left + padding}px`;
+        } else {
+            preview.style.left = `${rect.right + padding}px`;
+        }
+
+        preview.style.top = `${rect.top}px`;
+        document.body.appendChild(preview);
+
+        preview.addEventListener("load", () => {
+            preview.classList.add("fade-in");
+        });
+    }
+
+    static removeAllPreviewImages() {
+        const previewImages = document.querySelectorAll(".preview-image");
+        previewImages.forEach((img) => {
+            img.classList.add("fade-out");
+            img.classList.remove("fade-in");
+            img.addEventListener(
+                "transitionend",
+                () => {
+                    img.remove();
+                },
+                { once: true }
+            );
+        });
     }
 
     static async addStarsToFavourited(menuEntries, existingList) {
-        const highlightLora = await SettingUtils.getSetting('sn0w.HighlightFavourite');
+        const highlightLora = await SettingUtils.getSetting("sn0w.HighlightFavourite");
 
         const root = document.documentElement;
-        const comfyMenuBgColor = SettingUtils.hexToRgb(
-            getComputedStyle(root).getPropertyValue('--comfy-menu-bg').trim()
-        );
+        const comfyMenuBgColor = SettingUtils.hexToRgb(getComputedStyle(root).getPropertyValue("--comfy-menu-bg").trim());
 
         // Function to check and update the background color
         const checkAndUpdateBackgroundColor = (entry, currentBgColor) => {
             if (highlightLora && currentBgColor == comfyMenuBgColor) {
-                entry.setAttribute('style', 'background-color: green !important');
+                entry.setAttribute("style", "background-color: green !important");
                 // Ensure the entry uses flexbox for alignment
-                entry.style.display = 'flex';
-                entry.style.alignItems = 'center';
+                entry.style.display = "flex";
+                entry.style.alignItems = "center";
             }
         };
 
-        const observerConfig = { attributes: true, attributeFilter: ['style'] };
+        const observerConfig = { attributes: true, attributeFilter: ["style"] };
 
         // Create the observer
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                if (mutation.type === "attributes" && mutation.attributeName === "style") {
                     const entry = mutation.target;
                     const currentBgColor = window.getComputedStyle(entry).backgroundColor;
                     checkAndUpdateBackgroundColor(entry, currentBgColor);
@@ -464,28 +505,31 @@ export class SettingUtils {
             });
         });
 
+        let hoverTimer;
+        const HOVER_DELAY = 500;
+
         let starred = [0, []];
         menuEntries.forEach((entry) => {
-            const value = entry.getAttribute('data-value');
+            const value = entry.getAttribute("data-value");
             let filename = value;
-            if (value !== null && value.includes('\\')) {
-                const pathArray = value.split('\\');
+            if (value !== null && value.includes("\\")) {
+                const pathArray = value.split("\\");
                 filename = pathArray[pathArray.length - 1];
             }
 
             if (existingList.includes(filename)) {
                 // Create star element
-                const star = document.createElement('span');
-                star.innerHTML = '★';
-                star.style.marginLeft = 'auto'; // Push the star to the right
-                star.style.alignSelf = 'center'; // Center the star vertically
+                const star = document.createElement("span");
+                star.innerHTML = "★";
+                star.style.marginLeft = "auto"; // Push the star to the right
+                star.style.alignSelf = "center"; // Center the star vertically
 
                 // Ensure the entry uses flexbox for alignment
-                entry.style.display = 'flex';
-                entry.style.alignItems = 'center';
+                entry.style.display = "flex";
+                entry.style.alignItems = "center";
 
                 // Check if star is already added to avoid duplication
-                if (!entry.querySelector('span')) {
+                if (!entry.querySelector("span")) {
                     entry.appendChild(star);
                     starred[0]++;
                     starred[1].push(filename);
@@ -496,23 +540,81 @@ export class SettingUtils {
                 observer.observe(entry, observerConfig);
                 checkAndUpdateBackgroundColor(entry, currentBgColor);
             }
+
+            entry.addEventListener("mouseover", () => {
+                SettingUtils.removeAllPreviewImages();
+
+                hoverTimer = setTimeout(() => {
+                    const imageFileName = filename
+                        .split(".")[0]
+                        .replaceAll(/\(.*?\)/g, "")
+                        .trim()
+                        .replaceAll(" ", "_")
+                        .toLowerCase();
+
+                    const cachedExt = SettingUtils.getImageExtensionFromCache(imageFileName);
+                    if (cachedExt) {
+                        SettingUtils.addPreviewImage(entry, imageFileName, cachedExt);
+                        return;
+                    }
+
+                    // Try different image extensions
+                    const extensions = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
+                    Promise.any(
+                        extensions.map((ext) =>
+                            fetch(`/extensions/ComfyUI-Sn0w-Scripts/images/${imageFileName}${ext}`).then((response) => {
+                                if (response.ok) {
+                                    SettingUtils.addPreviewImage(entry, imageFileName, ext);
+                                }
+                                return response;
+                            })
+                        )
+                    ).catch((err) => {
+                        console.log(`No preview images found for ${imageFileName}`);
+                    });
+                }, HOVER_DELAY);
+            });
+
+            entry.addEventListener("mouseout", () => {
+                clearTimeout(hoverTimer);
+                SettingUtils.removeAllPreviewImages();
+            });
         });
-        SettingUtils.logSn0w(`Total Favourited Items: ${starred[0]}`, "informational", "node", starred[1])
+        SettingUtils.logSn0w(`Total Favourited Items: ${starred[0]}`, "informational", "node", starred[1]);
     }
 
     static observeContextMenu(existingList) {
-        const handleMutations = SettingUtils.leadingEdgeDebounce(function(mutations) {
-            const litecontextmenu = document.getElementsByClassName('litecontextmenu')[0];
+        SettingUtils.contextMenuList = Array.from(new Set([...SettingUtils.contextMenuList, ...existingList]));
+        if (SettingUtils.observingContextMenu) {
+            return;
+        }
+
+        const style = document.createElement("style");
+        style.textContent = `
+            .preview-image {
+                position: absolute;
+                z-index: 1000;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.2s ease-in-out;
+            }
+            .preview-image.fade-in {
+                opacity: 1;
+            }
+            .preview-image.fade-out {
+                opacity: 0;
+            }
+        `;
+        document.head.appendChild(style);
+
+        const handleMutations = SettingUtils.leadingEdgeDebounce(function (mutations) {
+            const litecontextmenu = document.getElementsByClassName("litecontextmenu")[0];
             if (litecontextmenu) {
-                const menuEntries = litecontextmenu.querySelectorAll('.litemenu-entry');
-                const menuEntriesArray = Array.from(menuEntries);
-                const containsItemFromList = menuEntriesArray.some(entry => {
-                    const value = entry.value;
-                    return existingList.includes(value);
-                });
-                if (containsItemFromList) {
-                    SettingUtils.addStarsToFavourited(menuEntries, existingList);
-                }
+                const menuEntries = litecontextmenu.querySelectorAll(".litemenu-entry");
+                SettingUtils.addStarsToFavourited(menuEntries, SettingUtils.contextMenuList);
             }
         }, 100);
 
@@ -524,6 +626,8 @@ export class SettingUtils {
             characterData: false,
             subtree: true,
         });
+
+        SettingUtils.observingContextMenu = true;
     }
 
     // MISC
@@ -541,16 +645,16 @@ export class SettingUtils {
         let timeout;
         let lastCallTime = 0;
 
-        return function(...args) {
+        return function (...args) {
             const now = Date.now();
 
             // If the last call was longer ago than the wait period, reset the timeout
             if (now - lastCallTime > wait) {
                 lastCallTime = now;
-                func.apply(this, args);  // Call the function immediately
+                func.apply(this, args); // Call the function immediately
             }
 
-            clearTimeout(timeout);  // Clear any previous timeout
+            clearTimeout(timeout); // Clear any previous timeout
 
             // Set a new timeout that will reset `lastCallTime` after the wait period
             timeout = setTimeout(() => {
@@ -574,7 +678,7 @@ export class SettingUtils {
     // Function to choose black or white text color based on luminance
     static getTextColorBasedOnBg(bgColor) {
         const luminance = SettingUtils.getLuminance(bgColor);
-        return luminance > 0.5 ? '#000000' : '#FFFFFF'; // Black text for bright bg, white text for dark bg
+        return luminance > 0.5 ? "#000000" : "#FFFFFF"; // Black text for bright bg, white text for dark bg
     }
 
     static setLoggingLevel(loggingLevel) {
@@ -586,7 +690,7 @@ export class SettingUtils {
         if (loggingLevels == null) {
             loggingLevels = await SettingUtils.getSetting("sn0w.LoggingLevel");
         }
-        const alwaysLog = ["emergency", "alert", "critical", "error"]
+        const alwaysLog = ["emergency", "alert", "critical", "error"];
         const logLevel = type.toLowerCase();
 
         if (!alwaysLog.includes(logLevel) && !loggingLevels.includes(type.toUpperCase())) {
@@ -594,25 +698,25 @@ export class SettingUtils {
         }
 
         const prefix = "sn0w";
-        const generalCss = 'color: white; padding: 2px 6px 2px 4px; font-weight: lighter;'
-        let customCSS = generalCss + ' border-radius: 3px;';
+        const generalCss = "color: white; padding: 2px 6px 2px 4px; font-weight: lighter;";
+        let customCSS = generalCss + " border-radius: 3px;";
 
         const logColors = {
-            "error": "#c50f1f",
-            "warning": "#c19c00",
+            error: "#c50f1f",
+            warning: "#c19c00",
         };
 
         const categoryColors = {
-            "api": "#c19c00",
-            "lora": "#3a96dd",
-            "node": "#c19c00",
-        }
+            api: "#c19c00",
+            lora: "#3a96dd",
+            node: "#c19c00",
+        };
 
         const color = logColors[logLevel] || "#881798";
         const textColor = SettingUtils.getTextColorBasedOnBg(color);
         customCSS += `color: ${textColor};`;
 
-        const categoryCSS = category ? `background-color: ${categoryColors[category.toLowerCase()] || "#13a10e"}; color: ${SettingUtils.getTextColorBasedOnBg(categoryColors[category.toLowerCase()] || "#13a10e")}; border-radius: 0 3px 3px 0; margin-left: -5px;` : '';
+        const categoryCSS = category ? `background-color: ${categoryColors[category.toLowerCase()] || "#13a10e"}; color: ${SettingUtils.getTextColorBasedOnBg(categoryColors[category.toLowerCase()] || "#13a10e")}; border-radius: 0 3px 3px 0; margin-left: -5px;` : "";
         const logMessage = category
             ? [`%c${prefix}%c${category}`, `${customCSS.replace("6px", "10px")} background-color: ${color};`, `${generalCss} ${categoryCSS}`, message] // Category
             : [`%c${prefix}`, `${customCSS} background-color: ${color};`, message]; // No Category
@@ -631,13 +735,13 @@ export class SettingUtils {
         const height = 400;
 
         // Create a canvas element
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
 
         // Background
-        ctx.fillStyle = '#333'; // Dark background
+        ctx.fillStyle = "#333"; // Dark background
         ctx.fillRect(0, 0, width, height);
 
         // Normalize sigma values to fit within the canvas height
@@ -650,13 +754,13 @@ export class SettingUtils {
         const scaleX = (index) => (index / (sigmas.length - 1)) * width;
 
         // Draw horizontal grid lines and labels
-        const gridColor = '#555';
-        const textColor = '#ccc';
+        const gridColor = "#555";
+        const textColor = "#ccc";
         const numGridLines = 10;
         const gridSpacing = (height - 40) / numGridLines;
         ctx.strokeStyle = gridColor;
         ctx.lineWidth = 1;
-        ctx.font = '10px Arial';
+        ctx.font = "10px Arial";
         ctx.fillStyle = textColor;
 
         for (let i = 0; i <= numGridLines; i++) {
@@ -672,7 +776,7 @@ export class SettingUtils {
         }
 
         // Draw the graph line
-        ctx.strokeStyle = 'white'; // Line color
+        ctx.strokeStyle = "white"; // Line color
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(scaleX(0), scaleY(sigmas[0][0]));
@@ -684,7 +788,7 @@ export class SettingUtils {
         ctx.stroke();
 
         // Draw a dot at each sigma point
-        ctx.fillStyle = 'red'; // Dot color
+        ctx.fillStyle = "red"; // Dot color
         const dotRadius = 4;
         sigmas.forEach((sigma, index) => {
             ctx.beginPath();
@@ -693,12 +797,12 @@ export class SettingUtils {
         });
 
         // Return the canvas content as a Base64 encoded image
-        return canvas.toDataURL('image/png');
+        return canvas.toDataURL("image/png");
     }
 
     static hexToRgb(hex) {
         // Remove the hash at the start if it's there
-        hex = hex.replace(/^#/, '');
+        hex = hex.replace(/^#/, "");
 
         // Parse the r, g, b values
         let bigint = parseInt(hex, 16);

@@ -14,3 +14,8 @@ testing/test_scheduler.py
 update-dev.bat
 /.vscode
 prompts.json
+web/images/*.png
+web/images/*.jpg
+web/images/*.jpeg
+web/images/*.gif
+web/images/*.webp
