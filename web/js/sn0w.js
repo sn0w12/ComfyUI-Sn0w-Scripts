@@ -447,7 +447,7 @@ export class SettingUtils {
 
         setTimeout(() => {
             preview.classList.add("fade-in");
-        }, 200);
+        }, 100);
     }
 
     static removeAllPreviewImages() {
@@ -466,7 +466,7 @@ export class SettingUtils {
     }
 
     static async addStarsToFavourited(menuEntries, existingList, previewImages) {
-        const highlightLora = await SettingUtils.getSetting("sn0w.HighlightFavourite");
+        const [highlightLora, hoverDelay] = await Promise.all([SettingUtils.getSetting("sn0w.HighlightFavourite"), SettingUtils.getSetting("sn0w.previewImageDelay", 300)]);
 
         const root = document.documentElement;
         const comfyMenuBgColor = SettingUtils.hexToRgb(getComputedStyle(root).getPropertyValue("--comfy-menu-bg").trim());
@@ -495,8 +495,6 @@ export class SettingUtils {
         });
 
         let hoverTimer;
-        const HOVER_DELAY = 300;
-
         let starred = [0, []];
         menuEntries.forEach((entry) => {
             const value = entry.getAttribute("data-value");
@@ -546,7 +544,7 @@ export class SettingUtils {
                     if (imageData) {
                         SettingUtils.addPreviewImage(entry, imageData.path);
                     }
-                }, HOVER_DELAY);
+                }, hoverDelay);
             });
 
             entry.addEventListener("click", () => {

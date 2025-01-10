@@ -1,16 +1,16 @@
-import { SettingUtils } from './sn0w.js';
-import { app } from '../../../scripts/app.js';
-import { api } from '../../../scripts/api.js';
+import { SettingUtils } from "./sn0w.js";
+import { app } from "../../../scripts/app.js";
+import { api } from "../../../scripts/api.js";
 
 async function addLoraLoaders(loraLoaders) {
     try {
         const response = await api.fetchApi(`${SettingUtils.API_PREFIX}/add_lora_loaders`, {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
+                "Content-Type": "application/json",
             },
             body: JSON.stringify(loraLoaders),
-        })
+        });
 
         const data = await response.json();
         SettingUtils.logSn0w("Lora Loaders successfully added.", "informational", "lora", data.message);
@@ -19,29 +19,37 @@ async function addLoraLoaders(loraLoaders) {
     }
 }
 
-const id = 'sn0w.HighlightFavourite';
-const settingDefinition = {
-    id,
-    name: 'Highlight Favourite Items',
-    defaultValue: false,
-    type: 'boolean',
-};
-const favouriteLoraId = 'sn0w.FavouriteLoras';
+const settingDefinitions = [
+    {
+        id: "sn0w.HighlightFavourite",
+        category: ["sn0w", "ContextMenu", "Highlight Favourite Items"],
+        name: "Highlight Favourite Items",
+        defaultValue: false,
+        type: "boolean",
+    },
+    {
+        id: "sn0w.previewImageDelay",
+        category: ["sn0w", "ContextMenu", "Preview Image Delay"],
+        name: "Preview Image Delay (ms)",
+        defaultValue: 300,
+        type: "slider",
+        attrs: { min: 0, max: 500, step: 10 },
+    },
+];
+const favouriteLoraId = "sn0w.FavouriteLoras";
 
-let loraLoaders = ['Load Lora Sn0w', 'LoraLoader'];
+let loraLoaders = ["Load Lora Sn0w", "LoraLoader"];
 let existingList = [];
 
 app.registerExtension({
-    name: 'sn0w.LoraContextMenu',
+    name: "sn0w.LoraContextMenu",
     init() {
-        let setting = app.ui.settings.addSetting(settingDefinition);
+        settingDefinitions.forEach((settingDefinition) => {
+            app.ui.settings.addSetting(settingDefinition);
+        });
     },
     async setup() {
-        const customLoaderKeys = [
-            'sn0w.CustomLoraLoaders',
-            'sn0w.CustomLoraLoaders.XL',
-            'sn0w.CustomLoraLoaders.3',
-        ];
+        const customLoaderKeys = ["sn0w.CustomLoraLoaders", "sn0w.CustomLoraLoaders.XL", "sn0w.CustomLoraLoaders.3"];
         let customLoraLoadersArrays = [];
 
         // Fetch and process each custom loader
@@ -49,7 +57,7 @@ app.registerExtension({
             const customLoaders = await SettingUtils.getSetting(key);
             let customLoaderArray = [];
             if (customLoaders) {
-                customLoaderArray = customLoaders.split('\n').map((item) => item.split(':')[0]);
+                customLoaderArray = customLoaders.split("\n").map((item) => item.split(":")[0]);
             }
             customLoraLoadersArrays.push(customLoaderArray);
         }
@@ -72,17 +80,17 @@ app.registerExtension({
             if (!node.widgets) {
                 return options;
             }
-            const loraWidgets = node.widgets.filter(widget => widget.name.includes("lora") && widget.type === "combo");
+            const loraWidgets = node.widgets.filter((widget) => widget.name.includes("lora") && widget.type === "combo");
             const totalLoras = loraWidgets.length;
 
             if (loraLoaders.includes(node.type)) {
                 const settingUtils = new SettingUtils();
                 const nullIndex = options.indexOf(null);
-                let optionsArr = []
+                let optionsArr = [];
 
-                loraWidgets.forEach(widget => {
+                loraWidgets.forEach((widget) => {
                     const selectedLora = widget.value;
-                    const pathArray = selectedLora.split('\\');
+                    const pathArray = selectedLora.split("\\");
                     const filename = pathArray[pathArray.length - 1];
                     if (filename == "None") {
                         return;
@@ -90,7 +98,7 @@ app.registerExtension({
                     const isFavourite = existingList.includes(filename);
 
                     const newMenuItem = {
-                        content: (isFavourite ? 'Unfavourite ' : 'Favourite ') + filename.split(".")[0] + (isFavourite ? ' ☆' : ' ★'),
+                        content: (isFavourite ? "Unfavourite " : "Favourite ") + filename.split(".")[0] + (isFavourite ? " ☆" : " ★"),
                         disabled: false,
                         callback: () => {
                             SettingUtils.toggleFavourite(existingList, filename, favouriteLoraId);
@@ -98,32 +106,32 @@ app.registerExtension({
                         },
                     };
 
-                    const itemExists = optionsArr.some(item => item.content === newMenuItem.content);
+                    const itemExists = optionsArr.some((item) => item.content === newMenuItem.content);
 
                     if (!itemExists) {
                         optionsArr.push(newMenuItem);
                     }
                 });
 
-                let menuItem
+                let menuItem;
                 if (optionsArr.length > 0) {
                     if (totalLoras === 1) {
-                        menuItem = optionsArr[0]
+                        menuItem = optionsArr[0];
                     } else if (totalLoras > 1) {
                         menuItem = {
                             content: "Favourite",
                             disabled: false,
                             has_submenu: true,
-                            submenu:  {
-                                options: optionsArr
-                            }
-                        }
+                            submenu: {
+                                options: optionsArr,
+                            },
+                        };
                     }
                 } else {
                     menuItem = {
                         content: "No lora selected",
                         disabled: true,
-                    }
+                    };
                 }
 
                 if (nullIndex !== -1) {
