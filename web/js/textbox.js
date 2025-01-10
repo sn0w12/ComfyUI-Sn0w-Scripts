@@ -203,7 +203,9 @@ app.registerExtension({
             function processTags(tags) {
                 let returnArray = [];
                 tags.forEach((tag) => {
-                    returnArray.push(processTag(tag));
+                    if (tag.trim()) {
+                        returnArray.push(processTag(tag));
+                    }
                 });
                 return returnArray;
             }
