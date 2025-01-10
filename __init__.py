@@ -1,5 +1,8 @@
 import importlib
+import json
 import os
+from pathlib import Path
+
 from .src.dynamic_lora_loader import generate_lora_node_class
 from .src.dynamic_scheduler_loader import generate_scheduler_node_class
 from .src.check_folder_paths import check_lora_folders
@@ -143,6 +146,51 @@ def register_scheduler_node(module):
         NODE_DISPLAY_NAME_MAPPINGS[class_name] = class_name
 
 
+def index_images():
+    """
+    Create a JSON index of all images in the web/images directory.
+    """
+    try:
+        # Get the script's directory and construct path to images using Path
+        script_dir = Path(os.path.dirname(os.path.realpath(__file__)))
+        images_dir = script_dir.joinpath("web", "images")
+
+        # Ensure directory exists
+        if not images_dir.exists():
+            print(f"Warning: Directory not found: {images_dir}")
+            return False
+
+        # Get all image files
+        image_files = []
+        for ext in [".png", ".jpg", ".jpeg", ".webp"]:
+            image_files.extend(images_dir.glob(f"*{ext}"))
+
+        # Create image entries
+        images = []
+        for img_path in image_files:
+            images.append(
+                {"filename": img_path.stem, "path": str(img_path.relative_to(script_dir)), "extension": img_path.suffix}
+            )
+
+        # Create output data
+        output = {"images": images, "count": len(images)}
+
+        # Write JSON file
+        json_path = images_dir.joinpath("images.json")
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(output, f, indent=2)
+
+        print(f"Created index with {len(images)} images at {json_path}")
+        return True
+
+    except Exception as e:
+        print(f"Error creating image index: {str(e)}")
+        return False
+
+
 # Register custom nodes
 generate_and_register_all_lora_nodes()
 import_and_register_scheduler_nodes()
+
+# Create image index
+index_images()

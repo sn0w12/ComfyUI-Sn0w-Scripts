@@ -476,7 +476,7 @@ export class SettingUtils {
         });
     }
 
-    static async addStarsToFavourited(menuEntries, existingList) {
+    static async addStarsToFavourited(menuEntries, existingList, previewImages) {
         const highlightLora = await SettingUtils.getSetting("sn0w.HighlightFavourite");
 
         const root = document.documentElement;
@@ -552,26 +552,11 @@ export class SettingUtils {
                         .replaceAll(" ", "_")
                         .toLowerCase();
 
-                    const cachedExt = SettingUtils.getImageExtensionFromCache(imageFileName);
-                    if (cachedExt) {
-                        SettingUtils.addPreviewImage(entry, imageFileName, cachedExt);
-                        return;
-                    }
+                    const imageData = previewImages.find((img) => img.filename.toLowerCase() === imageFileName);
 
-                    // Try different image extensions
-                    const extensions = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
-                    Promise.any(
-                        extensions.map((ext) =>
-                            fetch(`/extensions/ComfyUI-Sn0w-Scripts/images/${imageFileName}${ext}`).then((response) => {
-                                if (response.ok) {
-                                    SettingUtils.addPreviewImage(entry, imageFileName, ext);
-                                }
-                                return response;
-                            })
-                        )
-                    ).catch((err) => {
-                        console.log(`No preview images found for ${imageFileName}`);
-                    });
+                    if (imageData) {
+                        SettingUtils.addPreviewImage(entry, imageData.filename, imageData.extension);
+                    }
                 }, HOVER_DELAY);
             });
 
@@ -583,7 +568,7 @@ export class SettingUtils {
         SettingUtils.logSn0w(`Total Favourited Items: ${starred[0]}`, "informational", "node", starred[1]);
     }
 
-    static observeContextMenu(existingList) {
+    static async observeContextMenu(existingList) {
         SettingUtils.contextMenuList = Array.from(new Set([...SettingUtils.contextMenuList, ...existingList]));
         if (SettingUtils.observingContextMenu) {
             return;
@@ -609,12 +594,13 @@ export class SettingUtils {
             }
         `;
         document.head.appendChild(style);
+        const images = await fetch("/extensions/ComfyUI-Sn0w-Scripts/images/images.json").then((response) => response.json());
 
         const handleMutations = SettingUtils.leadingEdgeDebounce(function (mutations) {
             const litecontextmenu = document.getElementsByClassName("litecontextmenu")[0];
             if (litecontextmenu) {
                 const menuEntries = litecontextmenu.querySelectorAll(".litemenu-entry");
-                SettingUtils.addStarsToFavourited(menuEntries, SettingUtils.contextMenuList);
+                SettingUtils.addStarsToFavourited(menuEntries, SettingUtils.contextMenuList, images.images);
             }
         }, 100);
 
