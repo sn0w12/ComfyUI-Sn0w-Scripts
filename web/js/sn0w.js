@@ -416,29 +416,10 @@ export class SettingUtils {
         await this.#invokeExtensionsAsync("refreshComboInSingleNodeByName", graphCanvas, defs);
     }
 
-    static getImageExtensionFromCache(imageFileName) {
-        try {
-            return localStorage.getItem(`sn0w_img_ext_${imageFileName}`);
-        } catch (e) {
-            console.warn("localStorage access failed:", e);
-            return null;
-        }
-    }
-
-    static setImageExtensionInCache(imageFileName, extension) {
-        try {
-            localStorage.setItem(`sn0w_img_ext_${imageFileName}`, extension);
-        } catch (e) {
-            console.warn("localStorage write failed:", e);
-        }
-    }
-
-    static addPreviewImage(entry, imageFileName, ext) {
-        SettingUtils.setImageExtensionInCache(imageFileName, ext);
-
+    static addPreviewImage(entry, path) {
         const preview = document.createElement("img");
         preview.className = "preview-image";
-        preview.src = `/extensions/ComfyUI-Sn0w-Scripts/images/${imageFileName}${ext}`;
+        preview.src = path;
         preview.style.maxWidth = "300px";
         preview.style.maxHeight = "300px";
         preview.style.position = "fixed";
@@ -456,9 +437,9 @@ export class SettingUtils {
         preview.style.top = `${rect.top}px`;
         document.body.appendChild(preview);
 
-        preview.addEventListener("load", () => {
+        setTimeout(() => {
             preview.classList.add("fade-in");
-        });
+        }, 200);
     }
 
     static removeAllPreviewImages() {
@@ -506,7 +487,7 @@ export class SettingUtils {
         });
 
         let hoverTimer;
-        const HOVER_DELAY = 500;
+        const HOVER_DELAY = 300;
 
         let starred = [0, []];
         menuEntries.forEach((entry) => {
@@ -552,12 +533,17 @@ export class SettingUtils {
                         .replaceAll(" ", "_")
                         .toLowerCase();
 
-                    const imageData = previewImages.find((img) => img.filename.toLowerCase() === imageFileName);
+                    const imageData = previewImages.find((img) => img.filename.toLowerCase().trim().replaceAll(" ", "_") === imageFileName);
 
                     if (imageData) {
-                        SettingUtils.addPreviewImage(entry, imageData.filename, imageData.extension);
+                        SettingUtils.addPreviewImage(entry, imageData.path);
                     }
                 }, HOVER_DELAY);
+            });
+
+            entry.addEventListener("click", () => {
+                clearTimeout(hoverTimer);
+                SettingUtils.removeAllPreviewImages();
             });
 
             entry.addEventListener("mouseout", () => {
@@ -597,6 +583,26 @@ export class SettingUtils {
         const images = await fetch("/extensions/ComfyUI-Sn0w-Scripts/images/images.json").then((response) => response.json());
 
         const handleMutations = SettingUtils.leadingEdgeDebounce(function (mutations) {
+            let isPreviewImage = false;
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.classList && node.classList.contains("preview-image")) {
+                        isPreviewImage = true;
+                        return;
+                    }
+                });
+                mutation.removedNodes.forEach((node) => {
+                    if (node.classList && node.classList.contains("preview-image")) {
+                        isPreviewImage = true;
+                        return;
+                    }
+                });
+            });
+
+            if (isPreviewImage) {
+                return;
+            }
+
             const litecontextmenu = document.getElementsByClassName("litecontextmenu")[0];
             if (litecontextmenu) {
                 const menuEntries = litecontextmenu.querySelectorAll(".litemenu-entry");

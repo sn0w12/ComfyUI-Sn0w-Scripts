@@ -148,7 +148,7 @@ def register_scheduler_node(module):
 
 def index_images():
     """
-    Create a JSON index of all images in the web/images directory.
+    Create a JSON index of all images in the web/images directory and its subfolders.
     """
     try:
         # Get the script's directory and construct path to images using Path
@@ -160,16 +160,19 @@ def index_images():
             print(f"Warning: Directory not found: {images_dir}")
             return False
 
-        # Get all image files
+        # Get all image files recursively
         image_files = []
         for ext in [".png", ".jpg", ".jpeg", ".webp"]:
-            image_files.extend(images_dir.glob(f"*{ext}"))
+            image_files.extend(images_dir.rglob(f"*{ext}"))
 
         # Create image entries
         images = []
         for img_path in image_files:
             images.append(
-                {"filename": img_path.stem, "path": str(img_path.relative_to(script_dir)), "extension": img_path.suffix}
+                {
+                    "filename": img_path.stem,
+                    "path": str(img_path.relative_to(script_dir)).replace("web", "extensions\\ComfyUI-Sn0w-Scripts"),
+                }
             )
 
         # Create output data
