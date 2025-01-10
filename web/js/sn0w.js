@@ -416,25 +416,33 @@ export class SettingUtils {
         await this.#invokeExtensionsAsync("refreshComboInSingleNodeByName", graphCanvas, defs);
     }
 
-    static addPreviewImage(entry, path) {
+    static addPreviewImage(entry, path, maxHeight = 300, maxWidth = 300) {
         const preview = document.createElement("img");
         preview.className = "preview-image";
         preview.src = path;
-        preview.style.maxWidth = "300px";
-        preview.style.maxHeight = "300px";
+        preview.style.maxWidth = `${maxWidth}px`;
+        preview.style.maxHeight = `${maxHeight}px`;
         preview.style.position = "fixed";
 
         const rect = entry.getBoundingClientRect();
-        const padding = 10;
+        const padding = 20;
         const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
 
-        if (rect.left >= 320) {
+        if (rect.left >= maxWidth + padding) {
             preview.style.right = `${viewportWidth - rect.left + padding}px`;
         } else {
             preview.style.left = `${rect.right + padding}px`;
         }
 
-        preview.style.top = `${rect.top}px`;
+        const estimatedHeight = Math.min(maxHeight, preview.naturalHeight || maxHeight);
+        let topPosition = rect.top;
+
+        if (rect.top + estimatedHeight > viewportHeight - padding) {
+            topPosition = viewportHeight - estimatedHeight - padding;
+        }
+
+        preview.style.top = `${topPosition}px`;
         document.body.appendChild(preview);
 
         setTimeout(() => {
@@ -564,7 +572,7 @@ export class SettingUtils {
         style.textContent = `
             .preview-image {
                 position: absolute;
-                z-index: 1000;
+                z-index: 2000;
                 border: 1px solid #ccc;
                 border-radius: 4px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.2);
