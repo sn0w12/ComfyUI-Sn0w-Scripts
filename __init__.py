@@ -20,6 +20,7 @@ from .src.load_lora_from_folder import LoadLoraFolderNode
 from .src.textbox import TextboxNode
 from .src.simple_ksampler import SimpleSamplerCustom
 from .src.filter_tags import FilterTags
+from .src.generate_all_character_images import GenerateCharactersNode
 
 # Constants
 WEB_DIRECTORY = "./web"
@@ -40,6 +41,7 @@ NODE_CLASS_MAPPINGS = {
     "Copy/Paste Textbox": TextboxNode,
     "Sn0w KSampler": SimpleSamplerCustom,
     "Filter Tags": FilterTags,
+    "Generate All Characters": GenerateCharactersNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -56,6 +58,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Copy/Paste Textbox": "Textbox",
     "Sn0w KSampler": "Sn0w KSampler",
     "Filter Tags": "Filter Tags",
+    "Generate All Characters": "Generate All Character Images",
 }
 
 # Function to check required folder paths

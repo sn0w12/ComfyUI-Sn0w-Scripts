@@ -27,9 +27,7 @@ class CharacterSelectNode:
 
     @classmethod
     def initialize(cls):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        if os.path.basename(dir_path) == "src":
-            dir_path = os.path.dirname(dir_path)
+        dir_path = cls.get_base_dir()
 
         cls.load_characters(dir_path)
 
