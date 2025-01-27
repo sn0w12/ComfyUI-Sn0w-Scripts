@@ -1,13 +1,19 @@
-import { SettingUtils } from './sn0w.js';
-import { app } from '../../../scripts/app.js';
+import { SettingUtils } from "./sn0w.js";
+import { app } from "../../../scripts/app.js";
 
-const favouriteCharactersId = 'sn0w.FavouriteCharacters';
+const favouriteCharactersId = "sn0w.FavouriteCharacters";
 let existingList = [];
 
 app.registerExtension({
-    name: 'sn0w.CharacterContextMenu',
+    name: "sn0w.CharacterContextMenu",
     async setup() {
-        existingList = await SettingUtils.getSetting('sn0w.FavouriteCharacters');
+        const hasSyntaxHighlight = await SettingUtils.fetchApi("/SyntaxHighlighter/enabled");
+        if (hasSyntaxHighlight.enabled) {
+            SettingUtils.logSn0w("Syntax Highlighter is enabled.", "informational", "character");
+            return;
+        }
+
+        existingList = await SettingUtils.getSetting("sn0w.FavouriteCharacters");
         if (!Array.isArray(existingList)) {
             existingList = [];
         }
@@ -15,7 +21,7 @@ app.registerExtension({
         const original_getNodeMenuOptions = app.canvas.getNodeMenuOptions;
         app.canvas.getNodeMenuOptions = function (node) {
             const options = original_getNodeMenuOptions.apply(this, arguments);
-            if (node.type === 'Character Selector') {
+            if (node.type === "Character Selector") {
                 const settingUtils = new SettingUtils();
                 const nullIndex = options.indexOf(null);
 
@@ -25,15 +31,11 @@ app.registerExtension({
 
                 // Create the new menu item
                 const newMenuItem = {
-                    content: isFavourite ? 'Unfavourite Character ☆' : 'Favourite Character ★',
+                    content: isFavourite ? "Unfavourite Character ☆" : "Favourite Character ★",
                     disabled: false,
                     callback: () => {
-                        SettingUtils.toggleFavourite(
-                            existingList,
-                            selectedCharacter,
-                            favouriteCharactersId
-                        );
-                        settingUtils.refreshComboInSingleNode(app, 'Character Selector');
+                        SettingUtils.toggleFavourite(existingList, selectedCharacter, favouriteCharactersId);
+                        settingUtils.refreshComboInSingleNode(app, "Character Selector");
                     },
                 };
 

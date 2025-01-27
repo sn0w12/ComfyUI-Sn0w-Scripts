@@ -19,7 +19,7 @@ app.registerExtension({
                 setTimeout(() => syncText(this.inputEl.inputEl, this.overlayEl), 50);
             };
 
-            nodeType.prototype.populate = function () {
+            nodeType.prototype.populate = async function () {
                 this.inputEl = this.widgets[0];
 
                 // prettier-ignore
@@ -39,6 +39,11 @@ app.registerExtension({
 
                 // Ensure the input element's parent exists
                 if (this.inputEl && this.inputEl.inputEl && this.inputEl.inputEl.parentNode) {
+                    const hasSyntaxHighlight = await SettingUtils.fetchApi("/SyntaxHighlighter/enabled");
+                    if (hasSyntaxHighlight.enabled) {
+                        SettingUtils.logSn0w("Syntax Highlighter is enabled.", "informational", "textbox");
+                        return;
+                    }
                     // Create overlay div for highlighting
                     this.overlayEl = document.createElement("div");
                     this.overlayEl.className = "input-overlay";

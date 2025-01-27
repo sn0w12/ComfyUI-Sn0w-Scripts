@@ -562,7 +562,8 @@ export class SettingUtils {
 
     static async observeContextMenu(existingList) {
         SettingUtils.contextMenuList = Array.from(new Set([...SettingUtils.contextMenuList, ...existingList]));
-        if (SettingUtils.observingContextMenu) {
+        const hasSyntaxHighlight = await SettingUtils.fetchApi("/SyntaxHighlighter/enabled");
+        if (SettingUtils.observingContextMenu || hasSyntaxHighlight.enabled === true) {
             return;
         }
 

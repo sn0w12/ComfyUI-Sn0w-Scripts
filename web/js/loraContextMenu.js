@@ -49,6 +49,12 @@ app.registerExtension({
         });
     },
     async setup() {
+        const hasSyntaxHighlight = await SettingUtils.fetchApi("/SyntaxHighlighter/enabled");
+        if (hasSyntaxHighlight.enabled) {
+            SettingUtils.logSn0w("Syntax Highlighter is enabled.", "informational", "lora");
+            return;
+        }
+
         const customLoaderKeys = ["sn0w.CustomLoraLoaders", "sn0w.CustomLoraLoaders.XL", "sn0w.CustomLoraLoaders.3"];
         let customLoraLoadersArrays = [];
 
