@@ -20,6 +20,10 @@
             {
                 "name": "Positive Illust",
                 "prompt": "masterpiece, best quality, newest, absurdres, highres, uncensored"
+            },
+            {
+                "name": "Positive Illust sfw",
+                "prompt": "masterpiece, best quality, newest, absurdres, highres"
             }
         ],
         "negative": [
@@ -42,7 +46,7 @@
             },
             {
                 "name": "Negative Illust",
-                "prompt": "nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, deformed hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro"
+                "prompt": "worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, deformed hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro"
             }
         ]
     }
