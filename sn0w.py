@@ -151,7 +151,7 @@ class ConfigReader:
             "sn0w.DisableDefaultCharacters": "sn0w.CharacterSettings.DisableDefaultCharacters",
             "sn0w.ExcludedRandomCharacters": "sn0w.CharacterSettings.ExcludedRandomCharacters",
             "sn0w.SortCharactersBy": "sn0w.CharacterSettings.SortCharactersBy",
-            "sn0w.TextboxSettings.GradientColors": "SyntaxHighlighting.textbox-colors",
+            "sn0w.TextboxSettings": "SyntaxHighlighting.textbox-colors",
         }
 
         path = ConfigReader._get_path()
