@@ -113,10 +113,14 @@ class SimpleSamplerCustom:
         samples = custom_sampler.sample(
             model, add_noise, noise_seed, cfg, positive_prompt, negative_prompt, sampler, sigmas, latent_image
         )
-        if image_output["links"] != []:
+        try:
+            if image_output is not None and image_output["links"] != []:
+                image = vae_decode.decode(vae, samples[1])
+            else:
+                image = (None,)
+        except (TypeError, KeyError):
+            # If we get a TypeError (NoneType) or KeyError, decode the image
             image = vae_decode.decode(vae, samples[1])
-        else:
-            image = (None,)
 
         return (image[0], samples[1], positive_prompt, negative_prompt)
 

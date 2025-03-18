@@ -151,12 +151,24 @@ class ConfigReader:
             "sn0w.DisableDefaultCharacters": "sn0w.CharacterSettings.DisableDefaultCharacters",
             "sn0w.ExcludedRandomCharacters": "sn0w.CharacterSettings.ExcludedRandomCharacters",
             "sn0w.SortCharactersBy": "sn0w.CharacterSettings.SortCharactersBy",
+            "sn0w.TextboxSettings.GradientColors": "SyntaxHighlighting.textbox-colors",
         }
 
         path = ConfigReader._get_path()
         with open(path, "r", encoding="utf-8") as file:
             settings = json.load(file)
 
+        # Handle favorites migration
+        favorite_loras = cls.get_setting("sn0w.FavouriteLoras", [])
+        favorite_chars = cls.get_setting("sn0w.FavouriteCharacters", [])
+
+        if favorite_loras or favorite_chars:
+            combined_favorites = list(set(favorite_loras + favorite_chars))  # Merge and remove duplicates
+            cls.set_setting("SyntaxHighlighting.favorites", combined_favorites)
+            cls.set_setting("sn0w.FavouriteLoras", None)  # Remove old setting
+            cls.set_setting("sn0w.FavouriteCharacters", None)  # Remove old setting
+
+        # Handle other setting migrations
         for setting in settings:
             if setting in conversion_map:
                 setting_value = cls.get_setting(setting)
@@ -390,15 +402,22 @@ class Utility:
     @classmethod
     def get_node_output(cls, data, node_id, output_id):
         """Get the output of a node from the workflow data."""
-        workflow = data.get("workflow", {})
-        nodes = workflow.get("nodes", [])
+        if not data:
+            return None
 
-        for node in nodes:
-            if int(node.get("id")) == int(node_id):
-                for output in node.get("outputs", []):
-                    if int(output["slot_index"]) == int(output_id):
-                        return output
-        return None
+        try:
+            workflow = data.get("workflow", {})
+            nodes = workflow.get("nodes", [])
+
+            for node in nodes:
+                if int(node.get("id")) == int(node_id):
+                    for output in node.get("outputs", []):
+                        if int(output["slot_index"]) == int(output_id):
+                            return output
+            return None
+        except Exception as e:
+            cls.logger.log(f"Error getting node output: {e}", "ERROR")
+            return None
 
 
 class AnyType(str):
