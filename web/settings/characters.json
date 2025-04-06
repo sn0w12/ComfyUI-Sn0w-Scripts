@@ -25,9 +25,24 @@
         "prompt": "blue eyes, blue hair, hair ornament, long hair, large breasts"
     },
     {
+        "name": "Megumin (Konosuba)",
+        "associated_string": "megumin, kono subarashii sekai ni shukufuku wo!",
+        "prompt": "brown hair, hair between eyes, red eyes, short hair, sidelocks, small breasts, petite"
+    },
+    {
         "name": "Nami (One Piece)",
         "associated_string": "nami \\(one piece\\), one piece",
         "prompt": "orange hair, orange eyes, large breasts, shoulder tattoo, long hair"
+    },
+    {
+        "name": "Nico Robin (One Piece)",
+        "associated_string": "nico robin, one piece",
+        "prompt": "black hair, blue eyes, large breasts, long hair"
+    },
+    {
+        "name": "Yamato (One Piece)",
+        "associated_string": "yamato \\(one piece\\), one piece",
+        "prompt": "blue hair, orange horns, red horns, curled horns, ponytail, sidelocks, white hair, aqua hair, gradient hair, large breasts, long hair, orange eyes"
     },
     {
         "name": "Power (Chainsaw Man)",
