@@ -65,7 +65,7 @@ class CombineStringNode:
 
         def extract_parenthesized(match):
             parenthesized_parts.append(match.group())
-            return f"\0{len(parenthesized_parts)-1}\0"
+            return f"\0{len(parenthesized_parts) - 1}\0"
 
         modified_tags_string = re.sub(parenthesized_pattern, extract_parenthesized, tags_string)
 
@@ -196,7 +196,23 @@ class CombineStringNode:
         removed_tags = ""
 
         all_words = set()
+        protected_words = set()  # Words within parentheses that should be preserved
         combined = []
+
+        # Extract words in parentheses to protect them from deduplication
+        def extract_parenthesized_words(text):
+            parenthesized_pattern = re.compile(r"\(.*?\)")
+            matches = parenthesized_pattern.finditer(text)
+            words_to_protect = set()
+            for match in matches:
+                for word in match.group(0).split(separator):
+                    words_to_protect.add(word.strip())
+            return words_to_protect
+
+        # First pass: collect all protected words
+        for string in strings:
+            if string != "None" and isinstance(string, str):
+                protected_words.update(extract_parenthesized_words(string))
 
         for string in strings:
             if string != "None" and isinstance(string, str):
@@ -211,7 +227,9 @@ class CombineStringNode:
                     final_string = ""
                     words = string.split(separator)
                     for word in words:
-                        if word not in all_words:
+                        word = word.strip()
+                        # Always add protected words or words not seen before
+                        if word in protected_words or word not in all_words:
                             all_words.add(word)
                             final_string += word + separator
 
