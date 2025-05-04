@@ -21,3 +21,4 @@ web/images/*.gif
 web/images/*.webp
 web/images/images.json
 web/images/*/*
+/models
