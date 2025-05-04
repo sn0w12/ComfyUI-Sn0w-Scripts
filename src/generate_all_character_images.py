@@ -16,7 +16,7 @@ class GenerateCharactersNode:
     logger = Logger()
     character_select = CharacterSelectNode()
     base_dir = character_select.get_base_dir()
-    json_path = os.path.join(base_dir, IMAGES_FILE_PATH)
+    json_path = os.path.join(base_dir, "..", "ComfyUI-Syntax-Highlight", IMAGES_FILE_PATH)
     characters_dir = os.path.join(os.path.dirname(json_path), "characters")
 
     @classmethod
