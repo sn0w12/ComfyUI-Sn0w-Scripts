@@ -123,7 +123,7 @@ class CharacterSelectNode:
     @classmethod
     def INPUT_TYPES(cls):
         cls.check_initialize()
-        character_names = ["None"] + list(cls.final_characters)
+        character_names = ["None"] + list(cls.final_characters) + ["SN0W_CHARACTER_SELECTOR"]
         return {
             "required": {
                 "character": (character_names,),
