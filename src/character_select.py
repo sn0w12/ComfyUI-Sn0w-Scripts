@@ -22,6 +22,7 @@ class CharacterSelectNode:
         "sn0w.CharacterSettings.DisableDefaultCharacters", False
     )
     last_character = ""
+    favorites = ConfigReader.get_setting("SyntaxHighlighting.favorites", [])
 
     logger = Logger()
 
@@ -101,8 +102,23 @@ class CharacterSelectNode:
 
             cls.cached_sorting_setting = current_sorting_setting
 
-        # Put favourite characters on top
-        cls.final_characters = Utility.put_favourite_on_top("sn0w.FavouriteCharacters", cls.final_character_dict)
+        favorite_names = []
+        non_favorite_names = []
+
+        for name in cls.final_character_dict.keys():
+            if name in cls.favorites:
+                favorite_names.append(name)
+            else:
+                non_favorite_names.append(name)
+
+        ordered_characters = {}
+        for fav_name in favorite_names:
+            ordered_characters[fav_name] = cls.final_character_dict[fav_name]
+
+        for name in non_favorite_names:
+            ordered_characters[name] = cls.final_character_dict[name]
+
+        cls.final_characters = list(ordered_characters.keys())
 
     @classmethod
     def INPUT_TYPES(cls):
