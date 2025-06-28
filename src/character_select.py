@@ -149,7 +149,7 @@ class CharacterSelectNode:
     def find_character(self, character, character_strength, character_prompt, random_character):
         if random_character:
             char_item = self.select_random_character()
-        elif character == "None":
+        elif character == "None" or character == "SN0W_CHARACTER_SELECTOR":
             return ("", "")
         else:
             char_item = self.final_character_dict.get(character)
