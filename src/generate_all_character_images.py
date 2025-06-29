@@ -45,7 +45,9 @@ class GenerateCharactersNode:
             if series:
                 series_list_with_counts.append(f"{series} ({count})")
 
-        cls.series_list = ["All"] + series_list_with_counts
+        # Calculate total count for "All" option
+        total_count = len(cls.character_dict)
+        cls.series_list = [f"All ({total_count})"] + series_list_with_counts
         return cls.character_dict
 
     @classmethod
@@ -129,14 +131,14 @@ class GenerateCharactersNode:
         existing_filenames = self.load_existing_images()
 
         orig_positive = kwargs.get("positive", "")
+        match = re.match(r"^(.*?)\s*\(\d+\)$", series_filter)
+        if match:
+            selected_series = match.group(1).strip()
+        else:
+            selected_series = series_filter
 
         # Filter characters by series if not "All"
-        if series_filter != "All":
-            match = re.match(r"^(.*?)\s*\(\d+\)$", series_filter)
-            if match:
-                selected_series = match.group(1).strip()
-            else:
-                selected_series = series_filter
+        if selected_series != "All":
             character_dict = {
                 name: char for name, char in character_dict.items() if char.get("series", "") == selected_series
             }

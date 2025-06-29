@@ -123,20 +123,22 @@ app.registerExtension({
 
             const hierarchicalValues = [createMenuItem("None")];
 
-            Object.keys(seriesGroups).forEach((seriesName) => {
-                const submenuOptions = seriesGroups[seriesName].map((characterName) => ({
-                    content: characterName,
-                    callback: newCallback,
-                    toString: () => characterName,
-                }));
-
-                hierarchicalValues.push(
-                    createMenuItem(seriesName, true, {
-                        options: submenuOptions,
+            Object.keys(seriesGroups)
+                .sort()
+                .forEach((seriesName) => {
+                    const submenuOptions = seriesGroups[seriesName].map((characterName) => ({
+                        content: characterName,
                         callback: newCallback,
-                    })
-                );
-            });
+                        toString: () => characterName,
+                    }));
+
+                    hierarchicalValues.push(
+                        createMenuItem(seriesName, true, {
+                            options: submenuOptions,
+                            callback: newCallback,
+                        })
+                    );
+                });
 
             options.callback = undefined;
             existingContextMenu.call(this, hierarchicalValues, options);
