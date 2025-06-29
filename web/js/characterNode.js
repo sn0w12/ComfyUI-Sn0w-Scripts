@@ -1,9 +1,36 @@
 import { app } from "../../../scripts/app.js";
+import { $el } from "../../../../../../../../../../../../../../../../scripts/ui.js";
+
+const linkSetting = (name, setter, value, attrs) => {
+    const link = $el("a", {
+        href: attrs.href || "#",
+        target: attrs.target || "_blank",
+        textContent: attrs.text || "Open Link",
+        style: {
+            color: "#007bff",
+            textDecoration: "underline",
+            cursor: "pointer",
+            display: "block",
+            padding: "8px 0",
+        },
+    });
+
+    return link;
+};
 
 app.registerExtension({
     name: "sn0w.CustomCharacterNode",
     init() {
-        setting = app.ui.settings.addSetting(settingDefinition);
+        app.ui.settings.addSetting({
+            id: "sn0w.CharacterSettings.ManageVisibleSeries",
+            name: "Manage Visible Series",
+            type: linkSetting,
+            attrs: {
+                href: "/sn0w/series_selector",
+                target: "_blank",
+                text: "Manage Visible Series",
+            },
+        });
     },
     async setup() {
         const existingContextMenu = LiteGraph.ContextMenu;

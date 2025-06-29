@@ -1,12 +1,13 @@
 import importlib
 import json
 import os
-from pathlib import Path
+from server import PromptServer
+from aiohttp import web
 
 from .src.dynamic_lora_loader import generate_lora_node_class
 from .src.dynamic_scheduler_loader import generate_scheduler_node_class
 from .src.check_folder_paths import check_lora_folders
-from .sn0w import ConfigReader, Logger
+from .sn0w import CharacterLoader, ConfigReader, Logger
 
 from .src.lora_selector import LoraSelectorNode
 from .src.lora_tester import LoraTestNode
@@ -152,54 +153,174 @@ def register_scheduler_node(module):
         NODE_DISPLAY_NAME_MAPPINGS[class_name] = class_name
 
 
-def index_images():
-    """
-    Create a JSON index of all images in the web/images directory and its subfolders.
-    """
-    try:
-        # Get the script's directory and construct path to images using Path
-        script_dir = Path(os.path.dirname(os.path.realpath(__file__)))
-        images_dir = script_dir.joinpath("web", "images")
-
-        # Ensure directory exists
-        if not images_dir.exists():
-            print(f"Warning: Directory not found: {images_dir}")
-            return False
-
-        # Get all image files recursively
-        image_files = []
-        for ext in [".png", ".jpg", ".jpeg", ".webp"]:
-            image_files.extend(images_dir.rglob(f"*{ext}"))
-
-        # Create image entries
-        images = []
-        for img_path in image_files:
-            images.append(
-                {
-                    "filename": img_path.stem,
-                    "path": str(img_path.relative_to(script_dir)).replace("web", "extensions\\ComfyUI-Sn0w-Scripts"),
-                }
-            )
-
-        # Create output data
-        output = {"images": images, "count": len(images)}
-
-        # Write JSON file
-        json_path = images_dir.joinpath("images.json")
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(output, f, indent=2)
-
-        print(f"Created index with {len(images)} images at {json_path}")
-        return True
-
-    except Exception as e:
-        print(f"Error creating image index: {str(e)}")
-        return False
-
-
 # Register custom nodes
 generate_and_register_all_lora_nodes()
 import_and_register_scheduler_nodes()
 
-# Create image index
-index_images()
+API_PREFIX = "/sn0w"
+
+
+def get_all_series():
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    csv_path = os.path.join(dir_path, "web/settings/characters.csv")
+    return CharacterLoader.get_all_series(csv_path)
+
+
+@PromptServer.instance.routes.get(f"{API_PREFIX}/series")
+async def series_endpoint(request):
+    return web.json_response({"series": get_all_series()})
+
+
+@PromptServer.instance.routes.get(f"{API_PREFIX}/visible_series")
+async def get_visible_series(request):
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "web/settings/visible_series.json")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return web.json_response({"visible_series": data})
+    return web.json_response({"visible_series": []})
+
+
+@PromptServer.instance.routes.post(f"{API_PREFIX}/visible_series")
+async def set_visible_series(request):
+    data = await request.json()
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "web/settings/visible_series.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data.get("visible_series", []), f)
+    return web.json_response({"status": "ok"})
+
+
+@PromptServer.instance.routes.get(f"{API_PREFIX}/series_selector")
+async def serve_series_selector(request):
+    html = """
+    <html>
+    <head>
+        <title>Select Series</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Arial, sans-serif;
+                background: #181a20;
+                margin: 0;
+                padding: 0;
+                color: #e6e6e6;
+            }
+            .container {
+                max-width: 520px;
+                margin: 48px auto;
+                background: #23242b;
+                border-radius: 14px;
+                padding: 36px 28px 28px 28px;
+            }
+            h2 {
+                margin-top: 0;
+                color: #fff;
+                font-size: 1.6em;
+                margin-bottom: 0px;
+                letter-spacing: 0.5px;
+            }
+            #series-list {
+                border-radius: 8px;
+                padding: 10px 0 0 0;
+                background: transparent;
+                border: none;
+                max-height: calc(100vh - 300px);
+                overflow: auto;
+            }
+            label {
+                display: flex;
+                align-items: center;
+                font-size: 1.13em;
+                cursor: pointer;
+                border-radius: 6px;
+                transition: background 0.15s;
+            }
+            label:hover {
+                background: #292b33;
+            }
+            input[type="checkbox"] {
+                margin-right: 12px;
+                accent-color: #4fa3ff;
+                width: 18px;
+                height: 18px;
+            }
+            button {
+                background-color: #4fa3ff;
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+                padding: 12px 28px;
+                font-size: 1.08em;
+                cursor: pointer;
+                font-weight: 500;
+                transition: background 0.2s;
+            }
+            button:hover {
+                background-color: #2366d1;
+            }
+            #result {
+                margin-top: 18px;
+                color: #4fa3ff;
+                font-weight: bold;
+                min-height: 24px;
+                letter-spacing: 0.2px;
+            }
+            @media (max-width: 600px) {
+                .container {
+                    max-width: 98vw;
+                    padding: 18px 4vw 18px 4vw;
+                }
+                h2 {
+                    font-size: 1.2em;
+                }
+                label {
+                    font-size: 1em;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Select Series to Show in Dropdown</h2>
+            <div id="series-list"></div>
+            <button onclick="save()">Save</button>
+            <div id="result"></div>
+        </div>
+        <script>
+        let allSeries = [];
+        function load() {
+            fetch('/sn0w/series').then(r=>r.json()).then(data=>{
+                allSeries = data.series;
+                fetch('/sn0w/visible_series').then(r2=>r2.json()).then(vs=>{
+                    let div = document.getElementById('series-list');
+                    div.innerHTML = '';
+                    let visible = vs.visible_series;
+                    // If none selected, select all by default
+                    if (!visible || visible.length === 0) visible = allSeries;
+                    allSeries.forEach(s=>{
+                        let checked = visible.includes(s) ? 'checked' : '';
+                        // Create the Danbooru link
+                        let tag = encodeURIComponent(s.replace(/ /g, "_"));
+                        let link = `<a href="https://danbooru.donmai.us/posts?tags=${tag}" target="_blank" style="margin-left:8px;color:#4fa3ff;text-decoration:underline;font-size:0.95em;">link</a>`;
+                        div.innerHTML += `<label><input type="checkbox" value="${s}" ${checked}>${s}${link}</label>`;
+                    });
+                });
+            });
+        }
+        function save() {
+            let cbs = document.querySelectorAll('#series-list input[type=checkbox]');
+            let vals = [];
+            cbs.forEach(cb=>{ if(cb.checked) vals.push(cb.value); });
+            fetch('/sn0w/visible_series', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({visible_series: vals})
+            }).then(r=>r.json()).then(data=>{
+                document.getElementById('result').innerText = 'Saved!';
+            });
+        }
+        window.onload = load;
+        </script>
+    </body>
+    </html>
+    """
+    return web.Response(text=html, content_type="text/html")

@@ -1,13 +1,12 @@
 import os
 import json
-import csv
 import re
 import comfy.samplers
 import comfy.utils
 import numpy as np
 from PIL import Image
 from nodes import VAEDecode
-from ..sn0w import Logger
+from ..sn0w import CharacterLoader, Logger
 from .simple_ksampler import SimpleSamplerCustom
 
 # File paths
@@ -30,99 +29,24 @@ class GenerateCharactersNode:
 
     @classmethod
     def load_characters(cls):
-        cls.character_dict = {}
-        series_set = set()
-        series_counter = {}
         base_dir = cls.get_base_dir()
+        cls.character_dict = CharacterLoader.get_filtered_character_dict(base_dir, include_default=True)
 
-        # Load default characters from CSV
-        csv_path = os.path.join(base_dir, CHARACTER_FILE_PATH)
-        try:
-            with open(csv_path, "r", encoding="utf-8") as file:
-                csv_reader = csv.DictReader(file)
-                for row in csv_reader:
-                    character = cls.process_csv_row(row)
-                    if character:
-                        cls.character_dict[character["name"]] = character
-                        series = character["series"]
-                        series_set.add(series)
-                        if series not in series_counter:
-                            series_counter[series] = 0
-                        series_counter[series] += 1
-        except FileNotFoundError:
-            cls.logger.log(f"Character CSV file not found at: {csv_path}", "WARNING")
-        except Exception as e:
-            cls.logger.log(f"Error reading character CSV file: {e}", "ERROR")
+        # Build series list with counts from filtered characters
+        series_counter = {}
+        for character in cls.character_dict.values():
+            series = CharacterLoader.get_character_series(character)
+            if series:
+                series_counter[series] = series_counter.get(series, 0) + 1
 
-        # Load custom characters from JSON
-        custom_json_path = os.path.join(base_dir, CUSTOM_CHARACTER_FILE_PATH)
-        if os.path.exists(custom_json_path):
-            try:
-                with open(custom_json_path, "r", encoding="utf-8") as file:
-                    custom_character_data = json.load(file)
-                    for custom_character in custom_character_data:
-                        name = custom_character.get("name", "")
-                        series = custom_character.get("series", "Custom")
-                        if name in cls.character_dict:
-                            # Merge with existing character
-                            existing = cls.character_dict[name]
-                            existing["associated_string"] += ", " + custom_character.get("associated_string", "")
-                            existing["prompt"] += ", " + custom_character.get("prompt", "")
-                            if "clothing_tags" in custom_character:
-                                existing["clothing_tags"] += ", " + custom_character["clothing_tags"]
-                        else:
-                            # Add new custom character
-                            custom_character["series"] = series
-                            cls.character_dict[name] = custom_character
-                            series_set.add(series)
-                            if series not in series_counter:
-                                series_counter[series] = 0
-                            series_counter[series] += 1
-            except Exception as e:
-                cls.logger.log(f"Error reading custom character JSON file: {e}", "ERROR")
-
-        # Build series list with counts
         series_list_with_counts = []
-        for series in sorted(series_set):
-            count = series_counter.get(series, 0)
+        for series in sorted(series_counter.keys()):
+            count = series_counter[series]
             if series:
                 series_list_with_counts.append(f"{series} ({count})")
+
         cls.series_list = ["All"] + series_list_with_counts
         return cls.character_dict
-
-    @classmethod
-    def process_csv_row(cls, row):
-        """Process a CSV row and convert it to character format"""
-        try:
-            name = row.get("name", "").strip()
-            tags = row.get("tags", "").strip()
-            copyright_tags = row.get("copyright_tags", "").strip()
-            clothing_tags = row.get("clothing_tags", "").strip()
-
-            if not name or not copyright_tags:
-                return None
-
-            display_name = name.replace("_", " ")
-            import re
-
-            display_name = re.sub(r"\([^)]*\)", "", display_name).strip()
-
-            copyright_list = [tag.strip() for tag in copyright_tags.split(",")]
-            series = copyright_list[1] if len(copyright_list) > 1 else copyright_list[0] if copyright_list else ""
-
-            final_name = f"{display_name} ({series})" if series else display_name
-
-            return {
-                "name": final_name,
-                "series": series,
-                "associated_string": copyright_tags,
-                "prompt": tags,
-                "clothing_tags": clothing_tags,
-            }
-
-        except Exception as e:
-            cls.logger.log(f"Error processing CSV row: {e}", "ERROR")
-            return None
 
     @classmethod
     def initialize(cls):

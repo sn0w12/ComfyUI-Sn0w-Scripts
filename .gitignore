@@ -22,3 +22,4 @@ web/images/*.webp
 web/images/images.json
 web/images/*/*
 /models
+web/settings/visible_series.json

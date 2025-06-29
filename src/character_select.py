@@ -1,13 +1,13 @@
 import json
 import os
-import csv
 import random
 
-from ..sn0w import ConfigReader, Logger
+from ..sn0w import CharacterLoader, ConfigReader, Logger
 
 # File paths
 CHARACTER_FILE_PATH = "web/settings/characters.csv"
 CUSTOM_CHARACTER_FILE_PATH = "web/settings/custom_characters.json"
+VISIBLE_SERIES_PATH = "web/settings/visible_series.json"
 
 
 class CharacterSelectNode:
@@ -56,81 +56,13 @@ class CharacterSelectNode:
 
     @classmethod
     def load_characters(cls, dir_path):
-        character_data = []
-        if not cls.cached_default_character_setting:
-            csv_path = os.path.join(dir_path, CHARACTER_FILE_PATH)
-            try:
-                with open(csv_path, "r", encoding="utf-8") as file:
-                    csv_reader = csv.DictReader(file)
-                    for row in csv_reader:
-                        character = cls.process_csv_row(row)
-                        if character:
-                            character_data.append(character)
-            except FileNotFoundError:
-                cls.logger.log(f"Character CSV file not found at: {csv_path}", "WARNING")
-            except Exception as e:
-                cls.logger.log(f"Error reading character CSV file: {e}", "ERROR")
-
-        custom_json_path = os.path.join(dir_path, CUSTOM_CHARACTER_FILE_PATH)
-        if not os.path.exists(custom_json_path):
-            cls.logger.log(
-                f"Custom character file doesn't exist. Please create the json file at: {custom_json_path}", "WARNING"
-            )
-        else:
-            with open(custom_json_path, "r", encoding="utf-8") as file:
-                custom_character_data = json.load(file)
-                for custom_character in custom_character_data:
-                    for character in character_data:
-                        if custom_character["name"] == character["name"]:
-                            character["associated_string"] += ", " + custom_character["associated_string"]
-                            character["prompt"] += ", " + custom_character["prompt"]
-                            break
-                    else:
-                        character_data.append(custom_character)
-
-        cls.character_dict = {character["name"]: character for character in character_data}
-
+        include_default = not cls.cached_default_character_setting
+        cls.character_dict = CharacterLoader.get_character_dict(dir_path, include_default)
         cls.sort_characters(True)
-
-    @classmethod
-    def process_csv_row(cls, row):
-        """Process a CSV row and convert it to character format"""
-        try:
-            name = row.get("name", "").strip()
-            tags = row.get("tags", "").strip()
-            copyright_tags = row.get("copyright_tags", "").strip()
-
-            if not name or not copyright_tags:
-                return None
-
-            display_name = name.replace("_", " ")
-            # Remove anything in parentheses from display name
-            import re
-
-            display_name = re.sub(r"\([^)]*\)", "", display_name).strip()
-
-            copyright_list = [tag.strip() for tag in copyright_tags.split(",")]
-            series = copyright_list[1] if len(copyright_list) > 1 else copyright_list[0] if copyright_list else ""
-
-            # Format final name with series in parentheses
-            final_name = f"{display_name} ({series})" if series else display_name
-
-            return {
-                "name": final_name,
-                "associated_string": copyright_tags,
-                "prompt": tags,
-            }
-
-        except Exception as e:
-            cls.logger.log(f"Error processing CSV row: {e}", "ERROR")
-            return None
 
     @staticmethod
     def extract_series_name(character_name):
-        series = character_name.split("(")[-1].split(")")[0].strip()
-        if character_name == series:
-            Logger().log(f"{character_name} has no series name.", "DEBUG")
-        return series
+        return CharacterLoader.extract_series_name(character_name)
 
     @classmethod
     def sort_characters(cls, force_sort=False):
@@ -166,7 +98,9 @@ class CharacterSelectNode:
     @classmethod
     def INPUT_TYPES(cls):
         cls.check_initialize()
-        character_names = ["None"] + list(cls.final_characters) + ["SN0W_CHARACTER_SELECTOR"]
+        dir_path = cls.get_base_dir()
+        filtered_character_names = CharacterLoader.get_filtered_character_list(dir_path, cls.final_character_dict)
+        character_names = ["None"] + filtered_character_names + ["SN0W_CHARACTER_SELECTOR"]
         return {
             "required": {
                 "character": (character_names,),
