@@ -1,11 +1,12 @@
-import os
 import json
+import os
+import csv
 import random
 
-from ..sn0w import ConfigReader, Logger, Utility
+from ..sn0w import ConfigReader, Logger
 
 # File paths
-CHARACTER_FILE_PATH = "web/settings/characters.json"
+CHARACTER_FILE_PATH = "web/settings/characters.csv"
 CUSTOM_CHARACTER_FILE_PATH = "web/settings/custom_characters.json"
 
 
@@ -57,9 +58,18 @@ class CharacterSelectNode:
     def load_characters(cls, dir_path):
         character_data = []
         if not cls.cached_default_character_setting:
-            json_path = os.path.join(dir_path, CHARACTER_FILE_PATH)
-            with open(json_path, "r", encoding="utf-8") as file:
-                character_data = json.load(file)
+            csv_path = os.path.join(dir_path, CHARACTER_FILE_PATH)
+            try:
+                with open(csv_path, "r", encoding="utf-8") as file:
+                    csv_reader = csv.DictReader(file)
+                    for row in csv_reader:
+                        character = cls.process_csv_row(row)
+                        if character:
+                            character_data.append(character)
+            except FileNotFoundError:
+                cls.logger.log(f"Character CSV file not found at: {csv_path}", "WARNING")
+            except Exception as e:
+                cls.logger.log(f"Error reading character CSV file: {e}", "ERROR")
 
         custom_json_path = os.path.join(dir_path, CUSTOM_CHARACTER_FILE_PATH)
         if not os.path.exists(custom_json_path):
@@ -81,6 +91,39 @@ class CharacterSelectNode:
         cls.character_dict = {character["name"]: character for character in character_data}
 
         cls.sort_characters(True)
+
+    @classmethod
+    def process_csv_row(cls, row):
+        """Process a CSV row and convert it to character format"""
+        try:
+            name = row.get("name", "").strip()
+            tags = row.get("tags", "").strip()
+            copyright_tags = row.get("copyright_tags", "").strip()
+
+            if not name or not copyright_tags:
+                return None
+
+            display_name = name.replace("_", " ")
+            # Remove anything in parentheses from display name
+            import re
+
+            display_name = re.sub(r"\([^)]*\)", "", display_name).strip()
+
+            copyright_list = [tag.strip() for tag in copyright_tags.split(",")]
+            series = copyright_list[1] if len(copyright_list) > 1 else copyright_list[0] if copyright_list else ""
+
+            # Format final name with series in parentheses
+            final_name = f"{display_name} ({series})" if series else display_name
+
+            return {
+                "name": final_name,
+                "associated_string": copyright_tags,
+                "prompt": tags,
+            }
+
+        except Exception as e:
+            cls.logger.log(f"Error processing CSV row: {e}", "ERROR")
+            return None
 
     @staticmethod
     def extract_series_name(character_name):

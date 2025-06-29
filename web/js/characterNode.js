@@ -2,6 +2,9 @@ import { app } from "../../../scripts/app.js";
 
 app.registerExtension({
     name: "sn0w.CustomCharacterNode",
+    init() {
+        setting = app.ui.settings.addSetting(settingDefinition);
+    },
     async setup() {
         const existingContextMenu = LiteGraph.ContextMenu;
         LiteGraph.ContextMenu = function (values, options) {
