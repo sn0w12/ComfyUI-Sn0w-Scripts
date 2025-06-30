@@ -443,7 +443,6 @@ class CharacterLoader:
     Methods:
         load_characters_from_csv(csv_path): Load characters from CSV file
         load_custom_characters(json_path): Load custom characters from JSON file
-        process_csv_row(row): Process a single CSV row into character format
         get_all_series(csv_path): Get all unique series from character data
         merge_characters(csv_characters, custom_characters): Merge CSV and custom character data
         get_character_dict(base_dir, include_default=True): Get complete character dictionary
@@ -458,55 +457,61 @@ class CharacterLoader:
     logger = Logger()
 
     @classmethod
-    def process_csv_row(cls, row):
-        """Process a CSV row and convert it to character format"""
-        try:
-            name = row.get("name", "").strip()
-            tags = row.get("tags", "").strip()
-            copyright_tags = row.get("copyright_tags", "").strip()
-            clothing_tags = row.get("clothing_tags", "").strip()
-
-            if not name or not copyright_tags:
-                return None
-
-            display_name = name.replace("_", " ")
-            display_name = re.sub(r"\([^)]*\)", "", display_name).strip()
-
-            copyright_list = [tag.strip() for tag in copyright_tags.split(",")]
-            series = copyright_list[1] if len(copyright_list) > 1 else copyright_list[0] if copyright_list else ""
-
-            # Format final name with series in parentheses
-            final_name = f"{display_name} ({series})" if series else display_name
-
-            return {
-                "name": final_name,
-                "series": series,
-                "associated_string": copyright_tags,
-                "prompt": tags,
-                "clothing_tags": clothing_tags,
-            }
-
-        except Exception as e:
-            cls.logger.log(f"Error processing CSV row: {e}", "ERROR")
-            return None
-
-    @classmethod
     def load_characters_from_csv(cls, csv_path):
         """Load characters from CSV file"""
         characters = {}
+        parentheses_pattern = re.compile(r"\([^)]*\)")
+
         try:
             with open(csv_path, "r", encoding="utf-8") as file:
                 csv_reader = csv.DictReader(file)
+                batch = []
+                batch_size = 1000
+
                 for row in csv_reader:
-                    character = cls.process_csv_row(row)
-                    if character:
-                        characters[character["name"]] = character
+                    batch.append(row)
+                    if len(batch) >= batch_size:
+                        cls._process_csv_batch(batch, characters, parentheses_pattern)
+                        batch.clear()
+
+                # Process remaining rows
+                if batch:
+                    cls._process_csv_batch(batch, characters, parentheses_pattern)
         except FileNotFoundError:
             cls.logger.log(f"Character CSV file not found at: {csv_path}", "WARNING")
         except Exception as e:
             cls.logger.log(f"Error reading character CSV file: {e}", "ERROR")
 
         return characters
+
+    @classmethod
+    def _process_csv_batch(cls, batch, characters, parentheses_pattern):
+        """Process a batch of CSV rows"""
+        for row in batch:
+            try:
+                name = row.get("name", "").strip()
+                copyright_tags = row.get("copyright_tags", "").strip()
+
+                if not name or not copyright_tags:
+                    continue
+
+                display_name = name.replace("_", " ")
+                display_name = parentheses_pattern.sub("", display_name).strip()
+                copyright_list = [tag.strip() for tag in copyright_tags.split(",")]
+                series = copyright_list[1] if len(copyright_list) > 1 else copyright_list[0] if copyright_list else ""
+
+                final_name = f"{display_name} ({series})" if series else display_name
+
+                characters[final_name] = {
+                    "name": final_name,
+                    "series": series,
+                    "associated_string": copyright_tags,
+                    "prompt": row.get("tags", "").strip(),
+                    "clothing_tags": row.get("clothing_tags", "").strip(),
+                }
+            except Exception as e:
+                cls.logger.log(f"Error processing CSV row: {e}", "ERROR")
+                continue
 
     @classmethod
     def load_custom_characters(cls, json_path):
@@ -537,17 +542,23 @@ class CharacterLoader:
     def merge_characters(cls, csv_characters, custom_characters):
         """Merge CSV and custom character data"""
         merged = csv_characters.copy()
+        custom_lookup = {custom["name"]: custom for custom in custom_characters if "name" in custom}
 
-        for custom_character in custom_characters:
-            name = custom_character.get("name", "")
+        for name, custom_character in custom_lookup.items():
             custom_character["is_custom"] = True
 
             if name in merged:
                 existing = merged[name]
-                existing["associated_string"] += ", " + custom_character.get("associated_string", "")
-                existing["prompt"] += ", " + custom_character.get("prompt", "")
+                existing["associated_string"] = ", ".join(
+                    filter(None, [existing.get("associated_string", ""), custom_character.get("associated_string", "")])
+                )
+                existing["prompt"] = ", ".join(
+                    filter(None, [existing.get("prompt", ""), custom_character.get("prompt", "")])
+                )
                 if "clothing_tags" in custom_character:
-                    existing["clothing_tags"] += ", " + custom_character["clothing_tags"]
+                    existing["clothing_tags"] = ", ".join(
+                        filter(None, [existing.get("clothing_tags", ""), custom_character["clothing_tags"]])
+                    )
                 existing["is_custom"] = True
             else:
                 merged[name] = custom_character
@@ -589,11 +600,17 @@ class CharacterLoader:
 
     @classmethod
     def extract_series_name(cls, character_name):
-        """Extract series name from character name"""
-        if "(" in character_name and ")" in character_name:
-            # Extract text between the last set of parentheses
-            series = character_name.split("(")[-1].split(")")[0].strip()
-            return series
+        """Extract series name from character name with regex"""
+        if not character_name or "(" not in character_name:
+            return ""
+
+        # Find the last occurrence of parentheses
+        last_open = character_name.rfind("(")
+        last_close = character_name.rfind(")")
+
+        if last_open != -1 and last_close > last_open:
+            return character_name[last_open + 1 : last_close].strip()
+
         return ""
 
     @classmethod
