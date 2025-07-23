@@ -53,7 +53,7 @@ class GenerateCharactersNode:
     @classmethod
     def initialize(cls):
         base_dir = cls.get_base_dir()
-        cls.json_path = os.path.join(base_dir, "..", "ComfyUI-Syntax-Highlight", IMAGES_FILE_PATH)
+        cls.json_path = os.path.join(base_dir, "..", "ComfyUI-Syntax-Highlighting", IMAGES_FILE_PATH)
         cls.characters_dir = os.path.join(os.path.dirname(cls.json_path), "characters")
         os.makedirs(cls.characters_dir, exist_ok=True)
         return cls.load_characters()
