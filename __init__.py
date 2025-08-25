@@ -161,9 +161,7 @@ API_PREFIX = "/sn0w"
 
 
 def get_all_series():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    csv_path = os.path.join(dir_path, "web/settings/characters.csv")
-    return CharacterLoader.get_all_series(csv_path)
+    return CharacterLoader.get_all_series()
 
 
 @PromptServer.instance.routes.get(f"{API_PREFIX}/series")

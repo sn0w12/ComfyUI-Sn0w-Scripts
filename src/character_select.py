@@ -30,9 +30,7 @@ class CharacterSelectNode:
 
     @classmethod
     def INPUT_TYPES(cls):
-        dir_path = cls.get_base_dir()
         filtered_character_names = CharacterLoader.get_filtered_character_dict(
-            dir_path,
             include_default=not ConfigReader.get_setting("sn0w.CharacterSettings.DisableDefaultCharacters", False),
         )
         cls.character_dict = filtered_character_names

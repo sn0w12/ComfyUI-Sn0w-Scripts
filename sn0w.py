@@ -437,85 +437,49 @@ class MessageHolder:
 
 
 class CharacterLoader:
-    """
-    Centralized character loading system for managing character data across the application.
-
-    Methods:
-        load_characters_from_csv(csv_path): Load characters from CSV file
-        load_custom_characters(json_path): Load custom characters from JSON file
-        get_all_series(csv_path): Get all unique series from character data
-        merge_characters(csv_characters, custom_characters): Merge CSV and custom character data
-        get_character_dict(base_dir, include_default=True): Get complete character dictionary
-        extract_series_name(character_name): Extract series name from character name
-        get_character_series(character_data): Get series from character data object
-        load_visible_series(base_dir): Load visible series from JSON file
-        filter_characters_by_visible_series(characters, visible_series): Filter characters by visible series
-        get_filtered_character_list(base_dir, characters): Get character list filtered by visible series
-        get_filtered_character_dict(base_dir, include_default): Get filtered character dictionary
-    """
-
     logger = Logger()
+    _default_characters = None
+    _custom_characters = None
+    _merged_characters = None
+    _base_dir = None
 
     @classmethod
-    def load_characters_from_csv(cls, csv_path):
-        """Load characters from CSV file"""
-        characters = {}
-        parentheses_pattern = re.compile(r"\([^)]*\)")
-
-        try:
-            with open(csv_path, "r", encoding="utf-8") as file:
-                csv_reader = csv.DictReader(file)
-                batch = []
-                batch_size = 1000
-
-                for row in csv_reader:
-                    batch.append(row)
-                    if len(batch) >= batch_size:
-                        cls._process_csv_batch(batch, characters, parentheses_pattern)
-                        batch.clear()
-
-                # Process remaining rows
-                if batch:
-                    cls._process_csv_batch(batch, characters, parentheses_pattern)
-        except FileNotFoundError:
-            cls.logger.log(f"Character CSV file not found at: {csv_path}", "WARNING")
-        except Exception as e:
-            cls.logger.log(f"Error reading character CSV file: {e}", "ERROR")
-
-        return characters
+    def _get_base_dir(cls):
+        if cls._base_dir is not None:
+            return cls._base_dir
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        if os.path.basename(dir_path) == "src":
+            dir_path = os.path.dirname(dir_path)
+        cls._base_dir = dir_path
+        return cls._base_dir
 
     @classmethod
-    def _process_csv_batch(cls, batch, characters, parentheses_pattern):
-        """Process a batch of CSV rows"""
-        for row in batch:
+    def _load_default_characters(cls):
+        if cls._default_characters is not None:
+            return cls._default_characters
+        base_dir = cls._get_base_dir()
+        json_path = os.path.join(base_dir, "web/settings/characters.json")
+        if os.path.exists(json_path):
+            start_time = time.time()
             try:
-                name = row.get("name", "").strip()
-                copyright_tags = row.get("copyright_tags", "").strip()
-
-                if not name or not copyright_tags:
-                    continue
-
-                display_name = name.replace("_", " ")
-                display_name = parentheses_pattern.sub("", display_name).strip()
-                copyright_list = [tag.strip() for tag in copyright_tags.split(",")]
-                series = copyright_list[1] if len(copyright_list) > 1 else copyright_list[0] if copyright_list else ""
-
-                final_name = f"{display_name} ({series})" if series else display_name
-
-                characters[final_name] = {
-                    "name": final_name,
-                    "series": series,
-                    "associated_string": copyright_tags,
-                    "prompt": row.get("tags", "").strip(),
-                    "clothing_tags": row.get("clothing_tags", "").strip(),
-                }
+                with open(json_path, "r", encoding="utf-8") as file:
+                    cls._default_characters = json.load(file)
+                elapsed = time.time() - start_time
+                cls.logger.log(f"Parsed characters from {json_path} in {elapsed:.3f} seconds", "DEBUG")
             except Exception as e:
-                cls.logger.log(f"Error processing CSV row: {e}", "ERROR")
-                continue
+                cls.logger.log(f"Error reading character JSON file: {e}", "ERROR")
+                cls._default_characters = {}
+        else:
+            cls.logger.log(f"Character JSON file doesn't exist at: {json_path}", "WARNING")
+            cls._default_characters = {}
+        return cls._default_characters
 
     @classmethod
-    def load_custom_characters(cls, json_path):
-        """Load custom characters from JSON file"""
+    def _load_custom_characters(cls):
+        if cls._custom_characters is not None:
+            return cls._custom_characters
+        base_dir = cls._get_base_dir()
+        json_path = os.path.join(base_dir, "web/settings/custom_characters.json")
         custom_characters = []
         if os.path.exists(json_path):
             try:
@@ -535,18 +499,19 @@ class CharacterLoader:
                 cls.logger.log(f"Error reading custom character JSON file: {e}", "ERROR")
         else:
             cls.logger.log(f"Custom character file doesn't exist at: {json_path}", "DEBUG")
-
-        return custom_characters
+        cls._custom_characters = custom_characters
+        return cls._custom_characters
 
     @classmethod
-    def merge_characters(cls, csv_characters, custom_characters):
-        """Merge CSV and custom character data"""
+    def _merge_characters(cls):
+        if cls._merged_characters is not None:
+            return cls._merged_characters
+        csv_characters = cls._load_default_characters()
+        custom_characters = cls._load_custom_characters()
         merged = csv_characters.copy()
         custom_lookup = {custom["name"]: custom for custom in custom_characters if "name" in custom}
-
         for name, custom_character in custom_lookup.items():
             custom_character["is_custom"] = True
-
             if name in merged:
                 existing = merged[name]
                 existing["associated_string"] = ", ".join(
@@ -562,55 +527,47 @@ class CharacterLoader:
                 existing["is_custom"] = True
             else:
                 merged[name] = custom_character
-
-        return merged
+        cls._merged_characters = merged
+        return cls._merged_characters
 
     @classmethod
-    def get_all_series(cls, csv_path):
-        """Get all unique series from character CSV file"""
-        series_set = set()
-        try:
-            with open(csv_path, "r", encoding="utf-8") as file:
-                csv_reader = csv.DictReader(file)
-                for row in csv_reader:
-                    copyright_tags = row.get("copyright_tags", "")
-                    if copyright_tags:
-                        copyright_list = [tag.strip() for tag in copyright_tags.split(",")]
-                        if len(copyright_list) > 1:
-                            series_set.add(copyright_list[1])
-                        elif copyright_list:
-                            series_set.add(copyright_list[0])
-        except Exception as e:
-            cls.logger.log(f"Error reading series from CSV: {e}", "WARNING")
+    def reload(cls):
+        """Force reload of all character data from disk."""
+        cls._default_characters = None
+        cls._custom_characters = None
+        cls._merged_characters = None
+        cls._base_dir = None
 
+    @classmethod
+    def get_all_series(cls):
+        """Get all unique series from the default character data (dict format)"""
+        default_characters = cls._load_default_characters()
+        series_set = set()
+        for char in default_characters.values():
+            series = char.get("series", "")
+            if series:
+                series_set.add(series)
         return sorted(series_set)
 
     @classmethod
-    def get_character_dict(cls, base_dir, include_default=True):
+    def get_character_dict(cls, include_default=True):
         """Get complete character dictionary with optional default characters"""
-        csv_path = os.path.join(base_dir, "web/settings/characters.csv")
-        custom_json_path = os.path.join(base_dir, "web/settings/custom_characters.json")
-
-        csv_characters = {}
         if include_default:
-            csv_characters = cls.load_characters_from_csv(csv_path)
-        custom_characters = cls.load_custom_characters(custom_json_path)
-
-        return cls.merge_characters(csv_characters, custom_characters)
+            return cls._merge_characters()
+        else:
+            # Only custom characters
+            custom_characters = cls._load_custom_characters()
+            return {c["name"]: c for c in custom_characters if "name" in c}
 
     @classmethod
     def extract_series_name(cls, character_name):
         """Extract series name from character name with regex"""
         if not character_name or "(" not in character_name:
             return ""
-
-        # Find the last occurrence of parentheses
         last_open = character_name.rfind("(")
         last_close = character_name.rfind(")")
-
         if last_open != -1 and last_close > last_open:
             return character_name[last_open + 1 : last_close].strip()
-
         return ""
 
     @classmethod
@@ -621,8 +578,9 @@ class CharacterLoader:
         return ""
 
     @classmethod
-    def load_visible_series(cls, base_dir):
+    def load_visible_series(cls):
         """Load visible series from JSON file"""
+        base_dir = cls._get_base_dir()
         visible_series_path = os.path.join(base_dir, "web/settings/visible_series.json")
         try:
             with open(visible_series_path, "r", encoding="utf-8") as f:
@@ -640,10 +598,8 @@ class CharacterLoader:
         """Filter characters by visible series using character data. Excludes custom characters from filtering"""
         if not visible_series:
             return characters
-
         filtered = {}
         for name, char_data in characters.items():
-            # Always include custom characters
             if char_data.get("is_custom", False):
                 filtered[name] = char_data
             else:
@@ -651,18 +607,16 @@ class CharacterLoader:
                 if char_series in visible_series:
                     filtered[name] = char_data
                 else:
-                    # Log for debugging
                     cls.logger.log(
                         f"Character '{name}' with series '{char_series}' not in visible series: {visible_series}",
                         "DEBUG",
                     )
-
         return filtered
 
     @classmethod
-    def get_filtered_character_list(cls, base_dir, characters):
+    def get_filtered_character_list(cls, characters):
         """Get character list filtered by visible series"""
-        visible_series = cls.load_visible_series(base_dir)
+        visible_series = cls.load_visible_series()
         if visible_series:
             filtered_characters = cls.filter_characters_by_visible_series(characters, visible_series)
             return list(filtered_characters.keys())
@@ -670,11 +624,10 @@ class CharacterLoader:
             return list(characters.keys())
 
     @classmethod
-    def get_filtered_character_dict(cls, base_dir, include_default=True):
+    def get_filtered_character_dict(cls, include_default=True):
         """Get complete character dictionary filtered by visible series"""
-        characters = cls.get_character_dict(base_dir, include_default)
-        visible_series = cls.load_visible_series(base_dir)
-
+        characters = cls.get_character_dict(include_default)
+        visible_series = cls.load_visible_series()
         if visible_series:
             return cls.filter_characters_by_visible_series(characters, visible_series)
         else:

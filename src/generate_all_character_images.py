@@ -29,8 +29,7 @@ class GenerateCharactersNode:
 
     @classmethod
     def load_characters(cls):
-        base_dir = cls.get_base_dir()
-        cls.character_dict = CharacterLoader.get_filtered_character_dict(base_dir, include_default=True)
+        cls.character_dict = CharacterLoader.get_filtered_character_dict(include_default=True)
 
         # Build series list with counts from filtered characters
         series_counter = {}
@@ -176,10 +175,13 @@ class GenerateCharactersNode:
             # Build prompt components
             char_string = f"({char_item['associated_string']}:1.1), "
             char_prompt = char_item["prompt"]
+            char_gender = char_item.get("gender", "")
             clothing_prompt = char_item.get("clothing_tags", "") if include_clothing else ""
 
             # Combine prompts
-            prompt_parts = [part for part in [char_string, char_prompt, clothing_prompt, orig_positive] if part.strip()]
+            prompt_parts = [
+                part for part in [char_gender, char_string, char_prompt, clothing_prompt, orig_positive] if part.strip()
+            ]
             positive = ", ".join(prompt_parts).strip(", ")
             kwargs["positive"] = positive
 
