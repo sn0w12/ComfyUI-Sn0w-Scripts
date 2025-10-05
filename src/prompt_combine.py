@@ -118,18 +118,14 @@ class CombineStringNode:
         # Reinsert parenthesized parts and handle removed tags
         final_tags_with_parentheses = []
         for tag in final_tags:
-            while "\0" in tag:
-                try:
-                    start_index = tag.find("\0") + 1
-                    end_index = tag.rfind("\0")
-                    index = int(tag[start_index:end_index].strip())
-                    tag = tag.replace(f"\0{index}\0", parenthesized_parts[index], 1)
-                except ValueError:
-                    self.logger.log(f"Error converting tag index in tag: {tag}", "ERROR")
-                    break
-            else:
-                # If no ValueError was caught, add the tag to the final list
-                final_tags_with_parentheses.append(tag)
+            pattern = r"\0(\d+)\0"
+
+            def repl(m):
+                idx = int(m.group(1))
+                return parenthesized_parts[idx]
+
+            tag = re.sub(pattern, repl, tag)
+            final_tags_with_parentheses.append(tag)
 
         simplified_tags_string = separator.join(final_tags_with_parentheses).strip(separator)
         removed_tags_string = separator.join(removed_tags).strip(separator)
@@ -175,12 +171,8 @@ class CombineStringNode:
                     match_map[groups[1]] = groups[0]
                     temp_string = temp_string.replace(match.group(), f"|{groups[1]}|")
             else:
-                if "none" in match_map:
-                    match_map["none"] += separator + groups[0]
-                    temp_string = temp_string.replace(match.group(), "")
-                else:
-                    match_map["none"] = groups[0]
-                    temp_string = temp_string.replace(match.group(), "|none|")
+                # For parentheses without strength, keep them separate - replace immediately
+                temp_string = temp_string.replace(match.group(), f"({groups[0]})")
 
         for key, value in match_map.items():
             if key == "none":
