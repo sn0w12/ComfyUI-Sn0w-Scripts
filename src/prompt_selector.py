@@ -1,10 +1,10 @@
 import os
 import json
+from transformers import pipeline
 
 
 class PromptSelectNode:
-    positive_prompts = {}
-    negative_prompts = {}
+    prompts = {}
 
     @classmethod
     def load_prompts(cls):
@@ -13,27 +13,19 @@ class PromptSelectNode:
         if os.sep + "src" in dir_path:
             dir_path = dir_path.replace(os.sep + "src", "")
 
-        # Define the path to the JSON file containing prompts
         json_path = os.path.join(dir_path, "prompts.json")
-
-        # Load prompts from the JSON file
         with open(json_path, "r", encoding="utf-8") as file:
-            prompts = json.load(file)
-
-        # Separate positive and negative prompts into dictionaries
-        cls.positive_prompts = {item["name"]: item["prompt"] for item in prompts[0]["positive"]}
-        cls.negative_prompts = {item["name"]: item["prompt"] for item in prompts[0]["negative"]}
+            cls.prompts = json.load(file)
 
     @classmethod
     def INPUT_TYPES(cls):
         cls.load_prompts()
-        # Generate input types dynamically from the loaded prompts
-        positive_prompt_names = ["None"] + list(cls.positive_prompts.keys())
-        negative_prompt_names = ["None"] + list(cls.negative_prompts.keys())
+        model_names = list(cls.prompts.keys())
         return {
             "required": {
-                "positive": (positive_prompt_names,),
-                "negative": (negative_prompt_names,),
+                "prompt": ("STRING", {"default": ""}),
+                "model": (model_names,),
+                "skip_classification": ("BOOLEAN", {"default": False}),
             },
         }
 
@@ -43,8 +35,21 @@ class PromptSelectNode:
     FUNCTION = "find_chosen_prompts"
     CATEGORY = "sn0w"
 
-    def find_chosen_prompts(self, positive, negative):
-        # Lookup the prompt name in both positive and negative dictionaries and return the associated strings
-        positive_prompt = self.positive_prompts.get(positive, "")
-        negative_prompt = self.negative_prompts.get(negative, "")
+    def find_chosen_prompts(self, prompt, model, skip_classification):
+        if skip_classification:
+            positive_prompt = self.prompts.get(model, {}).get("positive", "")
+            negative_prompt = self.prompts.get(model, {}).get("negative", "")
+            return (positive_prompt, negative_prompt)
+
+        classifier = pipeline("sentiment-analysis", model="michellejieli/NSFW_text_classifier")
+        result = classifier(prompt)
+
+        is_nsfw = result[0]["label"] == "NSFW"
+        if is_nsfw:
+            positive_prompt = self.prompts.get(model, {}).get("positive_nsfw", "")
+            negative_prompt = self.prompts.get(model, {}).get("negative", "")
+        else:
+            positive_prompt = self.prompts.get(model, {}).get("positive", "")
+            negative_prompt = self.prompts.get(model, {}).get("negative_sfw", "")
+
         return (positive_prompt, negative_prompt)

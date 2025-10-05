@@ -1,53 +1,20 @@
-[
-    {
-        "positive": [
-            {
-                "name": "Positive_Ani",
-                "prompt": "(masterpiece, exceptional, best aesthetic, best quality, masterpiece, extremely detailed:1.1), "
-            },
-            {
-                "name": "Positive Pony",
-                "prompt": "(score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK:1.1)"
-            },
-            {
-                "name": "Positive Pony Explicit",
-                "prompt": "(score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK, rating_explicit, uncensored:1.1)"
-            },
-            {
-                "name": "Positive Pony Realistic",
-                "prompt": "(score_9, score_8_up, score_7_up, score_6_up, photo \\(medium\\), BREAK:1.1)"
-            },
-            {
-                "name": "Positive Illust",
-                "prompt": "masterpiece, best quality, newest, absurdres, highres, uncensored"
-            },
-            {
-                "name": "Positive Illust sfw",
-                "prompt": "masterpiece, best quality, newest, absurdres, highres"
-            }
-        ],
-        "negative": [
-            {
-                "name": "Negative_XL_Ani",
-                "prompt": "(lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts:1.15), (signature, watermark, username, gumroad username, patreon username, artist name:1.1), multiple views, text, error, blurry"
-            },
-            {
-                "name": "Negative_safe_XL_Ani",
-                "prompt": "(lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts:1.15), (rating:explicit, rating:questionable, rating:sensitive, signature, watermark, username, gumroad username, patreon username, artist name:1.1), multiple views, text, error, blurry"
-            },
-            {
-                "name": "Negative_1.5",
-                "prompt": "embedding:aid210, embedding:easynegative, embedding:verybadimagenegative_v1.3, speech bubble, disfigured, extra limbs, low quality, blurred, multiple views, futanari, loli, chibi, gumroad username, patreon username, (extra fingers, watermark, deformed hands, polydactyl, asymmetrical breasts, monochrome, greyscale:1.1)"
-            },
-
-            {
-                "name": "Negative Pony",
-                "prompt": "score_4, score_3, score_2, score_1, score_0, censored, monochrome, 3d, signature, watermark, username, speech bubble, embedding:zPDXLxxx"
-            },
-            {
-                "name": "Negative Illust",
-                "prompt": "worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, deformed hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro"
-            }
-        ]
+{
+    "Animagine": {
+        "positive": "(masterpiece, exceptional, best aesthetic, best quality, masterpiece, extremely detailed:1.1)",
+        "positive_nsfw": "(masterpiece, exceptional, best aesthetic, best quality, masterpiece, extremely detailed, uncensored:1.1)",
+        "negative": "(lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts:1.15), (signature, watermark, username, gumroad username, patreon username, artist name:1.1), multiple views, text, error, blurry",
+        "negative_sfw": "(lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts:1.15), (rating:explicit, rating:questionable, rating:sensitive, signature, watermark, username, gumroad username, patreon username, artist name:1.1), multiple views, text, error, blurry"
+    },
+    "Pony": {
+        "positive": "(score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK:1.1)",
+        "positive_nsfw": "(score_9, score_8_up, score_7_up, score_6_up, source_anime, BREAK, rating_explicit, uncensored:1.1)",
+        "negative": "score_4, score_3, score_2, score_1, score_0, censored, monochrome, 3d, signature, watermark, username, speech bubble",
+        "negative_sfw": "score_4, score_3, score_2, score_1, score_0, monochrome, 3d, signature, watermark, username, speech bubble, nude, explicit"
+    },
+    "Illust": {
+        "positive": "masterpiece, best quality, newest, absurdres, highres",
+        "positive_nsfw": "masterpiece, best quality, newest, absurdres, highres, uncensored",
+        "negative": "worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, deformed hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro",
+        "negative_sfw": "worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, deformed hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro, nude, explicit"
     }
-]
+}
