@@ -6,11 +6,11 @@ import comfy.utils
 import numpy as np
 from PIL import Image
 from nodes import VAEDecode
-from ..sn0w import CharacterLoader, Logger
+from ..sn0w import CharacterLoader, ConfigReader, Logger
 from .simple_ksampler import SimpleSamplerCustom
 
 # File paths
-IMAGES_FILE_PATH = "web/images/images.json"
+IMAGES_FILE = "images.json"
 CHARACTER_FILE_PATH = "web/settings/characters.csv"
 CUSTOM_CHARACTER_FILE_PATH = "web/settings/custom_characters.json"
 
@@ -26,6 +26,18 @@ class GenerateCharactersNode:
         if os.path.basename(dir_path) == "src":
             dir_path = os.path.dirname(dir_path)
         return dir_path
+
+    @classmethod
+    def get_preview_image_path(cls):
+        path: str = ConfigReader.get_setting("SyntaxHighlighting.preview-image-save-path", "./web/images")
+        base_dir = cls.get_base_dir()
+
+        if path.startswith("./"):
+            path = os.path.join(base_dir, path[2:])
+        else:
+            path = os.path.abspath(path)
+
+        return path
 
     @classmethod
     def load_characters(cls):
@@ -44,16 +56,14 @@ class GenerateCharactersNode:
             if series:
                 series_list_with_counts.append(f"{series} ({count})")
 
-        # Calculate total count for "All" option
         total_count = len(cls.character_dict)
         cls.series_list = [f"All ({total_count})"] + series_list_with_counts
         return cls.character_dict
 
     @classmethod
     def initialize(cls):
-        base_dir = cls.get_base_dir()
-        cls.json_path = os.path.join(base_dir, "..", "ComfyUI-Syntax-Highlighting", IMAGES_FILE_PATH)
-        cls.characters_dir = os.path.join(os.path.dirname(cls.json_path), "characters")
+        cls.json_path = os.path.join(cls.get_preview_image_path(), IMAGES_FILE)
+        cls.characters_dir = os.path.join(cls.get_preview_image_path(), "characters")
         os.makedirs(cls.characters_dir, exist_ok=True)
         return cls.load_characters()
 
@@ -163,7 +173,7 @@ class GenerateCharactersNode:
         images = []
         for character_name, char_item in characters_to_process.items():
             cleaned_name = character_name.split("(")[0].strip().lower()
-            cleaned_name = cleaned_name.replace(" ", "_")
+            cleaned_name = cleaned_name.replace(" ", "_").replace("/", "")
 
             # Skip if image already exists
             if cleaned_name in existing_filenames:
@@ -212,20 +222,6 @@ class GenerateCharactersNode:
                 i = 255.0 * decoded_image[0].cpu().numpy()
                 img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
                 img.save(image_path)
-
-                # Add to images.json
-                with open(self.json_path, "r+", encoding="utf-8") as f:
-                    data = json.load(f)
-                    data["images"].append(
-                        {
-                            "filename": cleaned_name,
-                            "path": f"extensions\\ComfyUI-Syntax-Highlight\\images\\characters\\{cleaned_name}.png",
-                        }
-                    )
-                    data["count"] = len(data["images"])
-                    f.seek(0)
-                    json.dump(data, f, indent=2)
-                    f.truncate()
             pbar.update(1)
 
         return (images,)
