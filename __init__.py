@@ -188,6 +188,15 @@ async def set_visible_series(request):
     return web.json_response({"status": "ok"})
 
 
+@PromptServer.instance.routes.get(f"{API_PREFIX}/series/{{series}}/characters")
+async def get_characters_by_series_endpoint(request):
+    series = request.match_info.get("series", "")
+    if not series:
+        return web.json_response({"error": "Series name is required"}, status=400)
+    characters = CharacterLoader.get_characters_by_series(series)
+    return web.json_response({"series": series, "characters": characters})
+
+
 @PromptServer.instance.routes.get(f"{API_PREFIX}/series_selector")
 async def serve_series_selector(request):
     html = """

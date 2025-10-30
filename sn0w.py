@@ -633,6 +633,16 @@ class CharacterLoader:
         else:
             return characters
 
+    @classmethod
+    def get_characters_by_series(cls, series_name):
+        """Get all characters in a specific series"""
+        characters = cls.get_character_dict()
+        series_characters = {}
+        for name, char_data in characters.items():
+            if cls.get_character_series(char_data).lower() == series_name.lower():
+                series_characters[name] = char_data
+        return series_characters
+
 
 API_PREFIX = "/sn0w"
 
