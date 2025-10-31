@@ -438,6 +438,7 @@ class MessageHolder:
 
 class CharacterDBLoader:
     def __init__(self):
+        start = time.perf_counter()
         self.logger = Logger()
         self.db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web", "characters", "characters.db")
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)  # Allow multi-thread access
@@ -446,8 +447,11 @@ class CharacterDBLoader:
         self.logger.log(f"Connected to database at {self.db_path}", "DEBUG")
         self._ensure_table()
         self._custom_characters = self._load_custom_characters()
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader __init__ took {duration:.4f} seconds", "DEBUG")
 
     def _ensure_table(self):
+        start = time.perf_counter()
         with self.lock:
             self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS characters (
@@ -461,9 +465,12 @@ class CharacterDBLoader:
             )
             """)
             self.conn.commit()
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader _ensure_table took {duration:.4f} seconds", "DEBUG")
 
     def _load_custom_characters(self):
         """Load custom characters from JSON and return as dict."""
+        start = time.perf_counter()
         base_dir = os.path.dirname(os.path.dirname(self.db_path))
         custom_json_path = os.path.join(base_dir, "settings/custom_characters.json")
         custom_dict = {}
@@ -490,6 +497,8 @@ class CharacterDBLoader:
                 self.logger.log(f"Error loading custom characters: {e}", "ERROR")
         else:
             self.logger.log("Custom characters JSON file not found", "DEBUG")
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader _load_custom_characters took {duration:.4f} seconds", "DEBUG")
         return custom_dict
 
     def _extract_series_name(self, character_name):
@@ -504,10 +513,11 @@ class CharacterDBLoader:
 
     def _get_db_characters(self):
         """Get characters from DB."""
+        start = time.perf_counter()
         with self.lock:
             self.cursor.execute("SELECT * FROM characters")
             rows = self.cursor.fetchall()
-        return {
+        result = {
             row[0]: {
                 "gender": row[1],
                 "series": row[2],
@@ -518,9 +528,13 @@ class CharacterDBLoader:
             }
             for row in rows
         }
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader _get_db_characters took {duration:.4f} seconds", "DEBUG")
+        return result
 
     def get_all_characters(self):
         """Get all characters from DB and custom merged."""
+        start = time.perf_counter()
         db_chars = self._get_db_characters()
         merged = db_chars.copy()
         for name, char in self._custom_characters.items():
@@ -540,55 +554,90 @@ class CharacterDBLoader:
         self.logger.log(
             f"Merged {len(db_chars)} DB characters with {len(self._custom_characters)} custom characters", "DEBUG"
         )
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader get_all_characters took {duration:.4f} seconds", "DEBUG")
         return merged
 
     def get_characters_by_series(self, series_name):
         """Get characters by series from merged data."""
+        start = time.perf_counter()
         all_chars = self.get_all_characters()
-        return {name: char for name, char in all_chars.items() if char["series"] == series_name}
+        result = {name: char for name, char in all_chars.items() if char["series"] == series_name}
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader get_characters_by_series took {duration:.4f} seconds", "DEBUG")
+        return result
 
     def get_all_series(self):
         """Get all series from merged data."""
+        start = time.perf_counter()
         all_chars = self.get_all_characters()
         series_set = set(char["series"] for char in all_chars.values() if char["series"])
-        return sorted(series_set)
+        result = sorted(series_set)
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader get_all_series took {duration:.4f} seconds", "DEBUG")
+        return result
 
     def get_filtered_characters(self, visible_series=None):
         """Get filtered characters from merged data."""
+        start = time.perf_counter()
         all_chars = self.get_all_characters()
         if visible_series:
-            return {
+            result = {
                 name: char
                 for name, char in all_chars.items()
                 if char.get("is_custom") or char["series"] in visible_series
             }
-        return all_chars
+        else:
+            result = all_chars
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader get_filtered_characters took {duration:.4f} seconds", "DEBUG")
+        return result
 
     def load_visible_series(self):
         """Load visible series from JSON file"""
+        start = time.perf_counter()
         base_dir = os.path.dirname(os.path.dirname(self.db_path))
         visible_series_path = os.path.join(base_dir, "settings/visible_series.json")
         try:
             with open(visible_series_path, "r", encoding="utf-8") as f:
-                visible_series = json.load(f)
+                content = f.read().strip()
+                if not content:
+                    raise FileNotFoundError("File is empty")
+                visible_series = json.loads(content)
                 self.logger.log(f"Loaded {len(visible_series) if visible_series else 0} visible series", "DEBUG")
-                return set(visible_series) if visible_series else None
+                result = set(visible_series) if visible_series else None
         except FileNotFoundError:
-            self.logger.log(f"Visible series file not found at: {visible_series_path}", "WARNING")
-            return None
+            self.logger.log(f"Visible series file not found or empty at: {visible_series_path}", "WARNING")
+            all_series = self.get_all_series()
+            os.makedirs(os.path.dirname(visible_series_path), exist_ok=True)
+            with open(visible_series_path, "w", encoding="utf-8") as f:
+                json.dump(all_series, f)
+            result = set(all_series)
         except Exception as e:
             self.logger.log(f"Error reading visible series file: {e}", "ERROR")
-            return None
+            all_series = self.get_all_series()
+            os.makedirs(os.path.dirname(visible_series_path), exist_ok=True)
+            with open(visible_series_path, "w", encoding="utf-8") as f:
+                json.dump(all_series, f)
+            result = set(all_series)
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader load_visible_series took {duration:.4f} seconds", "DEBUG")
+        return result
 
     def get_visible_characters(self, include_default=True):
         """Get characters filtered by visible series or only custom if include_default is False"""
+        start = time.perf_counter()
         if not include_default:
-            return self._custom_characters
+            result = self._custom_characters
         else:
             visible_series = self.load_visible_series()
-            return self.get_filtered_characters(visible_series)
+            result = self.get_filtered_characters(visible_series)
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader get_visible_characters took {duration:.4f} seconds", "DEBUG")
+        return result
 
     def insert_character(self, name, gender, series="", associated_string="", prompt="", clothing_tags="", is_custom=0):
+        start = time.perf_counter()
         # Only insert if not custom, or handle custom separately
         if is_custom:
             self.logger.log(f"Skipping insert for custom character: {name}", "DEBUG")
@@ -606,11 +655,16 @@ class CharacterDBLoader:
                     (name, gender, series, associated_string, prompt, clothing_tags, is_custom),
                 )
                 self.conn.commit()
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader insert_character took {duration:.4f} seconds", "DEBUG")
 
     def close(self):
+        start = time.perf_counter()
         self.logger.log("Closing database connection", "DEBUG")
         with self.lock:
             self.conn.close()
+        duration = time.perf_counter() - start
+        self.logger.log(f"CharacterDBLoader close took {duration:.4f} seconds", "DEBUG")
 
 
 API_PREFIX = "/sn0w"

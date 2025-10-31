@@ -172,12 +172,9 @@ async def series_endpoint(request):
 
 @PromptServer.instance.routes.get(f"{API_PREFIX}/visible_series")
 async def get_visible_series(request):
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "web/settings/visible_series.json")
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return web.json_response({"visible_series": data})
-    return web.json_response({"visible_series": []})
+    db = CharacterDBLoader()
+    visible_series = db.load_visible_series()
+    return web.json_response({"visible_series": list(visible_series) if visible_series else []})
 
 
 @PromptServer.instance.routes.post(f"{API_PREFIX}/visible_series")
@@ -201,135 +198,7 @@ async def get_characters_by_series_endpoint(request):
 
 @PromptServer.instance.routes.get(f"{API_PREFIX}/series_selector")
 async def serve_series_selector(request):
-    html = """
-    <html>
-    <head>
-        <title>Select Series</title>
-        <style>
-            body {
-                font-family: 'Segoe UI', Arial, sans-serif;
-                background: #181a20;
-                margin: 0;
-                padding: 0;
-                color: #e6e6e6;
-            }
-            .container {
-                max-width: 520px;
-                margin: 48px auto;
-                background: #23242b;
-                border-radius: 14px;
-                padding: 36px 28px 28px 28px;
-            }
-            h2 {
-                margin-top: 0;
-                color: #fff;
-                font-size: 1.6em;
-                margin-bottom: 0px;
-                letter-spacing: 0.5px;
-            }
-            #series-list {
-                border-radius: 8px;
-                padding: 10px 0 0 0;
-                background: transparent;
-                border: none;
-                max-height: calc(100vh - 300px);
-                overflow: auto;
-            }
-            label {
-                display: flex;
-                align-items: center;
-                font-size: 1.13em;
-                cursor: pointer;
-                border-radius: 6px;
-                transition: background 0.15s;
-            }
-            label:hover {
-                background: #292b33;
-            }
-            input[type="checkbox"] {
-                margin-right: 12px;
-                accent-color: #4fa3ff;
-                width: 18px;
-                height: 18px;
-            }
-            button {
-                background-color: #4fa3ff;
-                color: #fff;
-                border: none;
-                border-radius: 6px;
-                padding: 12px 28px;
-                font-size: 1.08em;
-                cursor: pointer;
-                font-weight: 500;
-                transition: background 0.2s;
-            }
-            button:hover {
-                background-color: #2366d1;
-            }
-            #result {
-                margin-top: 18px;
-                color: #4fa3ff;
-                font-weight: bold;
-                min-height: 24px;
-                letter-spacing: 0.2px;
-            }
-            @media (max-width: 600px) {
-                .container {
-                    max-width: 98vw;
-                    padding: 18px 4vw 18px 4vw;
-                }
-                h2 {
-                    font-size: 1.2em;
-                }
-                label {
-                    font-size: 1em;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h2>Select Series to Show in Dropdown</h2>
-            <div id="series-list"></div>
-            <button onclick="save()">Save</button>
-            <div id="result"></div>
-        </div>
-        <script>
-        let allSeries = [];
-        function load() {
-            fetch('/sn0w/series').then(r=>r.json()).then(data=>{
-                allSeries = data.series;
-                fetch('/sn0w/visible_series').then(r2=>r2.json()).then(vs=>{
-                    let div = document.getElementById('series-list');
-                    div.innerHTML = '';
-                    let visible = vs.visible_series;
-                    // If none selected, select all by default
-                    if (!visible || visible.length === 0) visible = allSeries;
-                    allSeries.forEach(s=>{
-                        let checked = visible.includes(s) ? 'checked' : '';
-                        // Create the Danbooru link
-                        let tag = encodeURIComponent(s.replace(/ /g, "_"));
-                        let link = `<a href="https://danbooru.donmai.us/posts?tags=${tag}" target="_blank" style="margin-left:8px;color:#4fa3ff;text-decoration:underline;font-size:0.95em;">link</a>`;
-                        div.innerHTML += `<label><input type="checkbox" value="${s}" ${checked}>${s}${link}</label>`;
-                    });
-                });
-            });
-        }
-        function save() {
-            let cbs = document.querySelectorAll('#series-list input[type=checkbox]');
-            let vals = [];
-            cbs.forEach(cb=>{ if(cb.checked) vals.push(cb.value); });
-            fetch('/sn0w/visible_series', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({visible_series: vals})
-            }).then(r=>r.json()).then(data=>{
-                document.getElementById('result').innerText = 'Saved!';
-            });
-        }
-        window.onload = load;
-        </script>
-    </body>
-    </html>
-    """
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "web", "characters", "index.html")
+    with open(path, "r", encoding="utf-8") as f:
+        html = f.read()
     return web.Response(text=html, content_type="text/html")
