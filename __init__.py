@@ -7,7 +7,7 @@ from aiohttp import web
 from .src.dynamic_lora_loader import generate_lora_node_class
 from .src.dynamic_scheduler_loader import generate_scheduler_node_class
 from .src.check_folder_paths import check_lora_folders
-from .sn0w import CharacterLoader, ConfigReader, Logger
+from .sn0w import CharacterDBLoader, ConfigReader, Logger
 
 from .src.lora_selector import LoraSelectorNode
 from .src.lora_tester import LoraTestNode
@@ -161,7 +161,8 @@ API_PREFIX = "/sn0w"
 
 
 def get_all_series():
-    return CharacterLoader.get_all_series()
+    db = CharacterDBLoader()
+    return db.get_all_series()
 
 
 @PromptServer.instance.routes.get(f"{API_PREFIX}/series")
@@ -190,10 +191,11 @@ async def set_visible_series(request):
 
 @PromptServer.instance.routes.get(f"{API_PREFIX}/series/{{series}}/characters")
 async def get_characters_by_series_endpoint(request):
+    db = CharacterDBLoader()
     series = request.match_info.get("series", "")
     if not series:
         return web.json_response({"error": "Series name is required"}, status=400)
-    characters = CharacterLoader.get_characters_by_series(series)
+    characters = db.get_characters_by_series(series)
     return web.json_response({"series": series, "characters": characters})
 
 

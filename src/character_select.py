@@ -1,7 +1,7 @@
 import os
 import random
 
-from ..sn0w import CharacterLoader, ConfigReader, Logger
+from ..sn0w import CharacterDBLoader, ConfigReader, Logger
 
 # File paths
 CHARACTER_FILE_PATH = "web/settings/characters.csv"
@@ -20,6 +20,7 @@ class CharacterSelectNode:
     character_dict = {}
     last_character = ""
     logger = Logger()
+    db = CharacterDBLoader()
 
     @classmethod
     def get_base_dir(cls):
@@ -30,7 +31,7 @@ class CharacterSelectNode:
 
     @classmethod
     def INPUT_TYPES(cls):
-        filtered_character_names = CharacterLoader.get_filtered_character_dict(
+        filtered_character_names = cls.db.get_visible_characters(
             include_default=not ConfigReader.get_setting("sn0w.CharacterSettings.DisableDefaultCharacters", False),
         )
         cls.character_dict = filtered_character_names

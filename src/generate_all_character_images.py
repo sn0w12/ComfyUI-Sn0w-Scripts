@@ -6,7 +6,7 @@ import comfy.utils
 import numpy as np
 from PIL import Image
 from nodes import VAEDecode
-from ..sn0w import CharacterLoader, ConfigReader, Logger
+from ..sn0w import CharacterDBLoader, ConfigReader, Logger
 from .simple_ksampler import SimpleSamplerCustom
 
 # File paths
@@ -17,6 +17,7 @@ CUSTOM_CHARACTER_FILE_PATH = "web/settings/custom_characters.json"
 
 class GenerateCharactersNode:
     logger = Logger()
+    db = CharacterDBLoader()
     character_dict = {}
     series_list = []
 
@@ -41,12 +42,12 @@ class GenerateCharactersNode:
 
     @classmethod
     def load_characters(cls):
-        cls.character_dict = CharacterLoader.get_filtered_character_dict(include_default=True)
+        cls.character_dict = cls.db.get_visible_characters(include_default=True)
 
         # Build series list with counts from filtered characters
         series_counter = {}
-        for character in cls.character_dict.values():
-            series = CharacterLoader.get_character_series(character)
+        for name, character in cls.character_dict.items():  # Iterate over key-value pairs
+            series = character.get("series", "")
             if series:
                 series_counter[series] = series_counter.get(series, 0) + 1
 
@@ -56,8 +57,7 @@ class GenerateCharactersNode:
             if series:
                 series_list_with_counts.append(f"{series} ({count})")
 
-        total_count = len(cls.character_dict)
-        cls.series_list = [f"All ({total_count})"] + series_list_with_counts
+        cls.series_list = ["All"] + series_list_with_counts
         return cls.character_dict
 
     @classmethod

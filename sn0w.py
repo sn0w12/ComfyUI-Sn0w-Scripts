@@ -8,12 +8,12 @@ Classes:
     MessageHolder: Manages communication between the JavaScript frontend and Python backend.
 """
 
-import csv
 import os
 import json
-import re
 import time
 import torch
+import sqlite3
+import threading
 
 from server import PromptServer
 from aiohttp import web
@@ -436,132 +436,64 @@ class MessageHolder:
             return [1] if asList else 1
 
 
-class CharacterLoader:
-    logger = Logger()
-    _default_characters = None
-    _custom_characters = None
-    _merged_characters = None
-    _base_dir = None
+class CharacterDBLoader:
+    def __init__(self):
+        self.logger = Logger()
+        self.db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web", "characters", "characters.db")
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)  # Allow multi-thread access
+        self.cursor = self.conn.cursor()
+        self.lock = threading.Lock()  # Add lock for thread-safety
+        self.logger.log(f"Connected to database at {self.db_path}", "DEBUG")
+        self._ensure_table()
+        self._custom_characters = self._load_custom_characters()
 
-    @classmethod
-    def _get_base_dir(cls):
-        if cls._base_dir is not None:
-            return cls._base_dir
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        if os.path.basename(dir_path) == "src":
-            dir_path = os.path.dirname(dir_path)
-        cls._base_dir = dir_path
-        return cls._base_dir
+    def _ensure_table(self):
+        with self.lock:
+            self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS characters (
+                name TEXT PRIMARY KEY,
+                gender TEXT,
+                series TEXT,
+                associated_string TEXT,
+                prompt TEXT,
+                clothing_tags TEXT,
+                is_custom INTEGER DEFAULT 0
+            )
+            """)
+            self.conn.commit()
 
-    @classmethod
-    def _load_default_characters(cls):
-        if cls._default_characters is not None:
-            return cls._default_characters
-        base_dir = cls._get_base_dir()
-        json_path = os.path.join(base_dir, "web/settings/characters.json")
-        if os.path.exists(json_path):
-            start_time = time.time()
+    def _load_custom_characters(self):
+        """Load custom characters from JSON and return as dict."""
+        base_dir = os.path.dirname(os.path.dirname(self.db_path))
+        custom_json_path = os.path.join(base_dir, "settings/custom_characters.json")
+        custom_dict = {}
+        if os.path.exists(custom_json_path):
             try:
-                with open(json_path, "r", encoding="utf-8") as file:
-                    cls._default_characters = json.load(file)
-                elapsed = time.time() - start_time
-                cls.logger.log(f"Parsed characters from {json_path} in {elapsed:.3f} seconds", "DEBUG")
+                with open(custom_json_path, "r", encoding="utf-8") as f:
+                    custom_list = json.load(f)
+                for char in custom_list:
+                    name = char.get("name", "").lower()
+                    if name:
+                        series = char.get("series", "")
+                        if not series:
+                            series = self._extract_series_name(name).lower() or "custom"
+                        custom_dict[name] = {
+                            "gender": char.get("gender", ""),
+                            "series": series,
+                            "associated_string": char.get("associated_string", ""),
+                            "prompt": char.get("prompt", ""),
+                            "clothing_tags": char.get("clothing_tags", ""),
+                            "is_custom": True,
+                        }
+                self.logger.log(f"Loaded {len(custom_dict)} custom characters", "DEBUG")
             except Exception as e:
-                cls.logger.log(f"Error reading character JSON file: {e}", "ERROR")
-                cls._default_characters = {}
+                self.logger.log(f"Error loading custom characters: {e}", "ERROR")
         else:
-            cls.logger.log(f"Character JSON file doesn't exist at: {json_path}", "WARNING")
-            cls._default_characters = {}
-        return cls._default_characters
+            self.logger.log("Custom characters JSON file not found", "DEBUG")
+        return custom_dict
 
-    @classmethod
-    def _load_custom_characters(cls):
-        if cls._custom_characters is not None:
-            return cls._custom_characters
-        base_dir = cls._get_base_dir()
-        json_path = os.path.join(base_dir, "web/settings/custom_characters.json")
-        custom_characters = []
-        if os.path.exists(json_path):
-            try:
-                with open(json_path, "r", encoding="utf-8") as file:
-                    custom_characters = json.load(file)
-                    for char in custom_characters:
-                        if "name" in char:
-                            char["name"] = char["name"].lower()
-                        if "series" not in char:
-                            extracted_series = cls.extract_series_name(char.get("name", "")).lower()
-                            char["series"] = extracted_series if extracted_series else "custom"
-                        else:
-                            char["series"] = char["series"].lower()
-                        if "clothing_tags" not in char:
-                            char["clothing_tags"] = ""
-            except Exception as e:
-                cls.logger.log(f"Error reading custom character JSON file: {e}", "ERROR")
-        else:
-            cls.logger.log(f"Custom character file doesn't exist at: {json_path}", "DEBUG")
-        cls._custom_characters = custom_characters
-        return cls._custom_characters
-
-    @classmethod
-    def _merge_characters(cls):
-        if cls._merged_characters is not None:
-            return cls._merged_characters
-        csv_characters = cls._load_default_characters()
-        custom_characters = cls._load_custom_characters()
-        merged = csv_characters.copy()
-        custom_lookup = {custom["name"]: custom for custom in custom_characters if "name" in custom}
-        for name, custom_character in custom_lookup.items():
-            custom_character["is_custom"] = True
-            if name in merged:
-                existing = merged[name]
-                existing["associated_string"] = ", ".join(
-                    filter(None, [existing.get("associated_string", ""), custom_character.get("associated_string", "")])
-                )
-                existing["prompt"] = ", ".join(
-                    filter(None, [existing.get("prompt", ""), custom_character.get("prompt", "")])
-                )
-                if "clothing_tags" in custom_character:
-                    existing["clothing_tags"] = ", ".join(
-                        filter(None, [existing.get("clothing_tags", ""), custom_character["clothing_tags"]])
-                    )
-                existing["is_custom"] = True
-            else:
-                merged[name] = custom_character
-        cls._merged_characters = merged
-        return cls._merged_characters
-
-    @classmethod
-    def reload(cls):
-        """Force reload of all character data from disk."""
-        cls._default_characters = None
-        cls._custom_characters = None
-        cls._merged_characters = None
-        cls._base_dir = None
-
-    @classmethod
-    def get_all_series(cls):
-        """Get all unique series from the default character data (dict format)"""
-        default_characters = cls._load_default_characters()
-        series_set = set()
-        for char in default_characters.values():
-            series = char.get("series", "")
-            if series:
-                series_set.add(series)
-        return sorted(series_set)
-
-    @classmethod
-    def get_character_dict(cls, include_default=True):
-        """Get complete character dictionary with optional default characters"""
-        if include_default:
-            return cls._merge_characters()
-        else:
-            # Only custom characters
-            custom_characters = cls._load_custom_characters()
-            return {c["name"]: c for c in custom_characters if "name" in c}
-
-    @classmethod
-    def extract_series_name(cls, character_name):
-        """Extract series name from character name with regex"""
+    def _extract_series_name(self, character_name):
+        """Extract series name from character name."""
         if not character_name or "(" not in character_name:
             return ""
         last_open = character_name.rfind("(")
@@ -570,78 +502,115 @@ class CharacterLoader:
             return character_name[last_open + 1 : last_close].strip()
         return ""
 
-    @classmethod
-    def get_character_series(cls, character_data):
-        """Get series from character data object (preferred method)"""
-        if isinstance(character_data, dict):
-            return character_data.get("series", "")
-        return ""
+    def _get_db_characters(self):
+        """Get characters from DB."""
+        with self.lock:
+            self.cursor.execute("SELECT * FROM characters")
+            rows = self.cursor.fetchall()
+        return {
+            row[0]: {
+                "gender": row[1],
+                "series": row[2],
+                "associated_string": row[3],
+                "prompt": row[4],
+                "clothing_tags": row[5],
+                "is_custom": bool(row[6]),
+            }
+            for row in rows
+        }
 
-    @classmethod
-    def load_visible_series(cls):
+    def get_all_characters(self):
+        """Get all characters from DB and custom merged."""
+        db_chars = self._get_db_characters()
+        merged = db_chars.copy()
+        for name, char in self._custom_characters.items():
+            if name in merged:
+                # Merge custom into existing
+                existing = merged[name]
+                existing["associated_string"] = ", ".join(
+                    filter(None, [existing.get("associated_string", ""), char.get("associated_string", "")])
+                )
+                existing["prompt"] = ", ".join(filter(None, [existing.get("prompt", ""), char.get("prompt", "")]))
+                existing["clothing_tags"] = ", ".join(
+                    filter(None, [existing.get("clothing_tags", ""), char.get("clothing_tags", "")])
+                )
+                existing["is_custom"] = True
+            else:
+                merged[name] = char
+        self.logger.log(
+            f"Merged {len(db_chars)} DB characters with {len(self._custom_characters)} custom characters", "DEBUG"
+        )
+        return merged
+
+    def get_characters_by_series(self, series_name):
+        """Get characters by series from merged data."""
+        all_chars = self.get_all_characters()
+        return {name: char for name, char in all_chars.items() if char["series"] == series_name}
+
+    def get_all_series(self):
+        """Get all series from merged data."""
+        all_chars = self.get_all_characters()
+        series_set = set(char["series"] for char in all_chars.values() if char["series"])
+        return sorted(series_set)
+
+    def get_filtered_characters(self, visible_series=None):
+        """Get filtered characters from merged data."""
+        all_chars = self.get_all_characters()
+        if visible_series:
+            return {
+                name: char
+                for name, char in all_chars.items()
+                if char.get("is_custom") or char["series"] in visible_series
+            }
+        return all_chars
+
+    def load_visible_series(self):
         """Load visible series from JSON file"""
-        base_dir = cls._get_base_dir()
-        visible_series_path = os.path.join(base_dir, "web/settings/visible_series.json")
+        base_dir = os.path.dirname(os.path.dirname(self.db_path))
+        visible_series_path = os.path.join(base_dir, "settings/visible_series.json")
         try:
             with open(visible_series_path, "r", encoding="utf-8") as f:
                 visible_series = json.load(f)
+                self.logger.log(f"Loaded {len(visible_series) if visible_series else 0} visible series", "DEBUG")
                 return set(visible_series) if visible_series else None
         except FileNotFoundError:
-            cls.logger.log(f"Visible series file not found at: {visible_series_path}", "DEBUG")
+            self.logger.log(f"Visible series file not found at: {visible_series_path}", "WARNING")
             return None
         except Exception as e:
-            cls.logger.log(f"Error reading visible series file: {e}", "WARNING")
+            self.logger.log(f"Error reading visible series file: {e}", "ERROR")
             return None
 
-    @classmethod
-    def filter_characters_by_visible_series(cls, characters, visible_series):
-        """Filter characters by visible series using character data. Excludes custom characters from filtering"""
-        if not visible_series:
-            return characters
-        filtered = {}
-        for name, char_data in characters.items():
-            if char_data.get("is_custom", False):
-                filtered[name] = char_data
-            else:
-                char_series = cls.get_character_series(char_data)
-                if char_series in visible_series:
-                    filtered[name] = char_data
-                else:
-                    cls.logger.log(
-                        f"Character '{name}' with series '{char_series}' not in visible series: {visible_series}",
-                        "DEBUG",
-                    )
-        return filtered
-
-    @classmethod
-    def get_filtered_character_list(cls, characters):
-        """Get character list filtered by visible series"""
-        visible_series = cls.load_visible_series()
-        if visible_series:
-            filtered_characters = cls.filter_characters_by_visible_series(characters, visible_series)
-            return list(filtered_characters.keys())
+    def get_visible_characters(self, include_default=True):
+        """Get characters filtered by visible series or only custom if include_default is False"""
+        if not include_default:
+            return self._custom_characters
         else:
-            return list(characters.keys())
+            visible_series = self.load_visible_series()
+            return self.get_filtered_characters(visible_series)
 
-    @classmethod
-    def get_filtered_character_dict(cls, include_default=True):
-        """Get complete character dictionary filtered by visible series"""
-        characters = cls.get_character_dict(include_default)
-        visible_series = cls.load_visible_series()
-        if visible_series:
-            return cls.filter_characters_by_visible_series(characters, visible_series)
+    def insert_character(self, name, gender, series="", associated_string="", prompt="", clothing_tags="", is_custom=0):
+        # Only insert if not custom, or handle custom separately
+        if is_custom:
+            self.logger.log(f"Skipping insert for custom character: {name}", "DEBUG")
+            # For custom, perhaps update the JSON, but since we're not modifying JSON, maybe just in memory
+            # But for now, assume insert is for DB only
+            pass
         else:
-            return characters
+            self.logger.log(f"Inserting character into DB: {name}", "DEBUG")
+            with self.lock:
+                self.cursor.execute(
+                    """
+            INSERT OR REPLACE INTO characters (name, gender, series, associated_string, prompt, clothing_tags, is_custom)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+                    (name, gender, series, associated_string, prompt, clothing_tags, is_custom),
+                )
+                self.conn.commit()
 
-    @classmethod
-    def get_characters_by_series(cls, series_name):
-        """Get all characters in a specific series"""
-        characters = cls.get_character_dict()
-        series_characters = {}
-        for name, char_data in characters.items():
-            if cls.get_character_series(char_data).lower() == series_name.lower():
-                series_characters[name] = char_data
-        return series_characters
+    def close(self):
+        self.logger.log("Closing database connection", "DEBUG")
+        with self.lock:
+            self.conn.close()
 
 
 API_PREFIX = "/sn0w"
