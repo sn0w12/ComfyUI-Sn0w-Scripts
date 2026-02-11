@@ -42,14 +42,15 @@ class GenerateCharactersNode:
 
     @classmethod
     def load_characters(cls):
-        series: list[SeriesInfo] = cls.db.get_all_series()
+        series = cls.db.get_all_series()
+        visible_series = cls.db.load_visible_series() or set()
 
         series_list_with_counts = []
         for series_info in series:
             count = len(series_info.get("characters", []))
             series_name = series_info.get("series", "")
 
-            if series_name:
+            if series_name in visible_series:
                 series_list_with_counts.append(f"{series_name} ({count})")
 
         cls.series_list = ["All"] + series_list_with_counts
@@ -130,7 +131,8 @@ class GenerateCharactersNode:
     ):
         simple_sampler = SimpleSamplerCustom()
         vae_decode = VAEDecode()
-        series: list[SeriesInfo] = self.db.get_all_series()
+        series = self.db.get_all_series()
+        visible_series = self.db.load_visible_series() or set()
         existing_filenames = self.load_existing_images()
 
         orig_positive = kwargs.get("positive", "")
@@ -143,6 +145,9 @@ class GenerateCharactersNode:
         # Build characters to process based on series filter
         characters_to_process = {}
         for s in series:
+            if s["series"] not in visible_series:
+                continue
+
             if selected_series == "All" or s["series"] == selected_series:
                 for char_name in s["characters"]:
                     char = self.db.get_character_by_name(char_name)
