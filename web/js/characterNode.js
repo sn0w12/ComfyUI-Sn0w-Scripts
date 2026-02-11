@@ -132,6 +132,7 @@ app.registerExtension({
                 content: "None",
                 disabled: false,
                 toString: simpleToString,
+                callback: newCallback,
             };
 
             const hierarchicalValues = [noneItem].concat(buildMenu(menuTree, 0));
