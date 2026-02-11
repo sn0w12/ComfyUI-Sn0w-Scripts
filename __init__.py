@@ -163,7 +163,7 @@ API_PREFIX = "/sn0w"
 @PromptServer.instance.routes.get(f"{API_PREFIX}/series")
 async def series_endpoint(request):
     db = CharacterDB()
-    series = db.get_all_series(remove_hidden_characters=False)
+    series = db.get_all_series_with_post_counts(remove_hidden_characters=False)
     return web.json_response(series)
 
 

@@ -125,16 +125,22 @@
                 align-items: start;
                 justify-content: space-between;
                 margin-bottom: 0.75rem;
+                gap: 0.25rem;
             }
 
             .top-controls {
                 display: flex;
                 gap: 0.5rem;
-                align-items: center;
+                align-items: end;
             }
 
             .top-controls .checkbox-label {
                 margin: 0;
+            }
+
+            .select-wrapper {
+                display: flex;
+                flex-direction: column;
             }
 
             .small-note {
@@ -142,7 +148,7 @@
                 color: var(--muted-foreground);
             }
 
-            .sort-select {
+            .select {
                 padding: 0.25rem 0.5rem;
                 border-radius: 0.375rem;
                 border: 1px solid var(--border);
@@ -152,13 +158,13 @@
                 cursor: pointer;
             }
 
-            .sort-select:focus-visible {
+            .select:focus-visible {
                 outline: none;
                 box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06);
                 border-color: var(--primary);
             }
 
-            .sort-select option {
+            .select option {
                 background: var(--card);
                 color: var(--card-foreground);
             }
@@ -298,6 +304,11 @@
                 text-decoration: none;
             }
 
+            .post-count {
+                color: var(--primary);
+                font-size: 0.85rem;
+            }
+
             .character-link:hover,
             .character-link:focus {
                 color: var(--primary);
@@ -389,6 +400,7 @@
                 return {
                     showSelectedOnly: urlParams.get("showSelectedOnly") === "true",
                     sort: urlParams.get("sort") || "alpha",
+                    charSort: urlParams.get("charSort") || "alpha",
                 };
             }
 
@@ -396,6 +408,7 @@
                 const url = new URL(window.location);
                 url.searchParams.set("showSelectedOnly", SHOW_ONLY_SELECTED.toString());
                 url.searchParams.set("sort", SORT_MODE);
+                url.searchParams.set("charSort", CHAR_SORT_MODE);
                 window.history.replaceState(null, "", url);
             }
 
@@ -468,7 +481,9 @@
                     filtered = filtered.filter((s) => VISIBLE_SERIES.includes(s.series));
                 }
 
-                const normalizeName = (n) => n.replace(/_/g, " ").trim().toLowerCase();
+                // Handles both legacy string characters and new {name, post_count} objects
+                const getCharName = (c) => (typeof c === "string" ? c : c && c.name ? c.name : "");
+                const normalizeName = (n) => getCharName(n).replace(/_/g, " ").trim().toLowerCase();
 
                 if (filtered.length === 0) {
                     const empty = document.createElement("div");
@@ -569,8 +584,7 @@
                         const ul = document.createElement("ul");
                         ul.className = "characters-list";
 
-                        // Helper to normalize names (match server normalization)
-                        const normalizeName = (n) => n.replace(/_/g, " ").trim().toLowerCase();
+                        // reuse getCharName / normalizeName defined in parent scope
 
                         const chars = (series.characters || []).slice();
 
@@ -584,9 +598,18 @@
                                 ul.appendChild(hideAllLi);
                             }
 
-                            const items = chars.filter((ch) => ch.toLowerCase().includes(term));
+                            const items = chars.filter((ch) => getCharName(ch).toLowerCase().includes(term));
 
-                            items.sort((a, b) => a.localeCompare(b));
+                            if (CHAR_SORT_MODE === "alpha") {
+                                items.sort((a, b) => getCharName(a).localeCompare(getCharName(b)));
+                            } else if (CHAR_SORT_MODE === "count") {
+                                items.sort((a, b) => {
+                                    const ca = typeof a === "object" && a.post_count != null ? Number(a.post_count) : 0;
+                                    const cb = typeof b === "object" && b.post_count != null ? Number(b.post_count) : 0;
+                                    if (cb !== ca) return cb - ca; // descending by post_count
+                                    return getCharName(a).localeCompare(getCharName(b));
+                                });
+                            }
 
                             items.forEach((ch) => {
                                 const li = document.createElement("li");
@@ -597,10 +620,12 @@
                                 labelChar.style.alignItems = "center";
                                 labelChar.style.gap = "0.5rem";
 
+                                const chName = getCharName(ch);
+
                                 const charCheckbox = document.createElement("input");
                                 charCheckbox.type = "checkbox";
                                 charCheckbox.className = "char-checkbox";
-                                charCheckbox.value = ch;
+                                charCheckbox.value = chName;
 
                                 const normalizedCh = normalizeName(ch);
                                 // Read current state from global HIDDEN_CHARACTERS and invert it for UI (checked = visible)
@@ -608,12 +633,12 @@
 
                                 const a = document.createElement("a");
                                 a.className = "character-link";
-                                const tagName = encodeURIComponent(ch).replace(/%20/g, "_");
+                                const tagName = encodeURIComponent(chName).replace(/%20/g, "_");
                                 a.href = `https://danbooru.donmai.us/posts?tags=${tagName}+solo`;
-                                a.textContent = ch;
+                                a.textContent = chName;
                                 a.target = "_blank";
                                 a.rel = "noopener noreferrer";
-                                a.title = `Search ${ch} on Danbooru`;
+                                a.title = `Search ${chName} on Danbooru`;
 
                                 // If hidden, mark visually (unchecked = hidden)
                                 if (!charCheckbox.checked) {
@@ -639,6 +664,14 @@
 
                                 labelChar.appendChild(charCheckbox);
                                 labelChar.appendChild(a);
+
+                                // Append post count badge if provided in object form
+                                if (typeof ch === "object" && ch.post_count != null) {
+                                    const postSpan = document.createElement("span");
+                                    postSpan.className = "post-count";
+                                    postSpan.textContent = ` (${ch.post_count})`;
+                                    labelChar.appendChild(postSpan);
+                                }
 
                                 li.appendChild(labelChar);
                                 ul.appendChild(li);
@@ -703,8 +736,8 @@
                             // Helper to update hide-all checkbox state based on current filter
                             updateHideAllState = (filterTerm = "") => {
                                 const term = (filterTerm || "").trim().toLowerCase();
-                                const items = chars.filter((ch) => ch.toLowerCase().includes(term));
-                                const normalizedItems = items.map((ch) => ch.replace(/_/g, " ").trim().toLowerCase());
+                                const items = chars.filter((ch) => getCharName(ch).toLowerCase().includes(term));
+                                const normalizedItems = items.map((ch) => normalizeName(ch));
                                 const total = normalizedItems.length;
                                 const hiddenCount = normalizedItems.filter((n) => HIDDEN_CHARACTERS.includes(n)).length;
                                 const visibleCount = total - hiddenCount;
@@ -716,9 +749,9 @@
                             // When hide-all (now "Show filtered") toggled, add/remove all filtered items accordingly
                             hideAllCheckbox.addEventListener("change", () => {
                                 const term = (currentFilter || "").trim().toLowerCase();
-                                const items = chars.filter((ch) => ch.toLowerCase().includes(term));
+                                const items = chars.filter((ch) => getCharName(ch).toLowerCase().includes(term));
                                 items.forEach((ch) => {
-                                    const n = ch.replace(/_/g, " ").trim().toLowerCase();
+                                    const n = normalizeName(ch);
                                     const idx = HIDDEN_CHARACTERS.indexOf(n);
                                     if (hideAllCheckbox.checked) {
                                         // checked => show all filtered => remove from hidden list
@@ -775,6 +808,7 @@
             let HIDDEN_CHARACTERS = [];
             let SHOW_ONLY_SELECTED = false;
             let SORT_MODE = "alpha";
+            let CHAR_SORT_MODE = "alpha";
 
             function closePopover() {
                 const pop = document.getElementById("seriesPopover");
@@ -871,6 +905,17 @@
                         renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, HIDDEN_CHARACTERS, value);
                     });
                 }
+
+                // Character sort handler
+                const charSortEl = document.getElementById("charSortSelect");
+                if (charSortEl) {
+                    charSortEl.addEventListener("change", (e) => {
+                        CHAR_SORT_MODE = e.target.value;
+                        updateURL();
+                        const value = (document.getElementById("seriesSearch")?.value || "").trim();
+                        renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, HIDDEN_CHARACTERS, value);
+                    });
+                }
             }
 
             async function submitVisibleSeries() {
@@ -920,8 +965,10 @@
                 const initial = getInitialStates();
                 SHOW_ONLY_SELECTED = initial.showSelectedOnly;
                 SORT_MODE = initial.sort;
+                CHAR_SORT_MODE = initial.charSort;
                 document.getElementById("showSelectedOnly").checked = SHOW_ONLY_SELECTED;
                 document.getElementById("sortSelect").value = SORT_MODE;
+                document.getElementById("charSortSelect").value = CHAR_SORT_MODE;
                 renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, HIDDEN_CHARACTERS);
                 setupSelectAll();
                 setupSearch();
@@ -935,11 +982,20 @@
             <div class="top-row">
                 <h1 id="series-heading" class="heading">Select Visible Series <span id="total-visible"></span></h1>
                 <div class="top-controls">
-                    <label for="sortSelect" class="small-note">Sort by:</label>
-                    <select id="sortSelect" class="sort-select">
-                        <option value="alpha">Alphabetical</option>
-                        <option value="count">Total Characters</option>
-                    </select>
+                    <div class="select-wrapper">
+                        <label for="sortSelect" class="small-note">Sort Series by:</label>
+                        <select id="sortSelect" class="select">
+                            <option value="alpha">Alphabetical</option>
+                            <option value="count">Total Characters</option>
+                        </select>
+                    </div>
+                    <div class="select-wrapper">
+                        <label for="charSortSelect" class="small-note">Sort Characters by:</label>
+                        <select id="charSortSelect" class="select">
+                            <option value="alpha">Alphabetical</option>
+                            <option value="count">Post Count</option>
+                        </select>
+                    </div>
                     <label class="checkbox-label" for="showSelectedOnly">
                         <input type="checkbox" id="showSelectedOnly" class="checkbox" />
                         <span class="label-text">Show only selected</span>

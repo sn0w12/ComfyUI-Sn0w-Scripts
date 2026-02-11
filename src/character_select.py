@@ -415,6 +415,29 @@ class CharacterDB:
 
             return [{"series": series_name, "characters": characters} for series_name, characters in sorted(series_map.items())]
 
+    def get_all_series_with_post_counts(self, remove_hidden_characters=True):
+        with self.lock:
+            self.cursor.execute("SELECT id, name, copyright, post_count FROM characters")
+            all_characters = self.cursor.fetchall()
+            # Extract only the first three elements (id, name, copyright) for the picker
+            all_characters_for_picker = [(id, name, copyright) for id, name, copyright, _ in all_characters]
+            pick_popular_copyright = self._build_copyright_picker(all_characters_for_picker)
+
+            hidden_characters = self.load_hidden_characters() if remove_hidden_characters else None
+
+            series_map = {}
+            for _, name, copyright_text, post_count in all_characters:
+                processed_name = self.process_tag(name).strip().lower()
+                if hidden_characters is not None and processed_name in hidden_characters:
+                    continue
+
+                selected_copyright = pick_popular_copyright(copyright_text)
+                if not selected_copyright:
+                    continue
+                series_map.setdefault(selected_copyright, []).append({"name": self.process_tag(name), "post_count": int(post_count)})
+
+            return [{"series": series_name, "characters": characters} for series_name, characters in sorted(series_map.items())]
+
     def get_random_character(self, valid_characters: list[str] | None = None) -> Character | None:
         """
         Get a random character from the available characters.
