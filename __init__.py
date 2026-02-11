@@ -7,11 +7,11 @@ from aiohttp import web
 from .src.dynamic_lora_loader import generate_lora_node_class
 from .src.dynamic_scheduler_loader import generate_scheduler_node_class
 from .src.check_folder_paths import check_lora_folders
-from .sn0w import CharacterDBLoader, ConfigReader, Logger
+from .sn0w import ConfigReader, Logger
 
 from .src.lora_selector import LoraSelectorNode
 from .src.lora_tester import LoraTestNode
-from .src.character_select import CharacterSelectNode
+from .src.character_select import CharacterSelectNode, CharacterDB
 from .src.prompt_combine import CombineStringNode
 from .src.lora_stacker import LoraStackerNode
 from .src.get_font_size import GetFontSizeNode
@@ -160,19 +160,16 @@ import_and_register_scheduler_nodes()
 API_PREFIX = "/sn0w"
 
 
-def get_all_series():
-    db = CharacterDBLoader()
-    return db.get_all_series()
-
-
 @PromptServer.instance.routes.get(f"{API_PREFIX}/series")
 async def series_endpoint(request):
-    return web.json_response({"series": get_all_series()})
+    db = CharacterDB()
+    series = db.get_all_series()
+    return web.json_response(series)
 
 
 @PromptServer.instance.routes.get(f"{API_PREFIX}/visible_series")
 async def get_visible_series(request):
-    db = CharacterDBLoader()
+    db = CharacterDB()
     visible_series = db.load_visible_series()
     return web.json_response({"visible_series": list(visible_series) if visible_series else []})
 
@@ -180,20 +177,12 @@ async def get_visible_series(request):
 @PromptServer.instance.routes.post(f"{API_PREFIX}/visible_series")
 async def set_visible_series(request):
     data = await request.json()
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "web/settings/visible_series.json")
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data.get("visible_series", []), f)
+    if data is None or "visible_series" not in data or not isinstance(data["visible_series"], list):
+        return web.json_response({"error": "Invalid request, 'visible_series' key missing or not a list"}, status=400)
+
+    db = CharacterDB()
+    db.set_visible_series(data.get("visible_series", []))
     return web.json_response({"status": "ok"})
-
-
-@PromptServer.instance.routes.get(f"{API_PREFIX}/series/{{series}}/characters")
-async def get_characters_by_series_endpoint(request):
-    db = CharacterDBLoader()
-    series = request.match_info.get("series", "")
-    if not series:
-        return web.json_response({"error": "Series name is required"}, status=400)
-    characters = db.get_characters_by_series(series)
-    return web.json_response({"series": series, "characters": characters})
 
 
 @PromptServer.instance.routes.get(f"{API_PREFIX}/series_selector")

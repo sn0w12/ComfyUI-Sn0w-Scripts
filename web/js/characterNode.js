@@ -40,105 +40,101 @@ app.registerExtension({
             }
 
             const originalCallback = options.callback;
-            const seriesGroups = {};
-            values.slice(1).forEach((value) => {
-                const match = value.match(/^(.+?)\s*\((.+?)\)$/);
-                if (match) {
-                    const [, , seriesName] = match;
-                    if (!seriesGroups[seriesName]) {
-                        seriesGroups[seriesName] = [];
-                    }
-                    seriesGroups[seriesName].push(value);
-                }
-            });
-
             const newCallback = (item, options) => {
-                if (originalCallback && item && item.content) {
+                if (originalCallback && item) {
                     originalCallback(item.content, options);
                 }
             };
 
-            const serializeSubmenus = (submenu, depth = 0) => {
-                if (!submenu || !submenu.options) return "";
-
-                const items = submenu.options.map((option) => {
-                    const content = typeof option === "string" ? option : option.content;
-
-                    if (option.submenu && option.submenu.options) {
-                        const nestedItems = serializeSubmenus(option.submenu, depth + 1);
-                        return `${content}::{${nestedItems}}`;
+            // Pre-define toString functions to avoid creating closures in loops
+            const simpleToString = function () {
+                return this.content;
+            };
+            const submenuToString = function () {
+                if (this.submenu && this.submenu.options) {
+                    const parts = [];
+                    for (let i = 0; i < this.submenu.options.length; i++) {
+                        parts.push(this.submenu.options[i].toString());
                     }
-
-                    return content;
-                });
-
-                return items.join("|");
+                    return `${this.content}::{${parts.join("|")}}`;
+                }
+                return this.content;
             };
 
-            const createMenuItem = (content, hasSubmenu = false, submenu = null) => {
-                const item = {
-                    content: content,
-                    disabled: false,
-                    callback: newCallback,
-                    toString: () => {
-                        if (hasSubmenu && submenu && submenu.options) {
-                            const serializedSubmenus = serializeSubmenus(submenu);
-                            return `${content}::{${serializedSubmenus}}`;
-                        }
-                        return content;
-                    },
-                };
+            // Build tree structure (optimized with direct property access)
+            const menuTree = {};
+            for (let i = 1; i < values.length; i++) {
+                const parts = values[i].split("|");
+                let current = menuTree;
+                const lastIdx = parts.length - 1;
 
-                if (hasSubmenu) {
-                    item.has_submenu = true;
-                    item.submenu = submenu;
+                for (let j = 0; j < lastIdx; j++) {
+                    const part = parts[j];
+                    if (!current[part]) {
+                        current[part] = {};
+                    }
+                    current = current[part];
                 }
-
-                return item;
-            };
-
-            const createNestedMenuItems = (data, level = 0) => {
-                if (typeof data === "string") {
-                    return {
-                        content: data,
-                        callback: newCallback,
-                        toString: () => data,
-                    };
+                if (values[i] === "SN0W_CHARACTER_SELECTOR") {
+                    continue; // Skip the special identifier
                 }
+                current[parts[lastIdx]] = values[i];
+            }
 
-                if (Array.isArray(data)) {
-                    return data.map((item) => createNestedMenuItems(item, level));
-                }
+            // Build menu items recursively
+            const buildMenu = (tree, depth) => {
+                const keys = Object.keys(tree).sort();
+                const items = new Array(keys.length);
 
-                if (data && typeof data === "object" && data.submenu) {
-                    const submenuOptions = createNestedMenuItems(data.submenu, level + 1);
-                    return createMenuItem(data.content, true, {
-                        options: Array.isArray(submenuOptions) ? submenuOptions : [submenuOptions],
-                        callback: newCallback,
-                    });
-                }
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
+                    const sub = tree[key];
 
-                return data;
-            };
+                    if (typeof sub === "string") {
+                        // Leaf node - extract last part directly
+                        const lastPipeIdx = sub.lastIndexOf("|");
+                        const lastPart = lastPipeIdx >= 0 ? sub.substring(lastPipeIdx + 1) : sub;
 
-            const hierarchicalValues = [createMenuItem("None")];
-
-            Object.keys(seriesGroups)
-                .sort()
-                .forEach((seriesName) => {
-                    const submenuOptions = seriesGroups[seriesName].map((characterName) => ({
-                        content: characterName,
-                        callback: newCallback,
-                        toString: () => characterName,
-                    }));
-
-                    hierarchicalValues.push(
-                        createMenuItem(seriesName, true, {
-                            options: submenuOptions,
+                        items[i] = {
+                            content: lastPart,
+                            disabled: false,
                             callback: newCallback,
-                        })
-                    );
-                });
+                            toString: simpleToString,
+                        };
+                    } else {
+                        // Submenu node
+                        const keyItem = {
+                            content: key,
+                            disabled: false,
+                            callback: newCallback,
+                            toString: simpleToString,
+                        };
+                        const submenu = {
+                            options: buildMenu(sub, depth + 1),
+                        };
+                        if (depth > 0) {
+                            submenu.options.unshift(keyItem);
+                        }
+
+                        items[i] = {
+                            content: key,
+                            disabled: false,
+                            has_submenu: true,
+                            submenu: submenu,
+                            toString: submenuToString,
+                        };
+                    }
+                }
+                return items;
+            };
+
+            const noneItem = {
+                content: "None",
+                disabled: false,
+                toString: simpleToString,
+            };
+
+            const hierarchicalValues = [noneItem].concat(buildMenu(menuTree, 0));
 
             options.callback = undefined;
             existingContextMenu.call(this, hierarchicalValues, options);

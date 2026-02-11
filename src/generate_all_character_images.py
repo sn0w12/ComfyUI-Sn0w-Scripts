@@ -6,7 +6,8 @@ import comfy.utils
 import numpy as np
 from PIL import Image
 from nodes import VAEDecode
-from ..sn0w import CharacterDBLoader, ConfigReader, Logger
+from ..sn0w import ConfigReader, Logger
+from .character_select import CharacterDB, SeriesInfo
 from .simple_ksampler import SimpleSamplerCustom
 
 # File paths
@@ -17,8 +18,7 @@ CUSTOM_CHARACTER_FILE_PATH = "web/settings/custom_characters.json"
 
 class GenerateCharactersNode:
     logger = Logger()
-    db = CharacterDBLoader()
-    character_dict = {}
+    db = CharacterDB()
     series_list = []
 
     @classmethod
@@ -42,30 +42,24 @@ class GenerateCharactersNode:
 
     @classmethod
     def load_characters(cls):
-        cls.character_dict = cls.db.get_visible_characters(include_default=True)
-
-        # Build series list with counts from filtered characters
-        series_counter = {}
-        for name, character in cls.character_dict.items():  # Iterate over key-value pairs
-            series = character.get("series", "")
-            if series:
-                series_counter[series] = series_counter.get(series, 0) + 1
+        series: list[SeriesInfo] = cls.db.get_all_series()
 
         series_list_with_counts = []
-        for series in sorted(series_counter.keys()):
-            count = series_counter[series]
-            if series:
-                series_list_with_counts.append(f"{series} ({count})")
+        for series_info in series:
+            count = len(series_info.get("characters", []))
+            series_name = series_info.get("series", "")
+
+            if series_name:
+                series_list_with_counts.append(f"{series_name} ({count})")
 
         cls.series_list = ["All"] + series_list_with_counts
-        return cls.character_dict
 
     @classmethod
     def initialize(cls):
         cls.json_path = os.path.join(cls.get_preview_image_path(), IMAGES_FILE)
         cls.characters_dir = os.path.join(cls.get_preview_image_path(), "characters")
         os.makedirs(cls.characters_dir, exist_ok=True)
-        return cls.load_characters()
+        cls.load_characters()
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -136,7 +130,7 @@ class GenerateCharactersNode:
     ):
         simple_sampler = SimpleSamplerCustom()
         vae_decode = VAEDecode()
-        character_dict = self.character_dict
+        series: list[SeriesInfo] = self.db.get_all_series()
         existing_filenames = self.load_existing_images()
 
         orig_positive = kwargs.get("positive", "")
@@ -146,21 +140,18 @@ class GenerateCharactersNode:
         else:
             selected_series = series_filter
 
-        # Filter characters by series if not "All"
-        if selected_series != "All":
-            character_dict = {
-                name: char for name, char in character_dict.items() if char.get("series", "") == selected_series
-            }
-
+        # Build characters to process based on series filter
         characters_to_process = {}
-        for character_name, char_item in character_dict.items():
-            cleaned_name = character_name.split("(")[0].strip().lower()
-            cleaned_name = cleaned_name.replace(" ", "_")
-
-            if cleaned_name not in existing_filenames:
-                characters_to_process[character_name] = char_item
-            else:
-                self.logger.log(f"Skipping {cleaned_name} - image already exists", "INFO")
+        for s in series:
+            if selected_series == "All" or s["series"] == selected_series:
+                for char_name in s["characters"]:
+                    char = self.db.get_character_by_name(char_name)
+                    if char:
+                        cleaned_name = char.name.split("(")[0].strip().lower().replace(" ", "_").replace("/", "")
+                        if cleaned_name not in existing_filenames:
+                            characters_to_process[char.name] = char
+                        else:
+                            self.logger.log(f"Skipping {cleaned_name} - image already exists", "INFO")
 
         total_characters = len(characters_to_process)
         if total_characters == 0:
@@ -183,15 +174,13 @@ class GenerateCharactersNode:
             self.logger.log(f"Generating image for character: {character_name}", "INFO")
 
             # Build prompt components
-            char_string = f"({char_item['associated_string']}:1.1), "
-            char_prompt = char_item["prompt"]
-            char_gender = char_item.get("gender", "")
-            clothing_prompt = char_item.get("clothing_tags", "") if include_clothing else ""
+            char_string = f"({char_item.name}, {', '.join(char_item.copyright)}:1.1), "
+            char_prompt = ", ".join(char_item.prompt)
+            char_gender = char_item.gender
+            clothing_prompt = ", ".join(char_item.clothing) if include_clothing else ""
 
             # Combine prompts
-            prompt_parts = [
-                part for part in [char_gender, char_string, char_prompt, clothing_prompt, orig_positive] if part.strip()
-            ]
+            prompt_parts = [part for part in [char_gender, char_string, char_prompt, clothing_prompt, orig_positive] if part.strip()]
             positive = ", ".join(prompt_parts).strip(", ")
             kwargs["positive"] = positive
 
