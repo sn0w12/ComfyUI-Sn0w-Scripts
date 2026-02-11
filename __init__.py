@@ -163,7 +163,7 @@ API_PREFIX = "/sn0w"
 @PromptServer.instance.routes.get(f"{API_PREFIX}/series")
 async def series_endpoint(request):
     db = CharacterDB()
-    series = db.get_all_series()
+    series = db.get_all_series(remove_hidden_characters=False)
     return web.json_response(series)
 
 
@@ -182,6 +182,24 @@ async def set_visible_series(request):
 
     db = CharacterDB()
     db.set_visible_series(data.get("visible_series", []))
+    return web.json_response({"status": "ok"})
+
+
+@PromptServer.instance.routes.get(f"{API_PREFIX}/hidden_characters")
+async def get_hidden_characters(request):
+    db = CharacterDB()
+    hidden = db.load_hidden_characters()
+    return web.json_response({"hidden_characters": list(hidden) if hidden else []})
+
+
+@PromptServer.instance.routes.post(f"{API_PREFIX}/hidden_characters")
+async def set_hidden_characters(request):
+    data = await request.json()
+    if data is None or "hidden_characters" not in data or not isinstance(data["hidden_characters"], list):
+        return web.json_response({"error": "Invalid request, 'hidden_characters' key missing or not a list"}, status=400)
+
+    db = CharacterDB()
+    db.set_hidden_characters(data.get("hidden_characters", []))
     return web.json_response({"status": "ok"})
 
 

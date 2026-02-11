@@ -44,6 +44,13 @@ class CharacterDB:
             "settings",
             "visible_series.json",
         )
+        self.hidden_characters_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "..",
+            "web",
+            "settings",
+            "hidden_characters.json",
+        )
 
         self.CHAR_DELIMITER = "|"
 
@@ -144,16 +151,22 @@ class CharacterDB:
         if not os.path.exists(self.custom_characters_path):
             return []
 
+        hidden = self.load_hidden_characters()
         characters = []
         try:
             with open(self.custom_characters_path, "r", encoding="utf-8") as f:
                 custom_list = json.load(f)
                 for char in custom_list:
-                    name = char.get("name", "").strip().lower()
+                    raw_name = char.get("name", "").strip()
+                    name = raw_name.lower()
                     copyright = char.get("copyright", "custom").strip().lower()
 
-                    if name:
-                        characters.append(self.build_char_string(names_only, copyright, name))
+                    if not raw_name:
+                        continue
+                    if hidden is not None and name in hidden:
+                        continue
+
+                    characters.append(self.build_char_string(names_only, copyright, raw_name))
         except (json.JSONDecodeError, IOError):
             return []
 
@@ -236,6 +249,56 @@ class CharacterDB:
         except (json.JSONDecodeError, IOError):
             return None
 
+    def load_hidden_characters(self) -> set[str] | None:
+        """
+        Load the list of hidden characters from hidden_characters.json.
+        Returns None if file doesn't exist (meaning hide none).
+        Returns an empty set if the file exists but is an empty list (meaning no characters currently hidden).
+        """
+        if not os.path.exists(self.hidden_characters_path):
+            return None
+
+        try:
+            with open(self.hidden_characters_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if not isinstance(data, list):
+                return None
+            # Normalize to processed, lowercased names for comparison
+            return {self.process_tag(s).strip().lower() for s in data if isinstance(s, str) and s.strip()}
+        except (json.JSONDecodeError, IOError):
+            return None
+
+    def get_hidden_characters(self) -> list[str] | None:
+        """Return a sorted list of currently hidden characters, or None if no hidden file exists."""
+        hidden = self.load_hidden_characters()
+        if hidden is None:
+            return None
+        return sorted(hidden)
+
+    def set_hidden_characters(self, characters_list: list[str] | None) -> bool:
+        """
+        Set the list of hidden characters.
+        Pass None or empty list to remove the filter file (hide none).
+        Returns True on success, False on failure.
+        """
+        if characters_list is None or len(characters_list) == 0:
+            # Delete the file to remove hidden filter
+            if os.path.exists(self.hidden_characters_path):
+                try:
+                    os.remove(self.hidden_characters_path)
+                    return True
+                except IOError:
+                    return False
+            return True
+
+        try:
+            normalized = sorted(set(self.process_tag(s).strip().lower() for s in characters_list if isinstance(s, str) and s.strip()))
+            with open(self.hidden_characters_path, "w", encoding="utf-8") as f:
+                json.dump(normalized, f, indent=2)
+            return True
+        except IOError:
+            return False
+
     def get_visible_series(self) -> list[str] | None:
         """
         Get the current list of visible series.
@@ -272,8 +335,9 @@ class CharacterDB:
 
     def get_default_character_names(self, names_only=False) -> list[str]:
         with self.lock:
-            # Load visible series filter early
+            # Load visible series and hidden characters filters early
             visible_series = self.load_visible_series()
+            hidden_characters = self.load_hidden_characters()
 
             # Fetch all characters once
             self.cursor.execute("SELECT id, name, copyright FROM characters")
@@ -304,6 +368,11 @@ class CharacterDB:
                 if char_id in child_ids:
                     continue  # This is a child, not a root character
 
+                # Respect hidden characters filter (match against processed name)
+                processed_root = self.process_tag(name).strip().lower()
+                if hidden_characters is not None and processed_root in hidden_characters:
+                    continue
+
                 selected_copyright = pick_popular_copyright(copyright_text)
                 if not selected_copyright:
                     continue
@@ -316,20 +385,29 @@ class CharacterDB:
 
                 if children:
                     for _, child_name in children:
+                        processed_child = self.process_tag(child_name).strip().lower()
+                        if hidden_characters is not None and processed_child in hidden_characters:
+                            continue
                         formatted.append(self.build_char_string(names_only, selected_copyright, name, child_name))
                 else:
                     formatted.append(self.build_char_string(names_only, selected_copyright, name))
 
             return formatted
 
-    def get_all_series(self) -> list[SeriesInfo]:
+    def get_all_series(self, remove_hidden_characters=True) -> list[SeriesInfo]:
         with self.lock:
             self.cursor.execute("SELECT id, name, copyright FROM characters")
             all_characters = self.cursor.fetchall()
             pick_popular_copyright = self._build_copyright_picker(all_characters)
 
+            hidden_characters = self.load_hidden_characters() if remove_hidden_characters else None
+
             series_map = {}
             for _, name, copyright_text in all_characters:
+                processed_name = self.process_tag(name).strip().lower()
+                if hidden_characters is not None and processed_name in hidden_characters:
+                    continue
+
                 selected_copyright = pick_popular_copyright(copyright_text)
                 if not selected_copyright:
                     continue

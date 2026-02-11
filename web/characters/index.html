@@ -60,6 +60,11 @@
                 --gap-xs: 0.25rem;
             }
 
+            ::selection {
+                background: var(--primary);
+                color: var(--primary-foreground);
+            }
+
             body {
                 background: var(--background);
                 color: var(--foreground);
@@ -103,8 +108,59 @@
 
             .heading {
                 font-size: 1.25rem;
-                margin-bottom: 0.75rem;
                 font-weight: 600;
+                margin: 0;
+            }
+
+            .heading #total-visible {
+                font-size: 0.9em;
+                color: var(--muted-foreground);
+                font-weight: normal;
+            }
+
+            /* Top row to hold title and quick controls */
+            .top-row {
+                display: flex;
+                flex-direction: column;
+                align-items: start;
+                justify-content: space-between;
+                margin-bottom: 0.75rem;
+            }
+
+            .top-controls {
+                display: flex;
+                gap: 0.5rem;
+                align-items: center;
+            }
+
+            .top-controls .checkbox-label {
+                margin: 0;
+            }
+
+            .small-note {
+                font-size: 0.85rem;
+                color: var(--muted-foreground);
+            }
+
+            .sort-select {
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.375rem;
+                border: 1px solid var(--border);
+                background: var(--input);
+                color: var(--foreground);
+                font-size: 0.85rem;
+                cursor: pointer;
+            }
+
+            .sort-select:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06);
+                border-color: var(--primary);
+            }
+
+            .sort-select option {
+                background: var(--card);
+                color: var(--card-foreground);
             }
 
             .series-list {
@@ -112,7 +168,7 @@
                 margin-bottom: 1.25rem;
                 display: flex;
                 flex-direction: column;
-                max-height: 70vh;
+                height: 70vh;
                 overflow: auto;
 
                 /* Firefox */
@@ -215,16 +271,26 @@
             }
 
             .characters-list {
-                margin: 0 0 0 1.1rem;
+                margin: 0;
                 padding: 0;
-                list-style: disc;
+                list-style: none;
                 color: var(--card-foreground);
+                border-top: 1px solid var(--border);
             }
 
             .character-item {
                 padding: 0.125rem 0;
                 font-size: 0.95rem;
                 color: var(--muted-foreground);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-left: 0.25rem;
+            }
+
+            .characters-list li {
+                margin-left: 0;
+                padding-left: 0;
             }
 
             .character-link {
@@ -238,14 +304,41 @@
                 text-decoration: underline;
             }
 
-            .checkbox {
+            /* Popover header/description/search */
+            .popover-header {
+                font-weight: 600;
+                margin-bottom: 0.125rem;
+                color: var(--card-foreground);
+                font-size: 0.95rem;
+            }
+
+            .popover-desc {
+                font-size: 0.85rem;
+                color: var(--muted-foreground);
+                margin-bottom: 0.5rem;
+            }
+
+            .popover-search {
+                width: 100%;
+                padding: 0.35rem 0.5rem;
+                border-radius: 0.375rem;
+                border: 1px solid var(--border);
+                background: transparent;
+                color: inherit;
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .checkbox,
+            .char-checkbox {
                 width: 1rem;
                 height: 1rem;
                 accent-color: var(--primary);
                 border-radius: 0.25rem;
             }
 
-            .checkbox:focus-visible {
+            .checkbox:focus-visible,
+            .char-checkbox:focus-visible {
                 outline: none;
                 box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06);
                 border-color: var(--primary);
@@ -254,6 +347,15 @@
             .label-text,
             .series-name {
                 user-select: none;
+                color: var(--card-foreground);
+            }
+
+            .series-counts {
+                color: var(--muted-foreground);
+            }
+
+            .hidden-count {
+                color: var(--destructive);
             }
 
             .btn {
@@ -282,23 +384,91 @@
             }
         </style>
         <script>
+            function getInitialStates() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return {
+                    showSelectedOnly: urlParams.get("showSelectedOnly") === "true",
+                    sort: urlParams.get("sort") || "alpha",
+                };
+            }
+
+            function updateURL() {
+                const url = new URL(window.location);
+                url.searchParams.set("showSelectedOnly", SHOW_ONLY_SELECTED.toString());
+                url.searchParams.set("sort", SORT_MODE);
+                window.history.replaceState(null, "", url);
+            }
+
             async function fetchData() {
                 try {
-                    const [seriesResponse, visibleResponse] = await Promise.all([fetch("/sn0w/series"), fetch("/sn0w/visible_series")]);
-                    const seriesData = await seriesResponse.json();
-                    const visibleData = await visibleResponse.json();
-                    return { seriesData, visibleData: visibleData.visible_series || [] };
+                    const [seriesResponse, visibleResponse, hiddenResponse] = await Promise.all([fetch("/sn0w/series"), fetch("/sn0w/visible_series"), fetch("/sn0w/hidden_characters")]);
+
+                    let seriesData = [];
+                    let visibleData = { visible_series: [] };
+                    let hiddenData = { hidden_characters: [] };
+
+                    if (seriesResponse.ok) {
+                        try {
+                            seriesData = await seriesResponse.json();
+                        } catch (e) {
+                            console.warn("Failed to parse /sn0w/series JSON", e);
+                        }
+                    } else {
+                        console.warn("/sn0w/series returned status", seriesResponse.status);
+                    }
+
+                    if (visibleResponse.ok) {
+                        try {
+                            visibleData = await visibleResponse.json();
+                        } catch (e) {
+                            console.warn("Failed to parse /sn0w/visible_series JSON", e);
+                        }
+                    } else {
+                        console.warn("/sn0w/visible_series returned status", visibleResponse.status);
+                    }
+
+                    if (hiddenResponse.ok) {
+                        try {
+                            hiddenData = await hiddenResponse.json();
+                        } catch (e) {
+                            console.warn("Failed to parse /sn0w/hidden_characters JSON", e);
+                        }
+                    } else {
+                        // This can legitimately be 404 if the file doesn't exist; fall back to empty
+                        console.warn("/sn0w/hidden_characters returned status", hiddenResponse.status);
+                    }
+
+                    return {
+                        seriesData,
+                        visibleData: visibleData.visible_series || [],
+                        hiddenData: hiddenData.hidden_characters || [],
+                    };
                 } catch (error) {
                     console.error("Error fetching data:", error);
-                    return { seriesData: [], visibleData: [] };
+                    return { seriesData: [], visibleData: [], hiddenData: [] };
                 }
             }
 
-            function renderCheckboxes(seriesData, visibleData, filter = "") {
+            function renderCheckboxes(seriesData, visibleData, hiddenData, filter = "") {
                 const seriesList = document.getElementById("seriesList");
                 seriesList.innerHTML = "";
                 const normalizedFilter = filter.trim().toLowerCase();
-                const filtered = seriesData.filter((s) => s.series.toLowerCase().includes(normalizedFilter));
+
+                // Sort seriesData based on SORT_MODE
+                if (SORT_MODE === "alpha") {
+                    seriesData.sort((a, b) => a.series.localeCompare(b.series));
+                } else if (SORT_MODE === "count") {
+                    seriesData.sort((a, b) => b.characters.length - a.characters.length);
+                }
+
+                let filtered = seriesData.filter((s) => s.series.toLowerCase().includes(normalizedFilter));
+
+                // If the user wants to show only selected, restrict to the persistent VISIBLE_SERIES list
+                if (SHOW_ONLY_SELECTED) {
+                    filtered = filtered.filter((s) => VISIBLE_SERIES.includes(s.series));
+                }
+
+                const normalizeName = (n) => n.replace(/_/g, " ").trim().toLowerCase();
 
                 if (filtered.length === 0) {
                     const empty = document.createElement("div");
@@ -318,16 +488,40 @@
                     checkbox.className = "checkbox";
                     checkbox.value = series.series;
                     // If visibleData is empty, default to checked (show all)
-                    const shouldCheck = Array.isArray(visibleData) && visibleData.length > 0 ? visibleData.includes(series.series) : true;
+                    // Determine checked state from the persistent VISIBLE_SERIES state (fall back to visibleData if not yet set)
+                    const shouldCheck = Array.isArray(VISIBLE_SERIES) && VISIBLE_SERIES.length > 0 ? VISIBLE_SERIES.includes(series.series) : Array.isArray(visibleData) && visibleData.length > 0 ? visibleData.includes(series.series) : true;
                     checkbox.checked = shouldCheck;
                     checkbox.setAttribute("aria-label", series.series);
 
-                    const span = document.createElement("span");
-                    span.className = "series-name";
-                    span.textContent = `${series.series} (${series.characters.length} character${series.characters.length !== 1 ? "s" : ""})`;
+                    // Keep the global VISIBLE_SERIES in sync when user toggles checkboxes (so filtering doesn't lose state)
+                    checkbox.addEventListener("change", () => {
+                        if (checkbox.checked) {
+                            if (!VISIBLE_SERIES.includes(series.series)) VISIBLE_SERIES.push(series.series);
+                        } else {
+                            const rem = VISIBLE_SERIES.indexOf(series.series);
+                            if (rem !== -1) VISIBLE_SERIES.splice(rem, 1);
+                        }
+                        updateSelectAllState();
+                        // If we're showing only selected, re-render to reflect removed/added selections
+                        if (SHOW_ONLY_SELECTED) {
+                            const currentFilter = (document.getElementById("seriesSearch")?.value || "").trim();
+                            renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, HIDDEN_CHARACTERS, currentFilter);
+                        }
+                    });
+
+                    const nameSpan = document.createElement("span");
+                    nameSpan.className = "series-name";
+                    nameSpan.textContent = series.series;
+
+                    const countSpan = document.createElement("span");
+                    countSpan.className = "series-counts";
+                    const hiddenCount = series.characters.filter((ch) => HIDDEN_CHARACTERS.includes(normalizeName(ch))).length;
+                    const charText = `${series.characters.length} character${series.characters.length !== 1 ? "s" : ""}`;
+                    countSpan.innerHTML = ` (<span>${charText}</span>${hiddenCount > 0 ? `, <span class="hidden-count">${hiddenCount} hidden</span>` : ""})`;
 
                     label.appendChild(checkbox);
-                    label.appendChild(span);
+                    label.appendChild(nameSpan);
+                    label.appendChild(countSpan);
 
                     // Wrapper row: label on the left, toggle on the right
                     const row = document.createElement("div");
@@ -374,22 +568,178 @@
 
                         const ul = document.createElement("ul");
                         ul.className = "characters-list";
-                        (series.characters || []).forEach((ch) => {
-                            const li = document.createElement("li");
-                            li.className = "character-item";
 
-                            const a = document.createElement("a");
-                            a.className = "character-link";
-                            const tagName = encodeURIComponent(ch).replace(/%20/g, "_");
-                            a.href = `https://danbooru.donmai.us/posts?tags=${tagName}+solo`;
-                            a.textContent = ch;
-                            a.target = "_blank";
-                            a.rel = "noopener noreferrer";
-                            a.title = `Search ${ch} on Danbooru`;
+                        // Helper to normalize names (match server normalization)
+                        const normalizeName = (n) => n.replace(/_/g, " ").trim().toLowerCase();
 
-                            li.appendChild(a);
-                            ul.appendChild(li);
-                        });
+                        const chars = (series.characters || []).slice();
+
+                        const renderCharacterList = (filterTerm) => {
+                            ul.innerHTML = "";
+                            const term = (filterTerm || "").trim().toLowerCase();
+
+                            // If the hide-all list item exists, show it at the top and update its state
+                            if (hideAllLi) {
+                                updateHideAllState(term);
+                                ul.appendChild(hideAllLi);
+                            }
+
+                            const items = chars.filter((ch) => ch.toLowerCase().includes(term));
+
+                            items.sort((a, b) => a.localeCompare(b));
+
+                            items.forEach((ch) => {
+                                const li = document.createElement("li");
+                                li.className = "character-item";
+
+                                const labelChar = document.createElement("label");
+                                labelChar.style.display = "flex";
+                                labelChar.style.alignItems = "center";
+                                labelChar.style.gap = "0.5rem";
+
+                                const charCheckbox = document.createElement("input");
+                                charCheckbox.type = "checkbox";
+                                charCheckbox.className = "char-checkbox";
+                                charCheckbox.value = ch;
+
+                                const normalizedCh = normalizeName(ch);
+                                // Read current state from global HIDDEN_CHARACTERS and invert it for UI (checked = visible)
+                                charCheckbox.checked = !(Array.isArray(HIDDEN_CHARACTERS) && HIDDEN_CHARACTERS.includes(normalizedCh));
+
+                                const a = document.createElement("a");
+                                a.className = "character-link";
+                                const tagName = encodeURIComponent(ch).replace(/%20/g, "_");
+                                a.href = `https://danbooru.donmai.us/posts?tags=${tagName}+solo`;
+                                a.textContent = ch;
+                                a.target = "_blank";
+                                a.rel = "noopener noreferrer";
+                                a.title = `Search ${ch} on Danbooru`;
+
+                                // If hidden, mark visually (unchecked = hidden)
+                                if (!charCheckbox.checked) {
+                                    li.classList.add("hidden-character");
+                                }
+
+                                // When toggled, update HIDDEN_CHARACTERS (global) so selections persist.
+                                // Note: UI is inverted (checked = visible), but API still stores hidden characters.
+                                charCheckbox.addEventListener("change", () => {
+                                    const idx = HIDDEN_CHARACTERS.indexOf(normalizedCh);
+                                    if (charCheckbox.checked) {
+                                        // checked => visible => remove from hidden list
+                                        if (idx !== -1) HIDDEN_CHARACTERS.splice(idx, 1);
+                                        li.classList.remove("hidden-character");
+                                    } else {
+                                        // unchecked => hidden => add to hidden list
+                                        if (idx === -1) HIDDEN_CHARACTERS.push(normalizedCh);
+                                        li.classList.add("hidden-character");
+                                    }
+                                    // keep hide-all state in sync when individual toggles occur
+                                    if (hideAllLi) updateHideAllState(term);
+                                });
+
+                                labelChar.appendChild(charCheckbox);
+                                labelChar.appendChild(a);
+
+                                li.appendChild(labelChar);
+                                ul.appendChild(li);
+                            });
+                        };
+
+                        // Add a heading and short description to explain the popover
+                        const header = document.createElement("div");
+                        header.className = "popover-header";
+                        header.textContent = "Manage characters — check to show, uncheck to hide.";
+                        header.setAttribute("role", "heading");
+                        header.setAttribute("aria-level", "3");
+
+                        pop.appendChild(header);
+
+                        // Provide a hide-all control (rendered inside the characters list) and optional search input for larger lists
+                        let updateHideAllState = () => {};
+                        let hideAllCheckbox = null;
+                        let hideAllLi = null;
+                        if (chars.length > 5) {
+                            // Search input (keeps it above the list but the 'Hide all' entry will be inside the list)
+                            const charSearch = document.createElement("input");
+                            charSearch.type = "search";
+                            charSearch.className = "popover-search";
+                            charSearch.placeholder = "Search characters...";
+                            charSearch.setAttribute("aria-label", "Search characters");
+
+                            let currentFilter = "";
+
+                            charSearch.addEventListener("input", (e) => {
+                                currentFilter = e.target.value || "";
+                                renderCharacterList(currentFilter);
+                                updateHideAllState(currentFilter);
+                            });
+
+                            pop.appendChild(charSearch);
+
+                            // Create hide-all list item (it will be inserted as the first list item by renderCharacterList)
+                            hideAllLi = document.createElement("li");
+                            hideAllLi.className = "character-item";
+
+                            // Match structure and classes with regular character rows so styles align
+                            const labelCharAll = document.createElement("label");
+                            labelCharAll.style.display = "flex";
+                            labelCharAll.style.alignItems = "center";
+                            labelCharAll.style.gap = "0.5rem";
+
+                            hideAllCheckbox = document.createElement("input");
+                            hideAllCheckbox.type = "checkbox";
+                            // use same checkbox class for consistent size/style
+                            hideAllCheckbox.className = "char-checkbox char-hide-all-checkbox";
+                            hideAllCheckbox.id = `${detailsId}-hideall`;
+
+                            const hideAllText = document.createElement("span");
+                            hideAllText.textContent = "Show filtered";
+                            hideAllText.style.userSelect = "none";
+
+                            labelCharAll.appendChild(hideAllCheckbox);
+                            labelCharAll.appendChild(hideAllText);
+                            hideAllLi.appendChild(labelCharAll);
+
+                            // Helper to update hide-all checkbox state based on current filter
+                            updateHideAllState = (filterTerm = "") => {
+                                const term = (filterTerm || "").trim().toLowerCase();
+                                const items = chars.filter((ch) => ch.toLowerCase().includes(term));
+                                const normalizedItems = items.map((ch) => ch.replace(/_/g, " ").trim().toLowerCase());
+                                const total = normalizedItems.length;
+                                const hiddenCount = normalizedItems.filter((n) => HIDDEN_CHARACTERS.includes(n)).length;
+                                const visibleCount = total - hiddenCount;
+                                // Checkbox now means "Show filtered" (checked = all visible)
+                                hideAllCheckbox.checked = total > 0 && visibleCount === total;
+                                hideAllCheckbox.indeterminate = visibleCount > 0 && visibleCount < total;
+                            };
+
+                            // When hide-all (now "Show filtered") toggled, add/remove all filtered items accordingly
+                            hideAllCheckbox.addEventListener("change", () => {
+                                const term = (currentFilter || "").trim().toLowerCase();
+                                const items = chars.filter((ch) => ch.toLowerCase().includes(term));
+                                items.forEach((ch) => {
+                                    const n = ch.replace(/_/g, " ").trim().toLowerCase();
+                                    const idx = HIDDEN_CHARACTERS.indexOf(n);
+                                    if (hideAllCheckbox.checked) {
+                                        // checked => show all filtered => remove from hidden list
+                                        if (idx !== -1) HIDDEN_CHARACTERS.splice(idx, 1);
+                                    } else {
+                                        // unchecked => hide all filtered => add to hidden list
+                                        if (idx === -1) HIDDEN_CHARACTERS.push(n);
+                                    }
+                                });
+                                renderCharacterList(currentFilter);
+                                updateHideAllState(currentFilter);
+                            });
+
+                            // populate list and focus search
+                            renderCharacterList("");
+                            updateHideAllState("");
+                            setTimeout(() => charSearch.focus(), 0);
+                        } else {
+                            // populate list (no search, no hide-all)
+                            renderCharacterList("");
+                        }
 
                         pop.appendChild(ul);
 
@@ -400,7 +750,7 @@
                         pop.style.left = "0";
                         pop.style.top = top + "px";
                         pop.style.minWidth = "200px";
-                        pop.style.width = "100%";
+                        pop.style.width = "calc(100% - 1.3rem)";
                         pop.style.zIndex = "999";
                         pop.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
@@ -410,11 +760,21 @@
                     });
                 });
 
+                // Calculate total visible characters
+                const totalVisible = ALL_SERIES.filter((s) => VISIBLE_SERIES.includes(s.series)).reduce((sum, s) => {
+                    const hiddenCount = s.characters.filter((ch) => HIDDEN_CHARACTERS.includes(normalizeName(ch))).length;
+                    return sum + (s.characters.length - hiddenCount);
+                }, 0);
+                document.getElementById("total-visible").textContent = `(${totalVisible} characters)`;
+
                 updateSelectAllState();
             }
 
             let ALL_SERIES = [];
             let VISIBLE_SERIES = [];
+            let HIDDEN_CHARACTERS = [];
+            let SHOW_ONLY_SELECTED = false;
+            let SORT_MODE = "alpha";
 
             function closePopover() {
                 const pop = document.getElementById("seriesPopover");
@@ -422,6 +782,13 @@
                 // reset any toggle buttons
                 document.querySelectorAll('.toggle-btn[aria-expanded="true"]').forEach((btn) => btn.setAttribute("aria-expanded", "false"));
             }
+
+            // Styles for hidden characters (muted + strike-through)
+            const style = document.createElement("style");
+            style.textContent = `
+                .hidden-character .character-link { color: var(--muted-foreground); text-decoration: line-through; }
+            `;
+            document.head.appendChild(style);
 
             // Close popover when clicking outside
             document.addEventListener("click", (e) => {
@@ -437,16 +804,15 @@
 
             function updateSelectAllState() {
                 const selectAll = document.getElementById("selectAll");
-                const checkboxes = document.querySelectorAll("#seriesList .checkbox");
-                if (checkboxes.length === 0) {
+                const total = ALL_SERIES.length;
+                if (total === 0) {
                     selectAll.checked = false;
                     selectAll.indeterminate = false;
                     return;
                 }
-                const checked = Array.from(checkboxes).every((cb) => cb.checked);
-                const noneChecked = Array.from(checkboxes).every((cb) => !cb.checked);
-                selectAll.checked = checked;
-                selectAll.indeterminate = !checked && !noneChecked;
+                const selectedCount = Array.isArray(VISIBLE_SERIES) ? VISIBLE_SERIES.length : 0;
+                selectAll.checked = selectedCount === total;
+                selectAll.indeterminate = selectedCount > 0 && selectedCount < total;
             }
 
             function setupSelectAll() {
@@ -455,6 +821,17 @@
                 selectAll.addEventListener("change", () => {
                     const checkboxes = document.querySelectorAll("#seriesList .checkbox");
                     checkboxes.forEach((cb) => (cb.checked = selectAll.checked));
+
+                    // Update persistent selection state (VISIBLE_SERIES) when using select-all
+                    if (selectAll.checked) {
+                        VISIBLE_SERIES = ALL_SERIES.map((s) => s.series);
+                    } else {
+                        VISIBLE_SERIES = [];
+                    }
+
+                    // Re-render in case SHOW_ONLY_SELECTED is enabled so the UI updates
+                    const currentFilter = (document.getElementById("seriesSearch")?.value || "").trim();
+                    renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, HIDDEN_CHARACTERS, currentFilter);
                 });
 
                 document.getElementById("seriesList").addEventListener("change", () => {
@@ -470,26 +847,64 @@
                     const value = e.target.value || "";
                     if (value === last) return;
                     last = value;
-                    renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, value);
+                    renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, HIDDEN_CHARACTERS, value);
                 });
+
+                // Show-only-selected toggle handler
+                const showOnlyEl = document.getElementById("showSelectedOnly");
+                if (showOnlyEl) {
+                    showOnlyEl.addEventListener("change", (e) => {
+                        SHOW_ONLY_SELECTED = !!e.target.checked;
+                        updateURL();
+                        const value = (document.getElementById("seriesSearch")?.value || "").trim();
+                        renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, HIDDEN_CHARACTERS, value);
+                    });
+                }
+
+                // Sort select handler
+                const sortEl = document.getElementById("sortSelect");
+                if (sortEl) {
+                    sortEl.addEventListener("change", (e) => {
+                        SORT_MODE = e.target.value;
+                        updateURL();
+                        const value = (document.getElementById("seriesSearch")?.value || "").trim();
+                        renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, HIDDEN_CHARACTERS, value);
+                    });
+                }
             }
 
             async function submitVisibleSeries() {
-                const checkboxes = document.querySelectorAll("#seriesList .checkbox:checked");
-                const visibleSeries = Array.from(checkboxes).map((cb) => cb.value);
+                // Prefer the persistent VISIBLE_SERIES (includes selections made before filtering/searching)
+                const visibleSeries = Array.isArray(VISIBLE_SERIES) ? VISIBLE_SERIES.slice() : [];
+
+                // Use HIDDEN_CHARACTERS (keeps state even when popovers are opened/closed)
+                const hiddenCharacters = HIDDEN_CHARACTERS.slice();
 
                 try {
-                    const response = await fetch("/sn0w/visible_series", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ visible_series: visibleSeries }),
-                    });
-                    if (response.ok) {
-                        alert("Visible series updated successfully!");
+                    const [visResp, hidResp] = await Promise.all([
+                        fetch("/sn0w/visible_series", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ visible_series: visibleSeries }),
+                        }),
+                        fetch("/sn0w/hidden_characters", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ hidden_characters: hiddenCharacters }),
+                        }),
+                    ]);
+
+                    if (visResp.ok && hidResp.ok) {
+                        alert("Visible series and hidden characters updated successfully!");
+                        // Re-render to update counts
+                        const currentFilter = (document.getElementById("seriesSearch")?.value || "").trim();
+                        renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, HIDDEN_CHARACTERS, currentFilter);
                     } else {
-                        alert("Error updating visible series.");
+                        // try to read and show messages from responses
+                        let errMsg = "Error updating:\n";
+                        if (!visResp.ok) errMsg += "- Series update failed\n";
+                        if (!hidResp.ok) errMsg += "- Hidden characters update failed\n";
+                        alert(errMsg);
                     }
                 } catch (error) {
                     console.error("Error submitting data:", error);
@@ -498,10 +913,16 @@
             }
 
             document.addEventListener("DOMContentLoaded", async () => {
-                const { seriesData, visibleData } = await fetchData();
+                const { seriesData, visibleData, hiddenData } = await fetchData();
                 ALL_SERIES = seriesData || [];
                 VISIBLE_SERIES = visibleData || [];
-                renderCheckboxes(ALL_SERIES, VISIBLE_SERIES);
+                HIDDEN_CHARACTERS = hiddenData || [];
+                const initial = getInitialStates();
+                SHOW_ONLY_SELECTED = initial.showSelectedOnly;
+                SORT_MODE = initial.sort;
+                document.getElementById("showSelectedOnly").checked = SHOW_ONLY_SELECTED;
+                document.getElementById("sortSelect").value = SORT_MODE;
+                renderCheckboxes(ALL_SERIES, VISIBLE_SERIES, HIDDEN_CHARACTERS);
                 setupSelectAll();
                 setupSearch();
 
@@ -511,7 +932,20 @@
     </head>
     <body>
         <div id="root" class="container" role="region" aria-labelledby="series-heading">
-            <h1 id="series-heading" class="heading">Select Visible Series</h1>
+            <div class="top-row">
+                <h1 id="series-heading" class="heading">Select Visible Series <span id="total-visible"></span></h1>
+                <div class="top-controls">
+                    <label for="sortSelect" class="small-note">Sort by:</label>
+                    <select id="sortSelect" class="sort-select">
+                        <option value="alpha">Alphabetical</option>
+                        <option value="count">Total Characters</option>
+                    </select>
+                    <label class="checkbox-label" for="showSelectedOnly">
+                        <input type="checkbox" id="showSelectedOnly" class="checkbox" />
+                        <span class="label-text">Show only selected</span>
+                    </label>
+                </div>
+            </div>
             <div class="search-container">
                 <input id="seriesSearch" class="search-input" type="search" placeholder="Search series..." aria-label="Search series" />
             </div>
