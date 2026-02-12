@@ -382,6 +382,7 @@ class CharacterDB:
                     continue
 
                 children = children_map.get(char_id, [])
+                added_any_child = False
 
                 if children:
                     for _, child_name in children:
@@ -389,6 +390,10 @@ class CharacterDB:
                         if hidden_characters is not None and processed_child in hidden_characters:
                             continue
                         formatted.append(self.build_char_string(names_only, selected_copyright, name, child_name))
+                        added_any_child = True
+                    # If no children were added (all hidden), add the parent alone
+                    if not added_any_child:
+                        formatted.append(self.build_char_string(names_only, selected_copyright, name))
                 else:
                     formatted.append(self.build_char_string(names_only, selected_copyright, name))
 
