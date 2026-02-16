@@ -1,5 +1,25 @@
 import re
+from dataclasses import dataclass
+from typing import Optional, List, Dict, Set, Tuple
 from ..sn0w import ConfigReader, Logger
+
+
+@dataclass
+class Tag:
+    """Represents a single tag with its metadata."""
+
+    text: str
+    in_parentheses: bool = False
+    parentheses_group_id: Optional[int] = None
+    strength: Optional[float] = None
+
+    def __hash__(self):
+        return hash(self.text)
+
+    def __eq__(self, other):
+        if isinstance(other, Tag):
+            return self.text == other.text
+        return False
 
 
 class CombineStringNode:
@@ -31,7 +51,74 @@ class CombineStringNode:
     FUNCTION = "combine_string"
     CATEGORY = "sn0w"
 
-    def simplify_tags(self, tags_string, separator):
+    def parse_string_to_tags(self, input_string: str, separator: str) -> List[Tag]:
+        """Parse an input string into a list of Tag objects."""
+        if not input_string or input_string == "None":
+            return []
+
+        tags: List[Tag] = []
+        # Pattern to match non-escaped parentheses with optional strength
+        # Matches: (content) or (content:1.1) but not \(content\)
+        paren_pattern = re.compile(r"(?<!\\)\(([^()]+?)(?::(\d+(?:\.\d+)?))?\)(?!\\)")
+
+        # Track position in string
+        last_pos = 0
+
+        for match in paren_pattern.finditer(input_string):
+            # Add any plain text before this parentheses group
+            plain_text = input_string[last_pos : match.start()].strip()
+            if plain_text:
+                for tag_text in plain_text.split(separator):
+                    tag_text = tag_text.strip()
+                    if tag_text:
+                        tags.append(Tag(text=tag_text, in_parentheses=False))
+
+            # Process the parenthesized content
+            content = match.group(1)
+            strength_str = match.group(2)
+            strength = float(strength_str) if strength_str else None
+
+            # Generate a unique group ID for this parentheses group
+            group_id = len([t for t in tags if t.in_parentheses]) + 1
+
+            # Split the content by separator and create tags
+            for tag_text in content.split(separator):
+                tag_text = tag_text.strip()
+                if tag_text:
+                    tags.append(
+                        Tag(text=tag_text, in_parentheses=True, parentheses_group_id=group_id, strength=strength)
+                    )
+
+            last_pos = match.end()
+
+        # Add any remaining plain text after the last parentheses
+        remaining_text = input_string[last_pos:].strip()
+        if remaining_text:
+            for tag_text in remaining_text.split(separator):
+                tag_text = tag_text.strip()
+                if tag_text:
+                    tags.append(Tag(text=tag_text, in_parentheses=False))
+
+        return tags
+
+    def deduplicate_tags(self, tags: List[Tag], preserve_parentheses: bool = True) -> List[Tag]:
+        """Remove duplicate tags while preserving order and optionally parentheses."""
+        seen_texts: Set[str] = set()
+        unique_tags: List[Tag] = []
+
+        for tag in tags:
+            # If tag is in parentheses and we're preserving them, always keep it
+            if preserve_parentheses and tag.in_parentheses:
+                unique_tags.append(tag)
+            # Otherwise only add if we haven't seen this text before
+            elif tag.text not in seen_texts:
+                seen_texts.add(tag.text)
+                unique_tags.append(tag)
+
+        return unique_tags
+
+    def simplify_tags(self, tags: List[Tag]) -> Tuple[List[Tag], List[Tag]]:
+        """Simplify tags by removing redundant or conflicting tags."""
         remove_eyes = [
             "covering eyes",
             "over eyes",
@@ -45,11 +132,7 @@ class CombineStringNode:
         ]
         remove_face = ["facing away"]
         keep_face = ["looking at viewer"]
-        # dictionary defines categories with specific rules for removing or keeping tags.
-        # remove contains phrases that, if found in a prompt, suggest the tag should be removed.
-        # keep contains phrases that, if found in a prompt, indicate the tag should be kept.
-        # if a remove tag is found and no keep tag is found, it will remove all mentions of the category except the tags found in remove.
-        # keep always takes priority over remove, if any tag in keep is found nothing will be removed
+
         special_phrases = {
             "eye": {"remove": remove_eyes, "keep": keep_face},
             "sclera": {"remove": remove_eyes, "keep": keep_face},
@@ -57,186 +140,201 @@ class CombineStringNode:
             "teeth": {"remove": remove_face, "keep": keep_face},
         }
 
-        # Compile regex patterns outside of loops
-        parenthesized_pattern = re.compile(r"\([^()]*\)")
-
-        # Extract parenthesized parts
-        parenthesized_parts = []
-
-        def extract_parenthesized(match):
-            parenthesized_parts.append(match.group())
-            return f"\0{len(parenthesized_parts) - 1}\0"
-
-        modified_tags_string = re.sub(parenthesized_pattern, extract_parenthesized, tags_string)
-
-        tags = [tag.strip() for tag in modified_tags_string.split(separator)]
-        final_tags = []
-        removed_tags = set()
-        tag_map = {}
-
+        # Build tag map for substring detection
+        tag_map: Dict[Tag, Tag] = {}
         for tag in tags:
             for potential_superior in tags:
-                if tag in potential_superior and tag != potential_superior:
+                if tag.text in potential_superior.text and tag.text != potential_superior.text:
                     tag_map[tag] = potential_superior
 
+        # Check global keep conditions
+        all_tag_texts = [tag.text for tag in tags]
         global_keep_conditions = {
-            keyword: any(keep_phrase in tags_string for keep_phrase in conditions["keep"])
+            keyword: any(keep_phrase in all_tag_texts for keep_phrase in conditions["keep"])
             for keyword, conditions in special_phrases.items()
         }
 
-        non_removable_tags = {
+        # Identify non-removable tags (those that match remove phrases)
+        non_removable_tags: Set[Tag] = {
             tag
             for tag in tags
             for keyword, conditions in special_phrases.items()
-            if any(remove_phrase in tag for remove_phrase in conditions["remove"])
+            if any(remove_phrase in tag.text for remove_phrase in conditions["remove"])
         }
 
+        final_tags: List[Tag] = []
+        removed_tags: List[Tag] = []
+
         for tag in tags:
+            # Check if this tag has a superior tag
             superior_tag = tag_map.get(tag)
             if superior_tag and superior_tag not in final_tags:
-                removed_tags.add(tag)
+                removed_tags.append(tag)
                 continue
 
+            # Check special phrase rules
             should_remove_tag = False
             for keyword, conditions in special_phrases.items():
                 if (
-                    keyword in tag
+                    keyword in tag.text
                     and not global_keep_conditions[keyword]
-                    and any(remove_phrase in tags_string for remove_phrase in conditions["remove"])
+                    and any(remove_phrase in t.text for t in tags for remove_phrase in conditions["remove"])
                     and tag not in non_removable_tags
                 ):
                     should_remove_tag = True
                     break
 
             if should_remove_tag:
-                removed_tags.add(tag)
+                removed_tags.append(tag)
             else:
                 # Avoid adding duplicates
                 if tag not in final_tags:
                     final_tags.append(tag)
 
-        # Reinsert parenthesized parts and handle removed tags
-        final_tags_with_parentheses = []
-        for tag in final_tags:
-            pattern = r"\0(\d+)\0"
+        return final_tags, removed_tags
 
-            def repl(m):
-                idx = int(m.group(1))
-                return parenthesized_parts[idx]
+    def combine_parentheses_groups(self, tags: List[Tag]) -> List[Tag]:
+        """Combine tags that belong to the same parentheses group."""
+        # Group tags by their parentheses group ID
+        grouped: Dict[Optional[int], List[Tag]] = {}
+        non_paren_tags: List[Tag] = []
 
-            tag = re.sub(pattern, repl, tag)
-            final_tags_with_parentheses.append(tag)
+        for tag in tags:
+            if tag.in_parentheses and tag.parentheses_group_id is not None:
+                if tag.parentheses_group_id not in grouped:
+                    grouped[tag.parentheses_group_id] = []
+                grouped[tag.parentheses_group_id].append(tag)
+            else:
+                non_paren_tags.append(tag)
 
-        simplified_tags_string = separator.join(final_tags_with_parentheses).strip(separator)
-        removed_tags_string = separator.join(removed_tags).strip(separator)
+        # Combine groups with the same strength
+        strength_groups: Dict[Optional[float], List[Tag]] = {}
+        result_tags: List[Tag] = []
 
-        return simplified_tags_string, removed_tags_string
+        for group_id, group_tags in grouped.items():
+            if not group_tags:
+                continue
 
-    def format_text(self, tags, separator):
+            strength = group_tags[0].strength
+            if strength not in strength_groups:
+                strength_groups[strength] = []
+            strength_groups[strength].extend(group_tags)
+
+        # Create combined tags for each strength group
+        for strength, group_tags in strength_groups.items():
+            # All tags in this group share the same strength and should be in parentheses
+            for tag in group_tags:
+                result_tags.append(tag)
+
+        # Add non-parenthesized tags
+        result_tags.extend(non_paren_tags)
+
+        return result_tags
+
+    def format_tags_for_animagine(self, tags: List[Tag]) -> List[Tag]:
+        """Reorder tags to put numeric tags (e.g., '2girls') first for Animagine format."""
         animagine_formatting = ConfigReader.get_setting("sn0w.PromptFormat", False)
-        if animagine_formatting is False:
+        if not animagine_formatting:
             return tags
 
         numeric_tag_pattern = re.compile(r"\b\d+\+?(girls?|boys?)\b")
-        tags = [tag.strip() for tag in tags.split(separator)]
 
-        numeric_tags = [tag for tag in tags if numeric_tag_pattern.match(tag)]
-        non_numeric_tags = [tag for tag in tags if not numeric_tag_pattern.match(tag)]
-        prioritized_tags = numeric_tags + non_numeric_tags
+        numeric_tags = [tag for tag in tags if numeric_tag_pattern.match(tag.text)]
+        non_numeric_tags = [tag for tag in tags if not numeric_tag_pattern.match(tag.text)]
 
-        return separator.join(prioritized_tags).strip(separator)
+        return numeric_tags + non_numeric_tags
 
-    def deduplicate_separators(self, text, separator=", "):
+    def apply_implied_tags(self, tags: List[Tag]) -> List[Tag]:
+        """Add implied tags based on configuration."""
+        implied_tags_config = str(ConfigReader.get_setting("sn0w.ImpliedTags", "")).split("\n")
+        tag_texts = [tag.text for tag in tags]
+        new_tags = list(tags)
+
+        for pair in implied_tags_config:
+            parts = pair.split(":")
+            if len(parts) != 2:
+                continue
+
+            key, value = parts[0].strip(), parts[1].strip()
+            if key in tag_texts and value not in tag_texts:
+                # Insert the implied tag immediately after the key tag
+                for idx, tag in enumerate(new_tags):
+                    if tag.text == key:
+                        new_tags.insert(idx + 1, Tag(text=value, in_parentheses=False))
+                        break
+
+        return new_tags
+
+    def tags_to_string(self, tags: List[Tag], separator: str) -> str:
+        """Convert a list of Tag objects back to a formatted string."""
+        # Group tags by their parentheses group and strength
+        strength_groups: Dict[Optional[float], List[str]] = {}
+        plain_tags: List[str] = []
+
+        for tag in tags:
+            if tag.in_parentheses:
+                key = tag.strength
+                if key not in strength_groups:
+                    strength_groups[key] = []
+                strength_groups[key].append(tag.text)
+            else:
+                plain_tags.append(tag.text)
+
+        # Build the result string
+        result_parts: List[str] = []
+
+        # Add parenthesized groups
+        for strength, group_texts in strength_groups.items():
+            content = separator.join(group_texts)
+            if strength is not None:
+                result_parts.append(f"({content}:{strength})")
+            else:
+                result_parts.append(f"({content})")
+
+        # Add plain tags
+        result_parts.extend(plain_tags)
+
+        # Clean up multiple separators
+        result = separator.join(result_parts)
         escaped_sep = re.escape(separator)
         pattern = rf"(?:\s*{escaped_sep}\s*)+"
-        cleaned = re.sub(pattern, separator, text)
-        cleaned = cleaned.strip(separator + " ")
-        return cleaned
+        result = re.sub(pattern, separator, result)
+        result = result.strip(separator + " ")
 
-    def combine_parentheses(self, string, separator=", "):
-        pattern = r"\((.*?)(?::([^:)]*))?\)(?:\d+(?:\.\d+)?)?"
-        matches = re.finditer(pattern, string)
+        return result
 
-        temp_string = string
-        match_map = {}
+    def combine_string(self, separator: str, simplify: bool, **kwargs) -> Tuple[str, str]:
+        """Main function to combine input strings into a single prompt."""
+        # Collect input strings
+        input_strings = [kwargs.get(f"string_{char}", "").strip() for char in ["a", "b", "c", "d"]]
+        input_strings = [s for s in input_strings if s and s != "None"]
 
-        for match in matches:
-            groups = match.groups()
-            # The parentheses has a specified strength
-            if groups[1]:
-                if groups[1] in match_map:
-                    match_map[groups[1]] += separator + groups[0]
-                    temp_string = temp_string.replace(match.group(), "")
-                else:
-                    match_map[groups[1]] = groups[0]
-                    temp_string = temp_string.replace(match.group(), f"|{groups[1]}|")
-            else:
-                # For parentheses without strength, keep them separate - replace immediately
-                temp_string = temp_string.replace(match.group(), f"({groups[0]})")
+        if not input_strings:
+            return ("", "")
 
-        for key, value in match_map.items():
-            if key == "none":
-                temp_string = temp_string.replace(f"|{key}|", f"({value})")
-            else:
-                temp_string = temp_string.replace(f"|{key}|", f"({value}:{key})")
+        # Parse all input strings to Tag objects
+        all_tags: List[Tag] = []
+        for input_string in input_strings:
+            tags = self.parse_string_to_tags(input_string, separator)
+            all_tags.extend(tags)
 
-        return self.deduplicate_separators(temp_string, separator)
+        # Deduplicate tags (preserve parenthesized tags)
+        all_tags = self.deduplicate_tags(all_tags, preserve_parentheses=True)
 
-    def combine_string(self, separator, simplify, **kwargs):
-        # Collect strings that are not None and strip them
-        strings = [s.strip() for s in (kwargs.get(f"string_{char}") for char in ["a", "b", "c", "d"]) if s]
-        removed_tags = ""
+        # Apply implied tags
+        all_tags = self.apply_implied_tags(all_tags)
 
-        all_words = set()
-        protected_words = set()  # Words within parentheses that should be preserved
-        combined = []
-
-        # Extract words in parentheses to protect them from deduplication
-        def extract_parenthesized_words(text):
-            parenthesized_pattern = re.compile(r"\(.*?\)")
-            matches = parenthesized_pattern.finditer(text)
-            words_to_protect = set()
-            for match in matches:
-                for word in match.group(0).split(separator):
-                    words_to_protect.add(word.strip())
-            return words_to_protect
-
-        # First pass: collect all protected words
-        for string in strings:
-            if string != "None" and isinstance(string, str):
-                protected_words.update(extract_parenthesized_words(string))
-
-        for string in strings:
-            if string != "None" and isinstance(string, str):
-                string = string.strip()
-
-                # Check if the string ends with the given separator and remove it if it does
-                if string.endswith(separator.strip()):
-                    string = string[: -len(separator.strip())]
-
-                # Add all the words to the set and build the final string
-                if string and string not in combined:
-                    final_string = ""
-                    words = string.split(separator)
-                    for word in words:
-                        word = word.strip()
-                        # Always add protected words or words not seen before
-                        if word in protected_words or word not in all_words:
-                            all_words.add(word)
-                            final_string += word + separator
-
-                    # Remove the trailing separator from the final string if it's not empty
-                    if final_string:
-                        final_string = final_string[: -len(separator)]
-
-                    combined.append(final_string)
-
+        # Simplify tags if requested
+        removed_tags: List[Tag] = []
         if simplify:
-            final_tags, removed_tags = self.simplify_tags(separator.join(combined), separator)
-            final_tags = self.combine_parentheses(final_tags)
-        else:
-            final_tags = separator.join(combined)
+            all_tags, removed_tags = self.simplify_tags(all_tags)
+            all_tags = self.combine_parentheses_groups(all_tags)
 
-        final_tags = self.format_text(final_tags, separator)
+        # Format for Animagine if enabled
+        all_tags = self.format_tags_for_animagine(all_tags)
 
-        return (final_tags, removed_tags)
+        # Convert back to string
+        final_string = self.tags_to_string(all_tags, separator)
+        removed_string = separator.join([tag.text for tag in removed_tags])
+
+        return (final_string, removed_string)
