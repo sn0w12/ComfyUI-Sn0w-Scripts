@@ -111,6 +111,11 @@ class GenerateCharactersNode:
             cls.logger.log(f"Error loading images.json: {str(e)}", "WARNING")
             return []
 
+    @classmethod
+    def slugify(cls, text):
+        # Slugify: lowercase, replace non-alphanumeric sequences with '_', strip leading/trailing '_'
+        return re.sub(r"\W+", "_", text.lower()).strip("_")
+
     def generate(
         self,
         model,
@@ -152,7 +157,7 @@ class GenerateCharactersNode:
                 for char_name in s["characters"]:
                     char = self.db.get_character_by_name(char_name)
                     if char:
-                        cleaned_name = char.name.split("(")[0].strip().lower().replace(" ", "_").replace("/", "")
+                        cleaned_name = self.slugify(char.name)
                         if cleaned_name not in existing_filenames:
                             characters_to_process[char.name] = char
                         else:
@@ -168,8 +173,7 @@ class GenerateCharactersNode:
 
         images = []
         for character_name, char_item in characters_to_process.items():
-            cleaned_name = character_name.split("(")[0].strip().lower()
-            cleaned_name = cleaned_name.replace(" ", "_").replace("/", "")
+            cleaned_name = self.slugify(char_item.name)
 
             # Skip if image already exists
             if cleaned_name in existing_filenames:
@@ -185,7 +189,9 @@ class GenerateCharactersNode:
             clothing_prompt = ", ".join(char_item.clothing) if include_clothing else ""
 
             # Combine prompts
-            prompt_parts = [part for part in [char_gender, char_string, char_prompt, clothing_prompt, orig_positive] if part.strip()]
+            prompt_parts = [
+                part for part in [char_gender, char_string, char_prompt, clothing_prompt, orig_positive] if part.strip()
+            ]
             positive = ", ".join(prompt_parts).strip(", ")
             kwargs["positive"] = positive
 
