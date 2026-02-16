@@ -29,7 +29,9 @@ class CharacterDB:
     logger = Logger()
 
     def __init__(self):
-        self.db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "web", "characters", "characters.db")
+        self.db_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "..", "web", "characters", "characters.db"
+        )
         self.custom_characters_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "..",
@@ -292,7 +294,9 @@ class CharacterDB:
             return True
 
         try:
-            normalized = sorted(set(self.process_tag(s).strip().lower() for s in characters_list if isinstance(s, str) and s.strip()))
+            normalized = sorted(
+                set(self.process_tag(s).strip().lower() for s in characters_list if isinstance(s, str) and s.strip())
+            )
             with open(self.hidden_characters_path, "w", encoding="utf-8") as f:
                 json.dump(normalized, f, indent=2)
             return True
@@ -400,14 +404,22 @@ class CharacterDB:
             return formatted
 
     def get_all_series(self, remove_hidden_characters=True) -> list[SeriesInfo]:
+        """
+        Return a merged list of series from both the default DB and `custom_characters.json`.
+        Respects `visible_series.json` and `hidden_characters.json` filters when applicable.
+        """
         with self.lock:
+            # Load default characters from DB
             self.cursor.execute("SELECT id, name, copyright FROM characters")
             all_characters = self.cursor.fetchall()
             pick_popular_copyright = self._build_copyright_picker(all_characters)
 
             hidden_characters = self.load_hidden_characters() if remove_hidden_characters else None
+            visible_series = self.load_visible_series()
 
-            series_map = {}
+            series_map: dict[str, list[str]] = {}
+
+            # Process default (DB) characters
             for _, name, copyright_text in all_characters:
                 processed_name = self.process_tag(name).strip().lower()
                 if hidden_characters is not None and processed_name in hidden_characters:
@@ -416,9 +428,40 @@ class CharacterDB:
                 selected_copyright = pick_popular_copyright(copyright_text)
                 if not selected_copyright:
                     continue
+
+                if visible_series is not None and selected_copyright not in visible_series:
+                    continue
+
                 series_map.setdefault(selected_copyright, []).append(self.process_tag(name))
 
-            return [{"series": series_name, "characters": characters} for series_name, characters in sorted(series_map.items())]
+            # Merge custom characters from `custom_characters.json` (if present)
+            if os.path.exists(self.custom_characters_path):
+                try:
+                    with open(self.custom_characters_path, "r", encoding="utf-8") as f:
+                        custom_list = json.load(f)
+                    if isinstance(custom_list, list):
+                        for item in custom_list:
+                            if not isinstance(item, dict):
+                                continue
+                            raw_name = item.get("name", "")
+                            if not isinstance(raw_name, str) or not raw_name.strip():
+                                continue
+
+                            # Use provided copyright or fall back to "custom" to ensure it appears in the map
+                            copyright_field = str(item.get("copyright", "custom")).strip().lower() or "custom"
+                            series_map.setdefault(copyright_field, []).append(self.process_tag(raw_name))
+                except (json.JSONDecodeError, IOError):
+                    # Ignore custom file errors — behave like file not present
+                    pass
+
+            # Remove duplicates while preserving insertion order for each series
+            for series_name, chars in list(series_map.items()):
+                series_map[series_name] = list(dict.fromkeys(chars))
+
+            return [
+                {"series": series_name, "characters": characters}
+                for series_name, characters in sorted(series_map.items())
+            ]
 
     def get_all_series_with_post_counts(self, remove_hidden_characters=True):
         with self.lock:
@@ -439,9 +482,14 @@ class CharacterDB:
                 selected_copyright = pick_popular_copyright(copyright_text)
                 if not selected_copyright:
                     continue
-                series_map.setdefault(selected_copyright, []).append({"name": self.process_tag(name), "post_count": int(post_count)})
+                series_map.setdefault(selected_copyright, []).append(
+                    {"name": self.process_tag(name), "post_count": int(post_count)}
+                )
 
-            return [{"series": series_name, "characters": characters} for series_name, characters in sorted(series_map.items())]
+            return [
+                {"series": series_name, "characters": characters}
+                for series_name, characters in sorted(series_map.items())
+            ]
 
     def get_random_character(self, valid_characters: list[str] | None = None) -> Character | None:
         """
@@ -464,7 +512,9 @@ class CharacterSelectNode:
     Node that lets a user select a character and then returns the character and character prompt
     """
 
-    cached_default_character_setting = ConfigReader.get_setting("sn0w.CharacterSettings.DisableDefaultCharacters", False)
+    cached_default_character_setting = ConfigReader.get_setting(
+        "sn0w.CharacterSettings.DisableDefaultCharacters", False
+    )
     character_dict = {}
     last_character = ""
     logger = Logger()
