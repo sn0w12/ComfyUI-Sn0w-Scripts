@@ -105,75 +105,55 @@ class LoadLoraFolderNode:
                 path for path in filtered_lora_paths if master_folder in self.normalize_folder_name(path)
             ]
 
-        # Further filter paths to include and exclude specific folders
+        # Filter paths to include and exclude specific folders in a single pass
         lora_paths = [
             path
             for path in filtered_lora_paths
             if any(folder in self.normalize_folder_name(path) for folder in include_folders)
+            and not any(exclude in self.normalize_folder_name(path) for exclude in exclude_folders)
         ]
-        lora_paths = [
-            path
-            for path in lora_paths
-            if not any(exclude in self.normalize_folder_name(path) for exclude in exclude_folders)
-        ]
-
-        lora_candidates = {}
-        loaded_loras = set()
-        lora_found = False
 
         max_distance = int(ConfigReader.get_setting("sn0w.LoraSettings.LoraFolderMinDistance", 5))
         self.logger.log("Max Distance: " + str(max_distance), "DEBUG")
 
-        # Match prompt parts with Lora filenames
-        for prompt_part in prompt_parts:
-            for lora_path in lora_paths:
-                lora_filename = os.path.split(lora_path)[-1].lower()
-                # Clean up the filename for matching
-                processed_lora_filename = lora_filename.replace(".safetensors", "").replace("_", " ")
+        # Pre-build a filename -> full_path lookup to avoid a nested search loop
+        full_path_lookup = {os.path.split(p)[-1].lower(): p for p in full_lora_paths}
 
-                # Check if prompt part matches the cleaned filename
-                if prompt_part in processed_lora_filename:
-                    distance = Utility.levenshtein_distance(prompt_part, processed_lora_filename)
-                    self.logger.log(
-                        "Processing: Distance: " + str(distance) + " Lora: " + lora_filename + " Tag: " + prompt_part,
-                        "DEBUG",
-                    )
-                    # Store matching Loras if within acceptable distance
-                    for full_path in full_lora_paths:
-                        if lora_filename in full_path.lower() and distance <= max_distance:
-                            if prompt_part not in lora_candidates:
-                                lora_candidates[prompt_part] = []
-                            lora_candidates[prompt_part].append({"full_path": full_path, "distance": distance})
-                            self.logger.log(
-                                "Final: Distance: "
-                                + str(distance)
-                                + " Lora: "
-                                + lora_filename
-                                + " Tag: "
-                                + prompt_part,
-                                "DEBUG",
-                            )
-                            break
+        # Pre-process lora_paths once: resolve filenames, display names, and full paths
+        lora_entries = [
+            (lora_filename, lora_filename.replace(".safetensors", "").replace("_", " "), full_path)
+            for lora_path in lora_paths
+            for lora_filename in (os.path.split(lora_path)[-1].lower(),)
+            if (full_path := full_path_lookup.get(lora_filename)) is not None
+        ]
+
+        # Find the single best matching Lora candidate per prompt part
+        best_candidates = {}
+        for prompt_part in prompt_parts:
+            for lora_filename, processed_name, full_path in lora_entries:
+                if prompt_part not in processed_name:
+                    continue
+                distance = Utility.levenshtein_distance(prompt_part, processed_name)
+                self.logger.log(f"Processing: Distance: {distance} Lora: {lora_filename} Tag: {prompt_part}", "DEBUG")
+                if distance > max_distance:
+                    continue
+                if prompt_part not in best_candidates or distance < best_candidates[prompt_part]["distance"]:
+                    best_candidates[prompt_part] = {"full_path": full_path, "distance": distance}
+                    self.logger.log(f"Final: Distance: {distance} Lora: {lora_filename} Tag: {prompt_part}", "DEBUG")
 
         # Load the best candidate Lora for each prompt part
-        for prompt_part, candidates in lora_candidates.items():
-            if candidates:
-                lora_found = True
-                selected_candidate = min(candidates, key=lambda x: x["distance"])
-                folder_name = self.normalize_folder_name(os.path.dirname(selected_candidate["full_path"]))
-                # Load Lora if not already loaded and within the allowed number per folder
-                if selected_candidate["full_path"] not in loaded_loras and (
-                    folder_name not in include_folders or len(loaded_loras) < include_folders[folder_name]
-                ):
-                    self.logger.log(
-                        f"Loading Lora: {os.path.split(selected_candidate['full_path'])[-1]}", "INFORMATIONAL"
-                    )
-                    model, clip = LoraLoader().load_lora(
-                        model, clip, selected_candidate["full_path"], lora_strength, lora_strength
-                    )
-                    loaded_loras.add(selected_candidate["full_path"])
+        loaded_loras = set()
+        for prompt_part, candidate in best_candidates.items():
+            folder_name = self.normalize_folder_name(os.path.dirname(candidate["full_path"]))
+            # Load Lora if not already loaded and within the allowed number per folder
+            if candidate["full_path"] not in loaded_loras and (
+                folder_name not in include_folders or len(loaded_loras) < include_folders[folder_name]
+            ):
+                self.logger.log(f"Loading Lora: {os.path.split(candidate['full_path'])[-1]}", "INFORMATIONAL")
+                model, clip = LoraLoader().load_lora(model, clip, candidate["full_path"], lora_strength, lora_strength)
+                loaded_loras.add(candidate["full_path"])
 
-        if not lora_found:
+        if not best_candidates:
             self.logger.log("No matching Lora found for any tags.", "INFORMATIONAL")
 
         return (model, clip)
