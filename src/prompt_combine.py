@@ -1,29 +1,141 @@
-import re
-from dataclasses import dataclass
-from typing import Optional, List, Dict, Set, Tuple
+from typing import Dict, Set, Tuple
 from ..sn0w import ConfigReader, Logger
 
 
-@dataclass
-class Tag:
-    """Represents a single tag with its metadata."""
+TokenStrength = tuple[str, float]
+TokenStrengthList = list[TokenStrength]
 
-    text: str
-    in_parentheses: bool = False
-    parentheses_group_id: Optional[int] = None
-    strength: Optional[float] = None
 
-    def __hash__(self):
-        return hash(self.text)
+class Tokens:
+    def __init__(self, temp_value=-9999.0) -> None:
+        self.temp_value = temp_value
 
-    def __eq__(self, other):
-        if isinstance(other, Tag):
-            return self.text == other.text
-        return False
+    def _should_replace(
+        self,
+        current: float,
+        new: float,
+    ) -> bool:
+        # Special handling for temp, more important than <1.0.
+        if current == self.temp_value:
+            return new > 1.0
+        if current == 1.0:
+            return new == self.temp_value or new >= 1.0
+
+        return new > current
+
+    def deduplicate(
+        self,
+        tokens: TokenStrengthList,
+    ) -> TokenStrengthList:
+        best: dict[str, float] = {}
+
+        for token, strength in tokens:
+            current = best.get(token)
+
+            if current is None or self._should_replace(current, strength):
+                best[token] = strength
+
+        return list(best.items())
+
+    def _ends_nesting(self, word: str) -> bool:
+        return word.endswith(")") and not word.endswith(r"\)")
+
+    def _parse_strength(self, word: str) -> float | None:
+        if not self._ends_nesting(word):
+            return None
+
+        parts = word.split(":")
+        if len(parts) <= 1:
+            return None
+
+        return float(parts[-1].strip(")"))
+
+    def tokenize(self, input: str, delimiter=",") -> TokenStrengthList:
+        if len(delimiter) != 1:
+            raise ValueError("Delimiter must be a single character")
+
+        token_tree: dict[int, list[str]] = {0: []}
+        strength_tokens: TokenStrengthList = []
+
+        current_nesting = 0
+        word = ""
+
+        for index, char in enumerate(input):
+            is_last = index == len(input) - 1
+
+            if is_last:
+                word += char
+
+            if char == delimiter or is_last:
+                word = word.strip()
+                token_tree[current_nesting].append(word)
+
+                end_nesting = self._ends_nesting(word)
+                strength = self._parse_strength(word)
+
+                for token in token_tree[current_nesting]:
+                    if strength is not None:
+                        strength_tokens.append((token.replace(f":{strength})", "").strip(), strength))
+                    elif end_nesting:
+                        strength_tokens.append((token.strip(")"), self.temp_value))
+
+                if end_nesting:
+                    token_tree[current_nesting] = []
+                    current_nesting -= 1
+
+                word = ""
+                continue
+
+            if char == "(" and not word.endswith("\\"):
+                current_nesting += 1
+                if token_tree.get(current_nesting) is None:
+                    token_tree[current_nesting] = []
+
+                continue
+
+            word += char
+
+        for token in token_tree[0]:
+            strength_tokens.append((token, 1.0))
+
+        return strength_tokens
+
+    def merge(self, *token_lists: TokenStrengthList) -> TokenStrengthList:
+        return self.deduplicate([token for token_list in token_lists for token in token_list])
+
+    def sort(self, tokens: TokenStrengthList) -> TokenStrengthList:
+        def sort_strength(value: float) -> float:
+            if value == self.temp_value:
+                return 1.000001
+            return value
+
+        return sorted(tokens, key=lambda t: sort_strength(t[1]), reverse=True)
+
+    def to_str(self, tokens: TokenStrengthList, delimiter=", ") -> str:
+        token_dict: dict[float, list[str]] = {}
+        for token, strength in tokens:
+            token_dict.setdefault(strength, []).append(token)
+
+        parts: list[str] = []
+        for key in token_dict:
+            words = token_dict[key]
+            chunk = delimiter.join(words)
+
+            if key == 1.0:
+                parts.append(chunk)
+                continue
+            if key == self.temp_value:
+                parts.append(f"({chunk})")
+                continue
+
+            parts.append(f"({chunk}:{key})")
+
+        return delimiter.join(parts)
 
 
 class CombineStringNode:
     logger = Logger()
+    parser = Tokens()
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -51,73 +163,14 @@ class CombineStringNode:
     FUNCTION = "combine_string"
     CATEGORY = "sn0w"
 
-    def parse_string_to_tags(self, input_string: str, separator: str) -> List[Tag]:
+    def parse_string_to_tags(self, input_string: str, separator: str) -> TokenStrengthList:
         """Parse an input string into a list of Tag objects."""
         if not input_string or input_string == "None":
             return []
 
-        tags: List[Tag] = []
-        # Pattern to match non-escaped parentheses with optional strength
-        # Matches: (content) or (content:1.1) but not \(content\)
-        paren_pattern = re.compile(r"(?<!\\)\(([^()]+?)(?::(\d+(?:\.\d+)?))?\)(?!\\)")
+        return self.parser.tokenize(input_string, delimiter=separator.strip())
 
-        # Track position in string
-        last_pos = 0
-
-        for match in paren_pattern.finditer(input_string):
-            # Add any plain text before this parentheses group
-            plain_text = input_string[last_pos : match.start()].strip()
-            if plain_text:
-                for tag_text in plain_text.split(separator):
-                    tag_text = tag_text.strip()
-                    if tag_text:
-                        tags.append(Tag(text=tag_text, in_parentheses=False))
-
-            # Process the parenthesized content
-            content = match.group(1)
-            strength_str = match.group(2)
-            strength = float(strength_str) if strength_str else None
-
-            # Generate a unique group ID for this parentheses group
-            group_id = len([t for t in tags if t.in_parentheses]) + 1
-
-            # Split the content by separator and create tags
-            for tag_text in content.split(separator):
-                tag_text = tag_text.strip()
-                if tag_text:
-                    tags.append(
-                        Tag(text=tag_text, in_parentheses=True, parentheses_group_id=group_id, strength=strength)
-                    )
-
-            last_pos = match.end()
-
-        # Add any remaining plain text after the last parentheses
-        remaining_text = input_string[last_pos:].strip()
-        if remaining_text:
-            for tag_text in remaining_text.split(separator):
-                tag_text = tag_text.strip()
-                if tag_text:
-                    tags.append(Tag(text=tag_text, in_parentheses=False))
-
-        return tags
-
-    def deduplicate_tags(self, tags: List[Tag], preserve_parentheses: bool = True) -> List[Tag]:
-        """Remove duplicate tags while preserving order and optionally parentheses."""
-        seen_texts: Set[str] = set()
-        unique_tags: List[Tag] = []
-
-        for tag in tags:
-            # If tag is in parentheses and we're preserving them, always keep it
-            if preserve_parentheses and tag.in_parentheses:
-                unique_tags.append(tag)
-            # Otherwise only add if we haven't seen this text before
-            elif tag.text not in seen_texts:
-                seen_texts.add(tag.text)
-                unique_tags.append(tag)
-
-        return unique_tags
-
-    def simplify_tags(self, tags: List[Tag]) -> Tuple[List[Tag], List[Tag]]:
+    def simplify_tags(self, tags: TokenStrengthList) -> Tuple[TokenStrengthList, TokenStrengthList]:
         """Simplify tags by removing redundant or conflicting tags."""
         remove_eyes = [
             "covering eyes",
@@ -141,29 +194,29 @@ class CombineStringNode:
         }
 
         # Build tag map for substring detection
-        tag_map: Dict[Tag, Tag] = {}
+        tag_map: Dict[TokenStrength, TokenStrength] = {}
         for tag in tags:
             for potential_superior in tags:
-                if tag.text in potential_superior.text and tag.text != potential_superior.text:
+                if tag[0] in potential_superior[0] and tag[0] != potential_superior[0]:
                     tag_map[tag] = potential_superior
 
         # Check global keep conditions
-        all_tag_texts = [tag.text for tag in tags]
+        all_tag_texts = [tag[0] for tag in tags]
         global_keep_conditions = {
             keyword: any(keep_phrase in all_tag_texts for keep_phrase in conditions["keep"])
             for keyword, conditions in special_phrases.items()
         }
 
         # Identify non-removable tags (those that match remove phrases)
-        non_removable_tags: Set[Tag] = {
+        non_removable_tags: Set[TokenStrength] = {
             tag
             for tag in tags
             for keyword, conditions in special_phrases.items()
-            if any(remove_phrase in tag.text for remove_phrase in conditions["remove"])
+            if any(remove_phrase in tag[0] for remove_phrase in conditions["remove"])
         }
 
-        final_tags: List[Tag] = []
-        removed_tags: List[Tag] = []
+        final_tags: TokenStrengthList = []
+        removed_tags: TokenStrengthList = []
 
         for tag in tags:
             # Check if this tag has a superior tag
@@ -176,9 +229,9 @@ class CombineStringNode:
             should_remove_tag = False
             for keyword, conditions in special_phrases.items():
                 if (
-                    keyword in tag.text
+                    keyword in tag[0]
                     and not global_keep_conditions[keyword]
-                    and any(remove_phrase in t.text for t in tags for remove_phrase in conditions["remove"])
+                    and any(remove_phrase in t[0] for t in tags for remove_phrase in conditions["remove"])
                     and tag not in non_removable_tags
                 ):
                     should_remove_tag = True
@@ -193,61 +246,10 @@ class CombineStringNode:
 
         return final_tags, removed_tags
 
-    def combine_parentheses_groups(self, tags: List[Tag]) -> List[Tag]:
-        """Combine tags that belong to the same parentheses group."""
-        # Group tags by their parentheses group ID
-        grouped: Dict[Optional[int], List[Tag]] = {}
-        non_paren_tags: List[Tag] = []
-
-        for tag in tags:
-            if tag.in_parentheses and tag.parentheses_group_id is not None:
-                if tag.parentheses_group_id not in grouped:
-                    grouped[tag.parentheses_group_id] = []
-                grouped[tag.parentheses_group_id].append(tag)
-            else:
-                non_paren_tags.append(tag)
-
-        # Combine groups with the same strength
-        strength_groups: Dict[Optional[float], List[Tag]] = {}
-        result_tags: List[Tag] = []
-
-        for group_id, group_tags in grouped.items():
-            if not group_tags:
-                continue
-
-            strength = group_tags[0].strength
-            if strength not in strength_groups:
-                strength_groups[strength] = []
-            strength_groups[strength].extend(group_tags)
-
-        # Create combined tags for each strength group
-        for strength, group_tags in strength_groups.items():
-            # All tags in this group share the same strength and should be in parentheses
-            for tag in group_tags:
-                result_tags.append(tag)
-
-        # Add non-parenthesized tags
-        result_tags.extend(non_paren_tags)
-
-        return result_tags
-
-    def format_tags_for_animagine(self, tags: List[Tag]) -> List[Tag]:
-        """Reorder tags to put numeric tags (e.g., '2girls') first for Animagine format."""
-        animagine_formatting = ConfigReader.get_setting("sn0w.PromptFormat", False)
-        if not animagine_formatting:
-            return tags
-
-        numeric_tag_pattern = re.compile(r"\b\d+\+?(girls?|boys?)\b")
-
-        numeric_tags = [tag for tag in tags if numeric_tag_pattern.match(tag.text)]
-        non_numeric_tags = [tag for tag in tags if not numeric_tag_pattern.match(tag.text)]
-
-        return numeric_tags + non_numeric_tags
-
-    def apply_implied_tags(self, tags: List[Tag]) -> List[Tag]:
+    def apply_implied_tags(self, tags: TokenStrengthList) -> TokenStrengthList:
         """Add implied tags based on configuration."""
         implied_tags_config = str(ConfigReader.get_setting("sn0w.ImpliedTags", "")).split("\n")
-        tag_texts = [tag.text for tag in tags]
+        tag_texts = [tag[0] for tag in tags]
         new_tags = list(tags)
 
         for pair in implied_tags_config:
@@ -259,49 +261,11 @@ class CombineStringNode:
             if key in tag_texts and value not in tag_texts:
                 # Insert the implied tag immediately after the key tag
                 for idx, tag in enumerate(new_tags):
-                    if tag.text == key:
-                        new_tags.insert(idx + 1, Tag(text=value, in_parentheses=False))
+                    if tag[0] == key:
+                        new_tags.insert(idx + 1, (value, 1.0))
                         break
 
         return new_tags
-
-    def tags_to_string(self, tags: List[Tag], separator: str) -> str:
-        """Convert a list of Tag objects back to a formatted string."""
-        # Group tags by their parentheses group and strength
-        strength_groups: Dict[Optional[float], List[str]] = {}
-        plain_tags: List[str] = []
-
-        for tag in tags:
-            if tag.in_parentheses:
-                key = tag.strength
-                if key not in strength_groups:
-                    strength_groups[key] = []
-                strength_groups[key].append(tag.text)
-            else:
-                plain_tags.append(tag.text)
-
-        # Build the result string
-        result_parts: List[str] = []
-
-        # Add parenthesized groups
-        for strength, group_texts in strength_groups.items():
-            content = separator.join(group_texts)
-            if strength is not None:
-                result_parts.append(f"({content}:{strength})")
-            else:
-                result_parts.append(f"({content})")
-
-        # Add plain tags
-        result_parts.extend(plain_tags)
-
-        # Clean up multiple separators
-        result = separator.join(result_parts)
-        escaped_sep = re.escape(separator)
-        pattern = rf"(?:\s*{escaped_sep}\s*)+"
-        result = re.sub(pattern, separator, result)
-        result = result.strip(separator + " ")
-
-        return result
 
     def combine_string(self, separator: str, simplify: bool, **kwargs) -> Tuple[str, str]:
         """Main function to combine input strings into a single prompt."""
@@ -313,28 +277,20 @@ class CombineStringNode:
             return ("", "")
 
         # Parse all input strings to Tag objects
-        all_tags: List[Tag] = []
+        tag_lists: list[TokenStrengthList] = []
         for input_string in input_strings:
-            tags = self.parse_string_to_tags(input_string, separator)
-            all_tags.extend(tags)
+            tag_lists.append(self.parse_string_to_tags(input_string, separator))
 
-        # Deduplicate tags (preserve parenthesized tags)
-        all_tags = self.deduplicate_tags(all_tags, preserve_parentheses=True)
-
-        # Apply implied tags
+        all_tags = self.parser.merge(*tag_lists)
         all_tags = self.apply_implied_tags(all_tags)
 
         # Simplify tags if requested
-        removed_tags: List[Tag] = []
+        removed_tags: TokenStrengthList = []
         if simplify:
             all_tags, removed_tags = self.simplify_tags(all_tags)
-            all_tags = self.combine_parentheses_groups(all_tags)
-
-        # Format for Animagine if enabled
-        all_tags = self.format_tags_for_animagine(all_tags)
 
         # Convert back to string
-        final_string = self.tags_to_string(all_tags, separator)
-        removed_string = separator.join([tag.text for tag in removed_tags])
+        final_string = self.parser.to_str(all_tags, separator)
+        removed_string = separator.join([tag[0] for tag in removed_tags])
 
         return (final_string, removed_string)
