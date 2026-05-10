@@ -5,6 +5,7 @@ from transformers import pipeline
 
 class PromptSelectNode:
     prompts = {}
+    classifier = None
 
     @classmethod
     def load_prompts(cls):
@@ -16,6 +17,11 @@ class PromptSelectNode:
         json_path = os.path.join(dir_path, "prompts.json")
         with open(json_path, "r", encoding="utf-8") as file:
             cls.prompts = json.load(file)
+
+    def get_classifier(self):
+        if self.classifier is None:
+            self.classifier = pipeline("sentiment-analysis", model="michellejieli/NSFW_text_classifier")
+        return self.classifier
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -41,7 +47,7 @@ class PromptSelectNode:
             negative_prompt = self.prompts.get(model, {}).get("negative", "")
             return (positive_prompt, negative_prompt)
 
-        classifier = pipeline("sentiment-analysis", model="michellejieli/NSFW_text_classifier")
+        classifier = self.get_classifier()
         result = classifier(prompt)
 
         is_nsfw = result[0]["label"] == "NSFW"
