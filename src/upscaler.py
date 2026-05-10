@@ -2,7 +2,6 @@ from .upscale_with_model_by import UpscaleImageBy
 import torch
 import math
 import comfy.utils
-import asyncio
 import numpy as np
 from PIL import Image
 import comfy.samplers
@@ -130,24 +129,29 @@ class AutoTaggedTiledUpscaler:
         # Split the upscaled image with overlap
         split_info = self.split_image(upscaled_image, split_parts, overlap_pixels)
 
-        # Process each split with standard KSampler
+        # Process each split in stages to reduce model swapping:
+        # 1. tag all images, 2. encode all prompts/latents, 3. sample all latents, 4. decode all images
         processed_splits = []
         k_sampler = KSampler()
         vae_encode = VAEEncode()
         vae_decode = VAEDecode()
         text_encode = CLIPTextEncode()
 
+        tagged_prompts = []
+        prompt_conditionings = []
+        latents = []
+        sampled_latents = []
+
         for i, part_data in enumerate(split_info):
             split_image = part_data["image"]  # Extract the actual image tensor
             b, h, w, c = split_image.shape
-
             self.logger.log(f"Part {i + 1}/{len(split_info)}: {w}x{h}", "DEBUG")
 
-            # First, we need to tag the split image using WD14Tagger
-            # Convert the tensor to a PIL Image for tagging
+        # Stage 1: tag every split first
+        for i, part_data in enumerate(split_info):
+            split_image = part_data["image"]
             img_for_tagging = self.tensor_to_pil(split_image)
 
-            # Tag the image using the WD14Tagger
             auto_tags = wait_for_async(
                 lambda: wd14_tag(
                     img_for_tagging,
@@ -159,16 +163,25 @@ class AutoTaggedTiledUpscaler:
                 )
             )
 
-            # Combine auto tags with user provided prompt if any
             combined_prompt = auto_tags
             if positive and isinstance(positive, str) and positive.strip():
                 combined_prompt = f"{auto_tags}, {positive.strip()}"
 
-            # Encode the combined prompt with CLIP
-            positive_conditioning = text_encode.encode(clip, combined_prompt)[0]
+            tagged_prompts.append(combined_prompt)
+            self.logger.log(f"Tagged part {i + 1}/{len(split_info)}", "DEBUG")
+
+        # Stage 2: encode all prompts and images
+        for i, part_data in enumerate(split_info):
+            split_image = part_data["image"]
+            positive_conditioning = text_encode.encode(clip, tagged_prompts[i])[0]
             latent = vae_encode.encode(vae, split_image)[0]
 
-            # Process the latent with KSampler using the auto-tagged positive conditioning
+            prompt_conditionings.append(positive_conditioning)
+            latents.append(latent)
+            self.logger.log(f"Encoded part {i + 1}/{len(split_info)}", "DEBUG")
+
+        # Stage 3: sample all latents
+        for i, latent in enumerate(latents):
             processed_latent = k_sampler.sample(
                 model=model,
                 seed=seed,
@@ -176,15 +189,20 @@ class AutoTaggedTiledUpscaler:
                 cfg=cfg,
                 sampler_name=sampler_name,
                 scheduler=scheduler,
-                positive=positive_conditioning,
+                positive=prompt_conditionings[i],
                 negative=negative,
                 latent_image=latent,
                 denoise=denoise,
             )[0]
 
-            # Decode back to image
-            processed_image = vae_decode.decode(vae, processed_latent)[0]
+            sampled_latents.append(processed_latent)
+            self.logger.log(f"Sampled part {i + 1}/{len(latents)}", "DEBUG")
+
+        # Stage 4: decode all sampled latents
+        for i, sampled_latent in enumerate(sampled_latents):
+            processed_image = vae_decode.decode(vae, sampled_latent)[0]
             processed_splits.append(processed_image)
+            self.logger.log(f"Decoded part {i + 1}/{len(sampled_latents)}", "DEBUG")
 
         # Stitch the processed images back together with fade effect
         result = self.stitch_images(processed_splits, batch_size, channels, height, width, split_parts, overlap_pixels)
@@ -398,7 +416,6 @@ class AutoTaggedTiledUpscaler:
             # Right edge fade
             if x_end > base_x_end:
                 fade_width = x_end - base_x_end
-                right_edge = effective_w - 1
                 right_offset = base_x_end - x_start
                 if right_offset < 0:
                     right_offset = 0
