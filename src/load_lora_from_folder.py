@@ -12,9 +12,40 @@ class LoadLoraFolderNode:
     """
 
     logger = Logger()
+    _lora_paths_cache = {"full": [], "typed": {}}
+
+    @classmethod
+    def _build_lora_paths_cache(cls):
+        full_lora_paths = folder_paths.get_filename_list("loras")
+
+        typed_lora_paths = {}
+        folder_map = {
+            "SD15": "loras_15",
+            "SDXL": "loras_xl",
+            "SD3": "loras_3",
+            "VD": "loras_vd",
+        }
+
+        for model_type, folder_key in folder_map.items():
+            try:
+                typed_lora_paths[model_type] = folder_paths.get_filename_list(folder_key)
+            except Exception:
+                cls.logger.log(
+                    f'Correct lora folder path for "{folder_key}" doesnt exist. Falling back to the generic loras folder.',
+                    "WARNING",
+                )
+                typed_lora_paths[model_type] = full_lora_paths
+
+        cls._lora_paths_cache = {
+            "full": full_lora_paths,
+            "typed": typed_lora_paths,
+        }
+        return cls._lora_paths_cache
 
     @classmethod
     def INPUT_TYPES(cls):
+        cls._build_lora_paths_cache()
+
         return {
             "required": {
                 "model": ("MODEL",),
@@ -78,24 +109,10 @@ class LoadLoraFolderNode:
         prompt_parts = [self.clean_string(part) for part in prompt.split(separator)]
         model_type = Utility.get_model_type_simple(model)
 
-        # Retrieve and filter Lora file paths
-        full_lora_paths = folder_paths.get_filename_list("loras")
+        cache = self._lora_paths_cache
 
-        try:
-            if model_type == "SD15":
-                filtered_lora_paths = folder_paths.get_filename_list("loras_15")
-            elif model_type == "SDXL":
-                filtered_lora_paths = folder_paths.get_filename_list("loras_xl")
-            elif model_type == "SD3":
-                filtered_lora_paths = folder_paths.get_filename_list("loras_3")
-            else:
-                filtered_lora_paths = folder_paths.get_filename_list("loras_vd")
-        except Exception:
-            self.logger.log(
-                f'Correct lora folder path for "{model_type}" doesnt exist. Please add the required lora path to extra_model_paths.yaml',
-                "WARNING",
-            )
-            filtered_lora_paths = full_lora_paths
+        full_lora_paths = cache["full"]
+        filtered_lora_paths = cache["typed"].get(model_type, full_lora_paths)
 
         master_folder, include_folders, exclude_folders = self.parse_folders(folders)
 
@@ -113,7 +130,7 @@ class LoadLoraFolderNode:
             and not any(exclude in self.normalize_folder_name(path) for exclude in exclude_folders)
         ]
 
-        max_distance = int(ConfigReader.get_setting("sn0w.LoraSettings.LoraFolderMinDistance", 5))
+        max_distance = int(ConfigReader.get_setting("sn0w.LoraSettings.LoraFolderMinDistance", 5) or 5)
         self.logger.log("Max Distance: " + str(max_distance), "DEBUG")
 
         # Pre-build a filename -> full_path lookup to avoid a nested search loop
@@ -131,8 +148,6 @@ class LoadLoraFolderNode:
         best_candidates = {}
         for prompt_part in prompt_parts:
             for lora_filename, processed_name, full_path in lora_entries:
-                if prompt_part not in processed_name:
-                    continue
                 distance = Utility.levenshtein_distance(prompt_part, processed_name)
                 self.logger.log(f"Processing: Distance: {distance} Lora: {lora_filename} Tag: {prompt_part}", "DEBUG")
                 if distance > max_distance:
