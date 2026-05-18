@@ -24,3 +24,4 @@ web/images/*/*
 /models
 web/settings/visible_series.json
 web/settings/hidden_characters.json
+web/characters/characters.db

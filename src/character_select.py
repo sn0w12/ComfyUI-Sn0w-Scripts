@@ -6,6 +6,7 @@ import threading
 from typing import TypedDict
 
 from ..sn0w import ConfigReader, Logger
+from .build_characters_db import build_db_from_dataset, is_db_up_to_date
 
 
 class SeriesInfo(TypedDict):
@@ -55,6 +56,20 @@ class CharacterDB:
         )
 
         self.CHAR_DELIMITER = "|"
+
+        if not is_db_up_to_date(self.db_path):
+            try:
+                if not os.path.exists(self.db_path):
+                    self.logger.log(
+                        "characters.db not found — downloading and building from HuggingFace dataset…", "INFORMATIONAL"
+                    )
+                else:
+                    self.logger.log(
+                        "characters.db is outdated — re-downloading from HuggingFace dataset…", "INFORMATIONAL"
+                    )
+                build_db_from_dataset(self.db_path, logger=self.logger)
+            except Exception as exc:  # pylint: disable=broad-except
+                self.logger.log(f"Failed to build characters database: {exc}", "ERROR")
 
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)  # Allow multi-thread access
         self.cursor = self.conn.cursor()
