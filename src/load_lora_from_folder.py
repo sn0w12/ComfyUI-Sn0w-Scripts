@@ -78,6 +78,19 @@ class LoadLoraFolderNode:
     def normalize_folder_name(self, folder_name):
         return folder_name.strip().replace("\\", "/").lower()
 
+    def get_path_segments(self, path):
+        normalized_path = self.normalize_folder_name(os.path.dirname(path))
+        return [segment for segment in normalized_path.split("/") if segment]
+
+    def path_matches_folder(self, folder_name, path):
+        normalized_folder = self.normalize_folder_name(folder_name)
+        normalized_path = self.normalize_folder_name(os.path.dirname(path))
+
+        if "/" in normalized_folder:
+            return normalized_path == normalized_folder or normalized_path.startswith(normalized_folder + "/")
+
+        return normalized_folder in self.get_path_segments(path)
+
     def parse_folders(self, folder_string):
         master_folder = None
         include_folders = {}
@@ -119,15 +132,15 @@ class LoadLoraFolderNode:
         # Include only paths in the master folder, if specified
         if master_folder:
             filtered_lora_paths = [
-                path for path in filtered_lora_paths if master_folder in self.normalize_folder_name(path)
+                path for path in filtered_lora_paths if self.path_matches_folder(master_folder, path)
             ]
 
         # Filter paths to include and exclude specific folders in a single pass
         lora_paths = [
             path
             for path in filtered_lora_paths
-            if any(folder in self.normalize_folder_name(path) for folder in include_folders)
-            and not any(exclude in self.normalize_folder_name(path) for exclude in exclude_folders)
+            if any(self.path_matches_folder(folder, path) for folder in include_folders)
+            and not any(self.path_matches_folder(exclude, path) for exclude in exclude_folders)
         ]
 
         max_distance = int(ConfigReader.get_setting("sn0w.LoraSettings.LoraFolderMinDistance", 5) or 5)
