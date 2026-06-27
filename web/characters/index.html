@@ -233,8 +233,14 @@
                 border-radius: 0.375rem;
                 cursor: pointer;
                 display: inline-flex;
+                flex: 1;
                 align-items: center;
-                justify-content: center;
+                justify-content: end;
+                transition: color 0.15s ease;
+            }
+
+            .toggle-btn:hover {
+                color: var(--primary);
             }
 
             .toggle-icon {
@@ -359,6 +365,7 @@
             .series-name {
                 user-select: none;
                 color: var(--card-foreground);
+                max-width: 20rem;
             }
 
             .series-counts {
@@ -462,6 +469,18 @@
                 }
             }
 
+            function getCharacterPostCount(character) {
+                if (typeof character === "object" && character?.post_count != null) {
+                    const count = Number(character.post_count);
+                    return Number.isFinite(count) ? count : 0;
+                }
+                return 0;
+            }
+
+            function getSeriesPostCount(series) {
+                return (series.characters || []).reduce((sum, character) => sum + getCharacterPostCount(character), 0);
+            }
+
             function renderCheckboxes(seriesData, visibleData, hiddenData, filter = "") {
                 const seriesList = document.getElementById("seriesList");
                 seriesList.innerHTML = "";
@@ -472,6 +491,12 @@
                     seriesData.sort((a, b) => a.series.localeCompare(b.series));
                 } else if (SORT_MODE === "count") {
                     seriesData.sort((a, b) => b.characters.length - a.characters.length);
+                } else if (SORT_MODE === "posts") {
+                    seriesData.sort((a, b) => {
+                        const postDiff = getSeriesPostCount(b) - getSeriesPostCount(a);
+                        if (postDiff !== 0) return postDiff;
+                        return a.series.localeCompare(b.series);
+                    });
                 }
 
                 let filtered = seriesData.filter((s) => s.series.toLowerCase().includes(normalizedFilter));
@@ -526,7 +551,7 @@
 
                     const nameSpan = document.createElement("span");
                     nameSpan.className = "series-name";
-                    nameSpan.textContent = series.series;
+                    nameSpan.textContent = series.series.replace(/_/g, " ").trim();
 
                     const countSpan = document.createElement("span");
                     countSpan.className = "series-counts";
@@ -987,6 +1012,7 @@
                         <select id="sortSelect" class="select">
                             <option value="alpha">Alphabetical</option>
                             <option value="count">Total Characters</option>
+                            <option value="posts">Total Character Posts</option>
                         </select>
                     </div>
                     <div class="select-wrapper">
