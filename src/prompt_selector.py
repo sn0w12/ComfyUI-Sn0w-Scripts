@@ -1,6 +1,5 @@
 import os
 import json
-from transformers import pipeline
 
 
 class PromptSelectNode:
@@ -18,11 +17,6 @@ class PromptSelectNode:
         with open(json_path, "r", encoding="utf-8") as file:
             cls.prompts = json.load(file)
 
-    def get_classifier(self):
-        if self.classifier is None:
-            self.classifier = pipeline("sentiment-analysis", model="michellejieli/NSFW_text_classifier")
-        return self.classifier
-
     @classmethod
     def INPUT_TYPES(cls):
         cls.load_prompts()
@@ -31,9 +25,39 @@ class PromptSelectNode:
             "required": {
                 "prompt": ("STRING", {"default": ""}),
                 "model": (model_names,),
-                "skip_classification": ("BOOLEAN", {"default": False}),
+                "separator": ("STRING", {"default": ", "}),
             },
         }
+
+    NSFW_WORDS = [
+        "uncensored",
+        "penis",
+        "sex",
+        "completely nude",
+        "genitals",
+        "vagina",
+        "pussy",
+        "dick",
+        "cock",
+        "asshole",
+        "masturbat",
+        "orgasm",
+        "ejaculat",
+        "threesome",
+        "gangbang",
+        "orgy",
+        "incest",
+        "squirt",
+        "creampie",
+        "futanari",
+        "erection",
+        "dildo",
+        "vibrator",
+        "pegging",
+    ]
+
+    def is_nsfw(self, prompt):
+        return any(word.lower() in prompt.lower() for word in self.NSFW_WORDS if word)
 
     # Define static properties for the class
     RETURN_TYPES = ("STRING", "STRING")
@@ -41,21 +65,18 @@ class PromptSelectNode:
     FUNCTION = "find_chosen_prompts"
     CATEGORY = "sn0w"
 
-    def find_chosen_prompts(self, prompt, model, skip_classification):
-        if skip_classification:
-            positive_prompt = self.prompts.get(model, {}).get("positive", "")
-            negative_prompt = self.prompts.get(model, {}).get("negative", "")
-            return (positive_prompt, negative_prompt)
+    def find_chosen_prompts(self, prompt, model, separator: str):
+        positive_prompt = self.prompts.get(model, {}).get("positive", "")
+        negative_prompt = self.prompts.get(model, {}).get("negative", "")
 
-        classifier = self.get_classifier()
-        result = classifier(prompt)
-
-        is_nsfw = result[0]["label"] == "NSFW"
+        is_nsfw = self.is_nsfw(prompt)
         if is_nsfw:
-            positive_prompt = self.prompts.get(model, {}).get("positive_nsfw", "")
-            negative_prompt = self.prompts.get(model, {}).get("negative", "")
-        else:
-            positive_prompt = self.prompts.get(model, {}).get("positive", "")
-            negative_prompt = self.prompts.get(model, {}).get("negative_sfw", "")
+            if "uncensored" not in prompt:
+                positive_prompt = positive_prompt + separator + "uncensored"
+            negative_prompt = (
+                negative_prompt
+                + separator
+                + separator.join(["censored", "bar censor", "blur censor", "mosaic censoring"])
+            )
 
         return (positive_prompt, negative_prompt)

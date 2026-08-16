@@ -176,7 +176,7 @@ class CharacterDB:
                 for char in custom_list:
                     raw_name = char.get("name", "").strip()
                     name = raw_name.lower()
-                    copyright = char.get("copyright", "custom").strip().lower()
+                    copyright = char.get("copyright", "custom").split(",")[0].strip().lower()
 
                     if not raw_name:
                         continue
