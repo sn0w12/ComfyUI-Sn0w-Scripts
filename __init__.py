@@ -23,6 +23,7 @@ from .src.simple_ksampler import SimpleSamplerCustom
 from .src.filter_tags import FilterTags
 from .src.generate_all_character_images import GenerateCharactersNode
 from .src.upscaler import AutoTaggedTiledUpscaler
+from .src.lora_presets import build_lora_loader_info, save_preset
 
 # Constants
 WEB_DIRECTORY = "./web"
@@ -158,6 +159,41 @@ generate_and_register_all_lora_nodes()
 import_and_register_scheduler_nodes()
 
 API_PREFIX = "/sn0w"
+
+
+@PromptServer.instance.routes.get(f"{API_PREFIX}/lora_loader_info")
+async def lora_loader_info_endpoint(request):
+    return web.json_response(build_lora_loader_info(NODE_CLASS_MAPPINGS))
+
+
+@PromptServer.instance.routes.post(f"{API_PREFIX}/lora_presets")
+async def save_lora_preset(request):
+    data = await request.json()
+    if data is None or not isinstance(data, dict):
+        return web.json_response({"error": "Invalid request, expected a JSON object"}, status=400)
+
+    name = str(data.get("name", "")).strip()
+    path = str(data.get("path", "")).strip()
+    loras = data.get("loras")
+    if not name or not path or not isinstance(loras, list):
+        return web.json_response({"error": "Invalid request, 'name', 'path' and 'loras' are required"}, status=400)
+
+    cleaned_loras = []
+    for entry in loras[:26]:
+        if not isinstance(entry, dict):
+            continue
+        lora = str(entry.get("lora", "")).strip()
+        if not lora:
+            continue
+        try:
+            strength = float(entry.get("strength", 1.0))
+        except (TypeError, ValueError):
+            strength = 1.0
+        cleaned_loras.append({"lora": lora, "strength": strength})
+
+    if not save_preset(name, path, cleaned_loras):
+        return web.json_response({"error": "Failed to save preset"}, status=500)
+    return web.json_response({"status": "ok"})
 
 
 @PromptServer.instance.routes.get(f"{API_PREFIX}/series")

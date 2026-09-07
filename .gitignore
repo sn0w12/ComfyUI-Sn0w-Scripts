@@ -24,4 +24,5 @@ web/images/*/*
 /models
 web/settings/visible_series.json
 web/settings/hidden_characters.json
+web/settings/lora_presets.json
 web/characters/characters.db

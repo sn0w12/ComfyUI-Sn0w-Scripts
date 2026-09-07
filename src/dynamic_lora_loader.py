@@ -5,6 +5,7 @@ import os
 import folder_paths
 
 from ..sn0w import Logger, Utility, ConfigReader
+from .lora_presets import MAX_PRESET_DEPTH, find_preset, normalize_loader_path, presets_for_path
 
 
 def generate_lora_node_class(lora_type, required_folders=None, combos=1):
@@ -19,6 +20,8 @@ def generate_lora_node_class(lora_type, required_folders=None, combos=1):
 
     class DynamicLoraNode:
         logger = Logger()
+        LORA_PATH = required_folders
+        LORA_COMBOS = combos
 
         @classmethod
         def sort_loras(cls, loras, method="alphabetical"):
@@ -70,6 +73,11 @@ def generate_lora_node_class(lora_type, required_folders=None, combos=1):
 
             filtered_sorted_loras = Utility.put_favourite_on_top("sn0w.FavouriteLoras", filtered_sorted_loras)
 
+            lora_options = ["None"] + filtered_sorted_loras
+            if required_folders is not None:
+                loader_path = normalize_loader_path(required_folders)
+                lora_options += [preset["name"] for preset in presets_for_path(loader_path)]
+
             inputs = {
                 "required": {
                     "model": ("MODEL",),
@@ -77,7 +85,7 @@ def generate_lora_node_class(lora_type, required_folders=None, combos=1):
                 },
             }
             if combos == 1:
-                inputs["required"]["lora"] = (["None"] + filtered_sorted_loras,)
+                inputs["required"]["lora"] = (lora_options,)
                 inputs["required"]["lora_strength"] = (
                     "FLOAT",
                     {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01},
@@ -87,7 +95,7 @@ def generate_lora_node_class(lora_type, required_folders=None, combos=1):
             else:
                 for idx in range(combos):
                     suffix = chr(97 + idx)  # 'a', 'b', 'c', etc.
-                    inputs["required"][f"lora_{suffix}"] = (["None"] + filtered_sorted_loras,)
+                    inputs["required"][f"lora_{suffix}"] = (lora_options,)
                     inputs["required"][f"lora_strength_{suffix}"] = (
                         "FLOAT",
                         {"default": 1.0, "min": -10.0, "max": 10.0, "step": 0.01},
@@ -101,8 +109,19 @@ def generate_lora_node_class(lora_type, required_folders=None, combos=1):
         CATEGORY = "sn0w/lora"
         OUTPUT_NODE = True
 
-        def load_lora(self, model, clip, lora, lora_strength):
+        def load_lora(self, model, clip, lora, lora_strength, depth=0):
             if lora == "None":
+                return (model, clip)
+
+            preset = None
+            if required_folders is not None:
+                preset = find_preset(normalize_loader_path(required_folders), lora)
+            if preset is not None:
+                if depth >= MAX_PRESET_DEPTH:
+                    self.logger.log("Preset expansion too deep, skipping", "WARNING")
+                    return (model, clip)
+                for entry in preset["loras"]:
+                    model, clip = self.load_lora(model, clip, entry["lora"], entry["strength"] * lora_strength, depth + 1)
                 return (model, clip)
 
             lora_loader = LoraLoader()
