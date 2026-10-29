@@ -28,6 +28,7 @@ class Character:
 
 class CharacterDB:
     logger = Logger()
+    last_auto_hide = {"count": 0, "characters": [], "series": []}
 
     def __init__(self):
         self.db_path = os.path.join(
@@ -57,8 +58,13 @@ class CharacterDB:
 
         self.CHAR_DELIMITER = "|"
 
+        old_series_map = None
+        hidden_before = None
         if not is_db_up_to_date(self.db_path):
             try:
+                if os.path.exists(self.db_path):
+                    old_series_map = self._read_series_map(self.db_path)
+                    hidden_before = self.load_hidden_characters()
                 if not os.path.exists(self.db_path):
                     self.logger.log(
                         "characters.db not found — downloading and building from HuggingFace dataset…", "INFORMATIONAL"
@@ -74,6 +80,12 @@ class CharacterDB:
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)  # Allow multi-thread access
         self.cursor = self.conn.cursor()
         self.lock = threading.Lock()  # Add lock for thread-safety
+
+        if old_series_map is not None:
+            try:
+                self._auto_hide_new_characters(old_series_map, hidden_before)
+            except Exception as exc:  # pylint: disable=broad-except
+                self.logger.log(f"Failed to auto-hide new characters: {exc}", "WARNING")
 
         # Validate custom_characters.json structure on initialization
         is_valid, error_msg = self.validate_custom_characters_structure()
@@ -351,6 +363,71 @@ class CharacterDB:
             return True
         except IOError:
             return False
+
+    def _read_series_map(self, db_path: str) -> dict[str, str] | None:
+        """Map normalized character name -> selected series for the DB at *db_path*."""
+        try:
+            conn = sqlite3.connect(db_path)
+            try:
+                rows = conn.execute("SELECT id, name, copyright FROM characters").fetchall()
+            finally:
+                conn.close()
+        except (sqlite3.Error, IOError, OSError):
+            return None
+        pick = self._build_copyright_picker(rows)
+        series_map: dict[str, str] = {}
+        for _, name, copyright_text in rows:
+            if not name:
+                continue
+            normalized = self.process_tag(name).strip().lower()
+            if not normalized:
+                continue
+            series_map[normalized] = pick(copyright_text)
+        return series_map
+
+    def _auto_hide_new_characters(
+        self, old_series_map: dict[str, str] | None, hidden_before: set[str] | None
+    ) -> None:
+        """Hide newly added characters in series where the user already hid something."""
+        if old_series_map is None or not hidden_before:
+            return
+        self.cursor.execute("SELECT id, name, copyright FROM characters")
+        rows = self.cursor.fetchall()
+        pick = self._build_copyright_picker(rows)
+        new_series_map: dict[str, str] = {}
+        for _, name, copyright_text in rows:
+            if not name:
+                continue
+            normalized = self.process_tag(name).strip().lower()
+            if normalized:
+                new_series_map[normalized] = pick(copyright_text)
+        added = set(new_series_map) - set(old_series_map)
+        if not added:
+            return
+        hidden_series = {
+            series
+            for name, series in list(old_series_map.items()) + list(new_series_map.items())
+            if series and name in hidden_before
+        }
+        if not hidden_series:
+            return
+        visible_series = self.load_visible_series()
+        to_hide = [
+            name
+            for name in added
+            if new_series_map.get(name) in hidden_series
+            and (visible_series is None or new_series_map.get(name) in visible_series)
+        ]
+        if not to_hide:
+            return
+        merged = set(hidden_before) | set(to_hide)
+        if self.set_hidden_characters(sorted(merged)):
+            type(self).last_auto_hide = {
+                "count": len(to_hide),
+                "characters": sorted(to_hide),
+                "series": sorted(hidden_series),
+            }
+            self.logger.log(f"Auto-hid {len(to_hide)} new character(s) in series with hidden characters.", "INFORMATIONAL")
 
     def get_default_character_names(self, names_only=False) -> list[str]:
         with self.lock:

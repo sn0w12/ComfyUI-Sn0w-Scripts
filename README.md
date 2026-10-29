@@ -263,6 +263,21 @@ Nodes for selecting and combining character and textual elements.
 >
 >    </details>
 
+### Character Prompt Injector
+
+> Injects up to four characters into a natural language prompt while keeping it readable as prose.
+
+> <details>
+>    <summary>ℹ️ <i>See More Information</i></summary>
+>
+> -   Uses the same character list as the Character Selector.
+> -   Reference characters in the prompt with `{{char1}}` through `{{char4}}`. Each placeholder is replaced by the character selected in the matching slot.
+> -   The first mention of a character gets the name and series plus a description built from hair, eye, and body tags, with hair colour, length, and style merged into one phrase (e.g. "Darkness from Konosuba, a girl with long blonde hair tied in a ponytail, blue eyes, and large breasts"). Clothing and accessory tags are ignored, and later mentions use only the name.
+> -   Connect the Character Selector's `CHARACTER NAME` output to a slot instead of using its dropdown.
+> -   A prompt without placeholders falls back to the single-character behavior: the character in slot 1 replaces a generic subject such as "a girl", or is added as a "featuring ..." clause.
+>
+>    </details>
+
 ### Prompt Combine
 
 > Combines multiple strings with a specified separator and optionally simplifies the result by removing redundant or incompatible tags.

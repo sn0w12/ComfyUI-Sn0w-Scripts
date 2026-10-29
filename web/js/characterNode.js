@@ -1,4 +1,5 @@
 import { app } from "../../../scripts/app.js";
+import { api } from "../../../scripts/api.js";
 import { $el } from "../../../../../../../../../../../../../../../../scripts/ui.js";
 
 const linkSetting = (name, setter, value, attrs) => {
@@ -33,6 +34,22 @@ app.registerExtension({
         });
     },
     async setup() {
+        try {
+            const res = await api.fetchApi("/sn0w/auto_hide_notice");
+            const data = await res.json();
+            if (data && data.count > 0) {
+                const names = (data.characters || []).slice(0, 5).join(", ");
+                const more = data.count > 5 ? ` (+${data.count - 5} more)` : "";
+                app.extensionManager.toast.add({
+                    severity: "info",
+                    summary: `Auto-hid ${data.count} new character${data.count !== 1 ? "s" : ""}`,
+                    detail: `Hidden in series with hidden characters: ${names}${more}`,
+                    life: 8000,
+                });
+            }
+        } catch (e) {
+            console.warn("auto_hide_notice failed", e);
+        }
         const existingContextMenu = LiteGraph.ContextMenu;
         LiteGraph.ContextMenu = function (values, options) {
             if (values[values.length - 1] != "SN0W_CHARACTER_SELECTOR") {

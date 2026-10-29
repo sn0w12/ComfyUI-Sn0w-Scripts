@@ -12,6 +12,7 @@ from .sn0w import ConfigReader, Logger
 from .src.lora_selector import LoraSelectorNode
 from .src.lora_tester import LoraTestNode
 from .src.character_select import CharacterSelectNode, CharacterDB
+from .src.character_prompt_inject import CharacterPromptInjectNode
 from .src.prompt_combine import CombineStringNode
 from .src.lora_stacker import LoraStackerNode
 from .src.get_font_size import GetFontSizeNode
@@ -34,6 +35,7 @@ NODE_CLASS_MAPPINGS = {
     "Lora Selector": LoraSelectorNode,
     "Lora Tester": LoraTestNode,
     "Character Selector": CharacterSelectNode,
+    "Character Prompt Injector": CharacterPromptInjectNode,
     "Prompt Combine": CombineStringNode,
     "Sn0w Lora Stacker": LoraStackerNode,
     "Load Lora Sn0w": generate_lora_node_class("loras"),
@@ -52,6 +54,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Lora Selector": "Lora Selector",
     "Lora Tester": "Lora Tester",
     "Character Selector": "Character Selector",
+    "Character Prompt Injector": "Character Prompt Injector",
     "Prompt Combine": "Prompt Combine",
     "Sn0w Lora Stacker": "Sn0w Lora Stacker",
     "Load Lora Sn0w": "Load Lora Sn0w",
@@ -226,6 +229,13 @@ async def get_hidden_characters(request):
     db = CharacterDB()
     hidden = db.load_hidden_characters()
     return web.json_response({"hidden_characters": list(hidden) if hidden else []})
+
+
+@PromptServer.instance.routes.get(f"{API_PREFIX}/auto_hide_notice")
+async def get_auto_hide_notice(request):
+    notice = dict(CharacterDB.last_auto_hide)
+    CharacterDB.last_auto_hide = {"count": 0, "characters": [], "series": []}
+    return web.json_response(notice)
 
 
 @PromptServer.instance.routes.post(f"{API_PREFIX}/hidden_characters")
